@@ -12,6 +12,7 @@ CREATE DATABASE OverLut_Storage
 GO
 
 USE OverLut
+
 ----------------------------
 -- 1) Roles + Users
 ----------------------------
@@ -68,9 +69,8 @@ CREATE TABLE RescueRequests(
   PeopleCount INT NULL,
   PhoneContact VARCHAR(12) NULL,
 
-  -- Vị trí: dùng geography để làm map/nearby queries [web:2][web:3]
   [Location] GEOGRAPHY NULL,
-  LocationText NVARCHAR(500) NULL, -- địa chỉ mô tả
+  LocationText NVARCHAR(500) NULL,
 
   VerifiedByUserID INT NULL CONSTRAINT FK_RescueRequests_VerifiedBy REFERENCES Users(UserID),
   VerifiedAt DATETIME2 NULL,
@@ -249,5 +249,3 @@ CREATE TABLE Notifications(
   CONSTRAINT FK_Notifications_User FOREIGN KEY (UserID) REFERENCES Users(UserID),
 );
 GO
-
-
