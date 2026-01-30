@@ -23,7 +23,8 @@ RoleName NVARCHAR(255) NOT NULL CONSTRAINT UQ_Roles_RoleName UNIQUE
 );
 GO
 -- Citizen=1, RescueTeam=2, Coordinator=3, Manager=4, Admin=5
--- INSERT Roles(RoleID, RoleName) VALUES (1,N'Citizen'),(2,N'RescueTeam'),(3,N'RescueCoordinator'),(4,N'Manager'),(5,N'Admin');
+INSERT Roles(RoleID, RoleName) VALUES (1,N'Citizen'),(2,N'RescueTeam'),(3,N'RescueCoordinator'),(4,N'Manager'),(5,N'Admin');
+
 
 CREATE TABLE Users (
 	UserID INT IDENTITY(1,1) CONSTRAINT PK_Users PRIMARY KEY,
@@ -39,6 +40,37 @@ CREATE TABLE Users (
 	CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 	CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
 );
+----------------------------
+-- Token
+----------------------------
+CREATE TABLE RefreshToken (
+  RefreshTokenId INT PRIMARY KEY IDENTITY(1,1),
+  UserID INT FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+  Token NVARCHAR(500) UNIQUE,
+  JwtId NVARCHAR(100) UNIQUE,
+  CreatedAt DATETIME NOT NULL,
+  ExpiredAt DATETIME NOT NULL,
+  Revoked BIT NOT NULL DEFAULT 0,
+	IPAddress NVARCHAR(255),
+	UserAgent NVARCHAR(MAX)
+);
+
+CREATE TABLE LogLogin(
+	LogId INT PRIMARY KEY IDENTITY(1,1),
+	RefreshTokenId INT NULL CONSTRAINT FK_LogLogin_RefreshToken FOREIGN KEY REFERENCES RefreshToken(RefreshTokenId),
+	Success BIT NOT NULL DEFAULT 0,
+	FailReason NVARCHAR(255),
+	IPAddress NVARCHAR(255),
+	UserAgent NVARCHAR(MAX),
+	LoginTime DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE AccessTokenBlacklist(
+	JwtId VARCHAR(50) PRIMARY KEY,
+	UserID INT FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+	ExpireAt DATETIME NOT NULL,
+	Reason NVARCHAR(500)
+);
 
 ----------------------------
 -- 2) Yêu cầu cứu hộ/cứu trợ
@@ -49,7 +81,7 @@ CREATE TABLE RescueRequestsStatus(
 );
 GO
 -- 0: New, 1: Verified, 2: Assigned, 3: InProgress, 4: Done, 5: Rejected
--- INSERT RescueRequestsStatus(RescueRequestsStatusID, StatusName) VALUES (0,N'New'),(1,N'Verified'),(2,N'Assigned'),(3,N'InProgress'),(4,N'Done'),(5,N'Rejected');
+INSERT RescueRequestsStatus(RescueRequestsStatusID, StatusName) VALUES (0,N'New'),(1,N'Verified'),(2,N'Assigned'),(3,N'InProgress'),(4,N'Done'),(5,N'Rejected');
 
 CREATE TABLE RescueRequestsTypes(
 	RescueRequestsTypeID INT NOT NULL CONSTRAINT  PK_RescueRequestsTypes PRIMARY KEY,
@@ -57,13 +89,16 @@ CREATE TABLE RescueRequestsTypes(
 );
 GO
 -- 0: Rescue, 1: Relief, 2: Both
--- INSERT RescueRequestsTypes(RescueRequestsTypeID, TypeName) VALUES (0,N'Rescue'),(1,N'Relief'),(2,N'Both');
+INSERT RescueRequestsTypes(RescueRequestsTypeID, TypeName) VALUES (0,N'Rescue'),(1,N'Relief'),(2,N'Both');
 
 CREATE TABLE RescueRequests(
   RescueRequestID UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_RescueRequests PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
-  CitizenUserID INT NOT NULL CONSTRAINT FK_RescueRequests_Citizen REFERENCES Users(UserID),
+  CitizenUserID INT NULL CONSTRAINT FK_RescueRequests_Citizen REFERENCES Users(UserID),
   RequestType INT NOT NULL CONSTRAINT FK_RescueRequests_RescueRequestsTypes REFERENCES RescueRequestsTypes(RescueRequestsTypeID),
-  UrgencyLevel INT NOT NULL CHECK (UrgencyLevel>=1 and UrgencyLevel<=5),       -- 1..5
+  UrgencyLevel INT NULL CHECK (UrgencyLevel>=1 and UrgencyLevel<=5),       -- 1..5
+  IPAddress NVARCHAR(50) NULL,
+  UserAgent NVARCHAR(MAX) NULL,
+
   [Status] INT NOT NULL CONSTRAINT FK_RescueRequests_RescueRequestsStatus REFERENCES RescueRequestsStatus(RescueRequestsStatusID),
   [Description] NVARCHAR(2000) NULL,
   PeopleCount INT NULL,
@@ -113,7 +148,7 @@ CREATE TABLE RescueTeamsStatus(
 );
 GO
 -- 0: Available, 1: Busy, 2: Offline
--- INSERT RescueTeamsStatus(RescueTeamsStatusID, StatusName) VALUES (0,N'Available'),(1,N'Busy'),(2,N'Offline');
+INSERT RescueTeamsStatus(RescueTeamsStatusID, StatusName) VALUES (0,N'Available'),(1,N'Busy'),(2,N'Offline');
 
 CREATE TABLE RescueTeams(
   TeamID INT IDENTITY(1,1) CONSTRAINT PK_RescueTeams PRIMARY KEY,
@@ -129,7 +164,7 @@ CREATE TABLE RescueMembersRolls(
 );
 GO
 -- 0: Leader, 1: Member
--- INSERT RescueMembersRolls(RescueMembersRollID, RollName) VALUES (0,N'Leader'),(1,N'Member');
+INSERT RescueMembersRolls(RescueMembersRollID, RollName) VALUES (0,N'Leader'),(1,N'Member');
 
 
 CREATE TABLE RescueTeamMembers(
@@ -146,7 +181,7 @@ CREATE TABLE VehiclesTypes(
 );
 GO
 -- 0: boat, 1: truck, 2: ambulance
--- INSERT VehiclesTypes(VehicleTypeID, TypeName) VALUES (0,N'Boat'),(1,N'Truck'),(2,N'Ambulance');
+INSERT VehiclesTypes(VehicleTypeID, TypeName) VALUES (0,N'Boat'),(1,N'Truck'),(2,N'Ambulance');
 
 CREATE TABLE VehiclesStatus(
 	VehiclesStatusID INT NOT NULL CONSTRAINT PK_VehiclesStatus PRIMARY KEY,
@@ -154,7 +189,7 @@ CREATE TABLE VehiclesStatus(
 );
 GO
  -- 0: Available, 1: InUse, 2: Maintenance
--- INSERT VehiclesStatus(VehiclesStatusID, StatusName) VALUES (0,N'Available'),(1,N'InUse'),(2,N'Maintenance');
+INSERT VehiclesStatus(VehiclesStatusID, StatusName) VALUES (0,N'Available'),(1,N'InUse'),(2,N'Maintenance');
 
 CREATE TABLE Vehicles(
   VehicleID INT IDENTITY(1,1) CONSTRAINT PK_Vehicles PRIMARY KEY,
@@ -172,7 +207,7 @@ CREATE TABLE RescueMissionsStatus(
 );
 GO
 -- 0 Assigned, 1 EnRoute, 2 Rescuing, 3 Completed, 4 Failed
--- INSERT RescueMissionsStatus(VehiclesStatusID, StatusName) VALUES (0,N'Assigned'),(1,N'EnRoute'),(2,N'Rescuing'),(3,N'Completed'),(4,N'Failed');
+INSERT RescueMissionsStatus(RescueMissionsStatusID, StatusName) VALUES (0,N'Assigned'),(1,N'EnRoute'),(2,N'Rescuing'),(3,N'Completed'),(4,N'Failed');
 
 CREATE TABLE RescueMissions(
   MissionID UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_RescueMissions PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
@@ -211,6 +246,7 @@ GO
 CREATE TABLE Warehouses(
   WarehouseID INT IDENTITY(1,1) CONSTRAINT PK_Warehouses PRIMARY KEY,
   WarehouseName NVARCHAR(200) NOT NULL,
+  [Location] GEOGRAPHY NOT NULL,
   LocationText NVARCHAR(500) NULL
 );
 GO
@@ -236,16 +272,61 @@ CREATE TABLE InventoryTransactions(
 GO
 
 ----------------------------
--- 5) Thông báo
+-- 5) Message
 ----------------------------
-CREATE TABLE Notifications(
-  NotificationID BIGINT IDENTITY(1,1) CONSTRAINT PK_Notifications PRIMARY KEY,
-  UserID INT NOT NULL,
-  RescueRequestID UNIQUEIDENTIFIER NULL CONSTRAINT FK_Notifications_RescueRequests REFERENCES RescueRequests(RescueRequestID),
-  Title NVARCHAR(200) NOT NULL,
-  Body NVARCHAR(2000) NOT NULL,
-  IsRead BIT NOT NULL DEFAULT 0,
-  CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-  CONSTRAINT FK_Notifications_User FOREIGN KEY (UserID) REFERENCES Users(UserID),
+CREATE TABLE Channels(
+  ChannelID UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID(),
+  ChannelType INT DEFAULT 0,
+  ChannelName NVARCHAR(255),
+-- Bitwise 0000
+-- 1: Read, 2: Write, 8: Add other
+  DefaultPermissions INT DEFAULT 1,
+  CreateAt DATETIME2 DEFAULT SYSUTCDATETIME(),
+	CONSTRAINT PK_Channels PRIMARY KEY (ChannelID)
 );
+GO
+
+CREATE TABLE ChannelMembers(
+    ChannelID UNIQUEIDENTIFIER NOT NULL,
+    UserID INT NOT NULL,
+	-- Bitwise 0000
+	-- 1: Read, 2: Write, 8: Add other
+    [Permissions] INT DEFAULT 3,
+    CONSTRAINT PK_ChannelMembers PRIMARY KEY (ChannelID, UserID),
+    CONSTRAINT FK_ChannelMembers_Channels FOREIGN KEY (ChannelID) REFERENCES Channels(ChannelID),
+    CONSTRAINT FK_ChannelMembers_Users FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+GO
+
+CREATE TABLE [Messages](
+	MessageID UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID(),
+	ChannelID UNIQUEIDENTIFIER NOT NULL,
+	UserID INT NOT NULL,
+	Content NVARCHAR(1000) NOT NULL,
+	CreateAt DATETIME2 DEFAULT SYSUTCDATETIME(),
+	CONSTRAINT PK_Messages PRIMARY KEY(ChannelID, UserID, MessageID),
+	CONSTRAINT FK_Messages_ChannelMembers FOREIGN KEY (ChannelID, UserID) REFERENCES ChannelMembers(ChannelID, UserID) ON DELETE NO ACTION,
+);
+GO
+------------------- DATABASE: OverLut_Storage (Big Files) -------------------
+USE OverLut_Storage
+GO
+
+CREATE TABLE FileBlobs (
+    FileBlobID UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    IsComplete BIT DEFAULT 0,
+    CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+
+
+CREATE TABLE FileChunks (
+    ChunkID UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    FileBlobID UNIQUEIDENTIFIER NOT NULL,
+    SequenceNumber INT NOT NULL,
+    [Data] VARBINARY(MAX) NOT NULL,
+    CONSTRAINT FK_Chunks_Blobs FOREIGN KEY (FileBlobID) REFERENCES FileBlobs(FileBlobID) ON DELETE CASCADE
+);
+
+
+CREATE CLUSTERED INDEX CIX_Chunks_Blob_Order ON FileChunks(FileBlobID, SequenceNumber);
 GO
