@@ -107,13 +107,14 @@ GO
 INSERT RescueRequestsTypes(RescueRequestsTypeID, TypeName) VALUES (0,N'Rescue'),(1,N'Relief'),(2,N'Both');
 CREATE TABLE UrgencyLevels(
 	UrgencyLevelID INT NOT NULL CONSTRAINT  PK_UrgencyLevel PRIMARY KEY,
-	UrgencyName NVARCHAR(100) NOT NULL CONSTRAINT UQ_RescueRequestsTypes_TypeName UNIQUE
+	UrgencyName NVARCHAR(100) NOT NULL CONSTRAINT UQ_UrgencyLevels_TypeName UNIQUE
 );
 GO
-INSERT UrgencyLevels(UrgencyLevelID, UrgencyName) VALUES (1,N'Normal'),(1,N'High'),(3,N'Critical');
+INSERT UrgencyLevels(UrgencyLevelID, UrgencyName) VALUES (1,N'Normal'),(2,N'High'),(3,N'Critical');
+
 CREATE TABLE RescueRequests(
   RescueRequestID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_RescueRequests PRIMARY KEY,
-  CitizenUserID INT NULL CONSTRAINT FK_RescueRequests_Citizen REFERENCES Users(UserID),
+  CitizenUserID INT NULL,
   RequestType INT NOT NULL CONSTRAINT FK_RescueRequests_RescueRequestsTypes REFERENCES RescueRequestsTypes(RescueRequestsTypeID),
   UrgencyLevel INT NULL CONSTRAINT FK_RescueRequests_UrgencyLevels REFERENCES UrgencyLevels(UrgencyLevelID),
   IPAddress NVARCHAR(50) NULL,
@@ -133,7 +134,7 @@ CREATE TABLE RescueRequestLogs(
   LogID BIGINT IDENTITY(1,1),
   RescueRequestID INT NOT NULL CONSTRAINT FK_ReqStatusHistory_RescueRequests REFERENCES RescueRequests(RescueRequestID) ON DELETE CASCADE,
   OldRescueRequests NVARCHAR(2000),
-  ChangedByUserID INT NULL CONSTRAINT FK_ReqStatusHistory_Users REFERENCES Users(UserID),
+  ChangedByUserID INT NULL,
   ChangedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
   CONSTRAINT PK_RescueRequestLog PRIMARY KEY (LogID,RescueRequestID),
 );
@@ -191,11 +192,11 @@ CREATE TABLE Attachments (
     CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME()
 );
 CREATE TABLE FileChunks (
-    ChunkID UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    ChunkID UNIQUEIDENTIFIER PRIMARY KEY NONCLUSTERED DEFAULT NEWSEQUENTIALID() ,
     AttachmentID UNIQUEIDENTIFIER NOT NULL,
     SequenceNumber INT NOT NULL,
     [Data] VARBINARY(MAX) NOT NULL,
-    CONSTRAINT FK_Chunks_Attachments FOREIGN KEY (AttachmentID) REFERENCES Attachments(AttachmentID) ON DELETE CASCADE
+    CONSTRAINT FK_FileChunks_Attachments FOREIGN KEY (AttachmentID) REFERENCES Attachments(AttachmentID) ON DELETE CASCADE
 );
 GO
 
