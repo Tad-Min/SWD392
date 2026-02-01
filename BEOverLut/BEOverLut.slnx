@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="BusinessObjects/BusinessObjects.csproj" />
-  <Project Path="DataAccessObjects/DataAccessObjects.csproj" />
-  <Project Path="OverLutAPI/OverLutAPI.csproj" />
-  <Project Path="Repositories/Repositories.csproj" />
-  <Project Path="Services/Services.csproj" />
-</Solution>
