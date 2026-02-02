@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yaml" />
+    <File Path="OverLut.sql" />
+  </Folder>
+  <Project Path="BusinessObject/BusinessObject.csproj" />
+  <Project Path="DAOs/DAOs.csproj" />
+  <Project Path="Repositories/Repositories.csproj" />
+  <Project Path="Services/Services.csproj" />
+  <Project Path="Socket/WebSocket.csproj" />
+  <Project Path="WebApi/WebApi.csproj" />
+</Solution>

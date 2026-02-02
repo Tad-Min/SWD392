@@ -1,0 +1,50 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  missionservice:
+    build:
+      context: .
+      dockerfile: Service/MissionService/WebAPI/Dockerfile
+    image: tadminm/missionservice:dev
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+    environment:
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    ports:
+      - "8080:8080"
+
+  apigateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    image: tadminm/apigateway:dev
+    restart: unless-stopped
+    depends_on:
+      - missionservice
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    ports:
+      - "5131:5131"
+
+volumes:
+  rabbitmq_data:

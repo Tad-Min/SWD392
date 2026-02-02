@@ -1,0 +1,79 @@
+{
+    "GlobalConfiguration": {
+        "BaseUrl": "https://localhost:6000"
+    },
+    "Routes": [
+        {
+            "UpstreamPathTemplate": "/api/auth/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6001
+                }
+            ]
+        },
+        {
+            "UpstreamPathTemplate": "/api/misson/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6002
+                }
+            ]
+        },
+        {
+            "UpstreamPathTemplate": "/api/rescuerequest/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6003
+                }
+            ]
+        },
+        {
+            "UpstreamPathTemplate": "/api/rescueteam/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6004
+                }
+            ]
+        },
+        {
+            "UpstreamPathTemplate": "/api/vehicles/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6005
+                }
+            ]
+        },
+        {
+            "UpstreamPathTemplate": "/api/warehouse/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
+            "DownstreamPathTemplate": "/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 6006
+                }
+            ]
+        }
+    ]
+}
