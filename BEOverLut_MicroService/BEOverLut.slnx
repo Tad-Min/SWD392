@@ -1,0 +1,47 @@
+<Solution>
+  <Folder Name="/K8s/">
+    <File Path="K8s/platforms-depl.yaml" />
+  </Folder>
+  <Folder Name="/Service/" />
+  <Folder Name="/Service/AuthenticationService/">
+    <Project Path="Service/AuthenticationService/Application/Application.csproj" />
+    <Project Path="Service/AuthenticationService/Domain/Domain.csproj" />
+    <Project Path="Service/AuthenticationService/Infrastructure/Infrastructure.csproj" />
+    <Project Path="Service/AuthenticationService/WebAPI/WebAPI.csproj" Id="7a1d6a67-fa80-4db5-9212-a1cc8196055e" />
+  </Folder>
+  <Folder Name="/Service/MissionService/">
+    <Project Path="Service/MissionService/Application/Application.csproj" Id="619a20ea-5f39-450d-9152-ae10a3993f8a" />
+    <Project Path="Service/MissionService/Domain/Domain.csproj" Id="2bf12160-960f-4687-ab45-3c62e044feba" />
+    <Project Path="Service/MissionService/Infrastructure/Infrastructure.csproj" Id="7964c21a-94e3-46b9-b9bf-94bff4873626" />
+    <Project Path="Service/MissionService/WebAPI/WebAPI.csproj" Id="c1d7cba7-90ab-4946-9ca8-0d4aa350d0e5" />
+  </Folder>
+  <Folder Name="/Service/RescueRequestService/">
+    <Project Path="Service/RescueRequestService/Application/Application.csproj" Id="10aad183-138c-45c3-9a66-0901705c76fc" />
+    <Project Path="Service/RescueRequestService/Domain/Domain.csproj" Id="62bc5768-923c-48af-9fb3-3be234129adc" />
+    <Project Path="Service/RescueRequestService/Infrastructure/Infrastructure.csproj" Id="a0a1a899-cb69-44fd-a58d-801a5be20833" />
+    <Project Path="Service/RescueRequestService/WebAPI/WebAPI.csproj" Id="12bff09a-07c9-44d8-ba8a-1ad9ee6ca47d" />
+  </Folder>
+  <Folder Name="/Service/RescueTeamService/">
+    <Project Path="Service/RescueTeamService/Application/Application.csproj" Id="4c8f9851-8fef-4b55-a63e-7603d3c98323" />
+    <Project Path="Service/RescueTeamService/Domain/Domain.csproj" Id="3b469b9e-973c-4b45-a325-368445799a91" />
+    <Project Path="Service/RescueTeamService/Infrastructure/Infrastructure.csproj" Id="77b8eac9-4125-4ed7-8815-360a819c360d" />
+    <Project Path="Service/RescueTeamService/WebAPI/WebAPI.csproj" Id="aed870ee-9d12-4e6a-868f-3c2f12c08a3e" />
+  </Folder>
+  <Folder Name="/Service/VehiclesService/">
+    <Project Path="Service/VehiclesService/Application/Application.csproj" Id="3a56ea8f-504b-4103-819e-6b430b683121" />
+    <Project Path="Service/VehiclesService/Domain/Domain.csproj" Id="53f7a960-f27a-484f-8175-862a09077aac" />
+    <Project Path="Service/VehiclesService/Infrastructure/Infrastructure.csproj" Id="ad9dae16-2b08-488f-b78a-7f128e3d7d18" />
+    <Project Path="Service/VehiclesService/WebAPI/WebAPI.csproj" Id="5e52cb23-33c3-4b5e-994a-f2f975565d90" />
+  </Folder>
+  <Folder Name="/Service/WareHouseService/">
+    <Project Path="Service/WareHouseService/Application/Application.csproj" Id="f2d2a99c-3564-491a-86dc-8facc6452c1e" />
+    <Project Path="Service/WareHouseService/Domain/Domain.csproj" Id="0aae148a-8118-4cb9-add8-c6b3aaa622d7" />
+    <Project Path="Service/WareHouseService/Infrastructure/Infrastructure.csproj" Id="3e061a77-6bc4-4878-932f-984b884af4aa" />
+    <Project Path="Service/WareHouseService/WebAPI/WebAPI.csproj" Id="addbd59d-3228-49ac-a64f-23013afc5d15" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Project Path="ApiGateway/ApiGateway.csproj" Id="53625242-08c2-4b29-ad0b-b8c32548348f" />
+  <Project Path="SharedKernel/SharedKernel.csproj" Id="856be938-d8e1-4b94-9385-7eff6bb32649" />
+</Solution>
