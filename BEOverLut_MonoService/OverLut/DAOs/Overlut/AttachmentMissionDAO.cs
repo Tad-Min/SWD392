@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 
@@ -9,7 +7,7 @@ public class AttachmentMissionDAO
     public static async Task<IEnumerable<AttachmentMission>> GetAllAttachmentMissionsWithMissionId(int missionId)
     {
         using var db = new OverlutDbContext();
-        
+
         return await db.AttachmentMissions.Where(x => x.MissionId == missionId).ToListAsync();
     }
     public static async Task<IEnumerable<AttachmentMission>> GetAllAttachmentMissionsWithAttachmentId(Guid attachmentId)
@@ -22,11 +20,11 @@ public class AttachmentMissionDAO
     public static async Task<Boolean> DeleteAttachmentMissionsById(Guid attachmentId)
     {
         using var db = new OverlutDbContext();
-        
-        return await db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ExecuteDeleteAsync()>0;
+
+        return await db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ExecuteDeleteAsync() > 0;
     }
 
-    public static async Task<AttachmentMission> AddAttachmentMissionsByMissionId(Guid attachmentId,int missionId, long fileSize, String fileType)
+    public static async Task<AttachmentMission> AddAttachmentMissionsByMissionId(Guid attachmentId, int missionId, long fileSize, String fileType)
     {
         using var db = new OverlutDbContext();
         var att = new AttachmentMission

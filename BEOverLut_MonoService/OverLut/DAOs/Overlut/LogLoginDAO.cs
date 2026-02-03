@@ -1,36 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 
 public class LogLoginDAO
 {
-    public static async Task<LogLogin?> CreateLogLogin(int? refreshTokenId, bool success, string? failReason, string? ipAddress, string? userAgent)
+    public static async Task<LogLogin?> CreateLogLogin(LogLogin logLogin)
     {
-        using var db = new OverlutDbContext();
-        var logLogin = new LogLogin
+        try
         {
-            RefreshTokenId = refreshTokenId,
-            Success = success,
-            FailReason = failReason,
-            Ipaddress = ipAddress,
-            UserAgent = userAgent,
-            LoginTime = DateTime.UtcNow
-        };
-        await db.LogLogins.AddAsync(logLogin);
-        await db.SaveChangesAsync();
-        return logLogin;
+            if (logLogin == null)
+                throw new ArgumentNullException(nameof(logLogin));
+
+            using var db = new OverlutDbContext();
+            logLogin.LoginTime = DateTime.UtcNow;
+            await db.LogLogins.AddAsync(logLogin);
+            await db.SaveChangesAsync();
+            return logLogin;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LogLoginDAO-CreateLogLogin: {ex.Message}");
+            return null;
+        }
     }
 
-    public static async Task<IEnumerable<LogLogin>> GetLogLoginByUserId(int userId)
+    public static async Task<IEnumerable<LogLogin>?> GetLogLoginByUserId(int userId)
     {
-        using var db = new OverlutDbContext();
-        return await db.LogLogins
-            .Where(x => x.RefreshToken != null && x.RefreshToken.UserId == userId)
-            .OrderByDescending(x => x.LoginTime)
-            .ToListAsync();
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.LogLogins
+                .Where(x => x.RefreshToken != null && x.RefreshToken.UserId == userId)
+                .OrderByDescending(x => x.LoginTime)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LogLoginDAO-GetLogLoginByUserId: {ex.Message}");
+            return null;
+        }
     }
 }

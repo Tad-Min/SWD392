@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BusinessObject.OverlutEntiy;
+﻿namespace BusinessObject.OverlutEntiy;
 
 public partial class Vehicle
 {

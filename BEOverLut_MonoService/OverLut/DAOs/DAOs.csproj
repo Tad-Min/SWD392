@@ -10,8 +10,4 @@
     <ProjectReference Include="..\BusinessObject\BusinessObject.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="OverlutStorage\" />
-  </ItemGroup>
-
 </Project>

@@ -8,7 +8,8 @@ namespace WebApi.Controllers
         {
             return Ok();
         }
-        public IActionResult Logout() { 
+        public IActionResult Logout()
+        {
             return Ok();
         }
         public IActionResult GetRefreshToken()

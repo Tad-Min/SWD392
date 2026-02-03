@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 
@@ -32,7 +30,8 @@ public class CategoryDAO
     {
         using var db = new OverlutDbContext();
         var category = await db.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
-        if (category == null) { 
+        if (category == null)
+        {
             return false;
         }
         category.CategoryName = categoryName;

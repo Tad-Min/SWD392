@@ -7,6 +7,6 @@
   <Project Path="DAOs/DAOs.csproj" />
   <Project Path="Repositories/Repositories.csproj" />
   <Project Path="Services/Services.csproj" />
-  <Project Path="Socket/WebSocket.csproj" />
   <Project Path="WebApi/WebApi.csproj" />
+  <Project Path="WebSocket/WebSocket.csproj" Id="0fc94cea-196e-446b-b5ab-f3b96623e15d" />
 </Solution>

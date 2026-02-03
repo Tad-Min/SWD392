@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 

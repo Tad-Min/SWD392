@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAOs.Overlut;
 
 public class InventoryTransactionDAO
 {
-    
+
 
     public static async Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(
         int? txId,
@@ -50,43 +46,26 @@ public class InventoryTransactionDAO
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error retrieving inventory transactions: {ex.Message}");
+            Console.WriteLine($"InventoryTransactionDAO-GetAllInventoryTransaction: {ex.Message}");
             return null;
         }
     }
 
-    public static async Task<InventoryTransaction?> AddInventoryTransaction(
-        int txId,
-        int warehouseId,
-        int productId,
-        int txType,
-        decimal Quantity,
-        int missionId,
-        int createdByUserID)
+    public static async Task<InventoryTransaction?> AddInventoryTransaction(InventoryTransaction transaction)
     {
         try
         {
+            if (transaction == null)
+                throw new ArgumentNullException(nameof(transaction));
+
             using var _context = new OverlutDbContext();
-
-            var transaction = new InventoryTransaction
-            {
-                TxId = txId,
-                WarehouseId = warehouseId,
-                ProductId = productId,
-                TxType = txType,
-                Quantity = Quantity,
-                MissionId = missionId,
-                CreatedByUserId = createdByUserID,
-            };
-
             _context.InventoryTransactions.Add(transaction);
             await _context.SaveChangesAsync();
-
             return transaction;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error adding inventory transaction: {ex.Message}");
+            Console.WriteLine($"InventoryTransactionDAO-AddInventoryTransaction: {ex.Message}");
             return null;
         }
     }
