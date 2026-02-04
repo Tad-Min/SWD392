@@ -4,7 +4,7 @@ namespace DAOs.Overlut;
 
 public class WarehouseStockDAO
 {
-    public static async Task<IEnumerable<WarehouseStock>?> GetAllWarehouseStocks(int? warehouseId, int? productId, decimal? quantity)
+    public static async Task<IEnumerable<WarehouseStock>?> GetAllWarehouseStocks(int? warehouseId, int? productId)
     {
         try
         {
@@ -16,31 +16,11 @@ public class WarehouseStockDAO
 
             if (productId.HasValue)
                 query = query.Where(x => x.ProductId == productId.Value);
-
-            if (quantity.HasValue)
-                query = query.Where(x => x.CurrentQuantity == quantity.Value);
-
             return await query.ToListAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"WarehouseStockDAO-GetAllWarehouseStocks: {ex.Message}");
-            return null;
-        }
-    }
-
-    public static async Task<IEnumerable<WarehouseStock>?> GetByWarehouseId(int warehouseId)
-    {
-        try
-        {
-            using var db = new OverlutDbContext();
-            return await db.WarehouseStocks
-                .Where(x => x.WarehouseId == warehouseId)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"WarehouseStockDAO-GetByWarehouseId: {ex.Message}");
             return null;
         }
     }

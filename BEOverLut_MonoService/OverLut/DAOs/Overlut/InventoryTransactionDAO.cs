@@ -5,8 +5,6 @@ namespace DAOs.Overlut;
 
 public class InventoryTransactionDAO
 {
-
-
     public static async Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(
         int? txId,
         int? warehouseId,

@@ -4,7 +4,7 @@ namespace DAOs.Overlut;
 
 public class AccessTokenBlacklistDAO
 {
-    public static async Task<IEnumerable<AccessTokenBlacklist>> GetAllAccessTokenBlacklistsFormUser(int userId)
+    public static async Task<IEnumerable<AccessTokenBlacklist>?> GetAllAccessTokenBlacklistsFormUser(int userId)
     {
         using var db = new OverlutDbContext();
 

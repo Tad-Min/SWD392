@@ -5,6 +5,7 @@
   </Folder>
   <Project Path="BusinessObject/BusinessObject.csproj" />
   <Project Path="DAOs/DAOs.csproj" />
+  <Project Path="DTOs/DTOs.csproj" Id="680bf086-994d-48ca-ac59-c4d8a778a8fb" />
   <Project Path="Repositories/Repositories.csproj" />
   <Project Path="Services/Services.csproj" />
   <Project Path="WebApi/WebApi.csproj" />

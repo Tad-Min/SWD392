@@ -25,7 +25,6 @@ public class CategoryDAO
         await db.SaveChangesAsync();
         return category;
     }
-
     public static async Task<bool> UpdateCategory(int categoryId, string categoryName)
     {
         using var db = new OverlutDbContext();
@@ -37,7 +36,6 @@ public class CategoryDAO
         category.CategoryName = categoryName;
         return await db.SaveChangesAsync() > 0;
     }
-
     public static async Task<bool> DeleteCategory(int categoryId)
     {
         using var db = new OverlutDbContext();
