@@ -4,6 +4,19 @@ namespace DAOs.Overlut;
 
 public class UserDAO
 {
+    public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.Users.FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"UserDAO-Login: {ex.Message}");
+            return null;
+        }
+    }
     public static async Task<User?> GetUserById(int userId)
     {
         try

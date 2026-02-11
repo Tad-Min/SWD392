@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using BusinessObject.OverlutEntiy;
 
 namespace Repositories.Interface
 {
-    internal interface IVehicleRepository
+    public interface IVehicleRepository
     {
         Task<IEnumerable<Vehicle>?> GetAllVehicles(int? vehicleId = null, string? vehicleCode = null, int? vehicleType = null, int? capacity = null, int? statusId = null);
         Task<Vehicle?> GetVehicleById(int vehicleId);

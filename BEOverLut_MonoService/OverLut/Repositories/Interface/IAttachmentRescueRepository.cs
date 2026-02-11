@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using BusinessObject.OverlutEntiy;
 
 namespace Repositories.Interface
 {
-    internal interface IAttachmentRescueRepository
+    public interface IAttachmentRescueRepository
     {
         Task<IEnumerable<AttachmentRescue>> GetAllAttachmentRescueWithRescueRequestId(int rescueRequestId);
         Task<IEnumerable<AttachmentRescue>> GetAllAttachmentMissionsWithAttachmentId(Guid attachmentId);

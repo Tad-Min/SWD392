@@ -1,8 +1,9 @@
-﻿using BusinessObject.OverlutEntiy;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace DAOs;
+namespace BusinessObject.OverlutEntiy;
 
 public partial class OverlutDbContext : DbContext
 {
@@ -15,8 +16,6 @@ public partial class OverlutDbContext : DbContext
     {
     }
 
-    public virtual DbSet<AccessTokenBlacklist> AccessTokenBlacklists { get; set; }
-
     public virtual DbSet<AttachmentMission> AttachmentMissions { get; set; }
 
     public virtual DbSet<AttachmentRescue> AttachmentRescues { get; set; }
@@ -24,8 +23,6 @@ public partial class OverlutDbContext : DbContext
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<InventoryTransaction> InventoryTransactions { get; set; }
-
-    public virtual DbSet<LogLogin> LogLogins { get; set; }
 
     public virtual DbSet<MissionLog> MissionLogs { get; set; }
 
@@ -86,25 +83,6 @@ public partial class OverlutDbContext : DbContext
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AccessTokenBlacklist>(entity =>
-        {
-            entity.HasKey(e => e.Jti).HasName("PK__AccessTo__C4D08C58BC8B0AA8");
-
-            entity.ToTable("AccessTokenBlacklist");
-
-            entity.Property(e => e.Jti)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.ExpireAt).HasColumnType("datetime");
-            entity.Property(e => e.Reason).HasMaxLength(500);
-            entity.Property(e => e.UserId).HasColumnName("UserID");
-
-            entity.HasOne(d => d.User).WithMany(p => p.AccessTokenBlacklists)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__AccessTok__UserI__36B12243");
-        });
-
         modelBuilder.Entity<AttachmentMission>(entity =>
         {
             entity.HasKey(e => e.AttachmentId);
@@ -141,7 +119,7 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E04DFE384A").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0E9BB5128").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(100);
@@ -161,31 +139,13 @@ public partial class OverlutDbContext : DbContext
 
             entity.HasOne(d => d.Mission).WithMany(p => p.InventoryTransactions)
                 .HasForeignKey(d => d.MissionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_InventoryTransactions_RescueMissions");
 
             entity.HasOne(d => d.WarehouseStock).WithMany(p => p.InventoryTransactions)
                 .HasForeignKey(d => new { d.WarehouseId, d.ProductId })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_InventoryTransactions_Products");
-        });
-
-        modelBuilder.Entity<LogLogin>(entity =>
-        {
-            entity.HasKey(e => e.LogId).HasName("PK__LogLogin__5E548648FA4E5D04");
-
-            entity.ToTable("LogLogin");
-
-            entity.Property(e => e.FailReason).HasMaxLength(255);
-            entity.Property(e => e.Ipaddress)
-                .HasMaxLength(255)
-                .HasColumnName("IPAddress");
-            entity.Property(e => e.LoginTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.RefreshToken).WithMany(p => p.LogLogins)
-                .HasForeignKey(d => d.RefreshTokenId)
-                .HasConstraintName("FK_LogLogin_RefreshToken");
         });
 
         modelBuilder.Entity<MissionLog>(entity =>
@@ -220,27 +180,22 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39251CB8E2");
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39C8FE4BD5");
 
             entity.ToTable("RefreshToken");
 
-            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F817517F4FF8").IsUnique();
+            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F8174B220B10").IsUnique();
 
-            entity.HasIndex(e => e.Jti, "UQ__RefreshT__C4D08C590F016DF5").IsUnique();
-
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-            entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(255)
                 .HasColumnName("IPAddress");
-            entity.Property(e => e.Jti).HasMaxLength(100);
             entity.Property(e => e.Token).HasMaxLength(500);
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__RefreshTo__UserI__2E1BDC42");
+                .HasConstraintName("FK__RefreshTo__UserI__2D27B809");
         });
 
         modelBuilder.Entity<RescueMembersRoll>(entity =>

@@ -1,4 +1,7 @@
-﻿namespace BusinessObject.OverlutEntiy;
+﻿using System;
+using System.Collections.Generic;
+
+namespace BusinessObject.OverlutEntiy;
 
 public partial class RefreshToken
 {
@@ -7,8 +10,6 @@ public partial class RefreshToken
     public int? UserId { get; set; }
 
     public string? Token { get; set; }
-
-    public string? Jti { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -19,8 +20,6 @@ public partial class RefreshToken
     public string? Ipaddress { get; set; }
 
     public string? UserAgent { get; set; }
-
-    public virtual ICollection<LogLogin> LogLogins { get; set; } = new List<LogLogin>();
 
     public virtual User? User { get; set; }
 }

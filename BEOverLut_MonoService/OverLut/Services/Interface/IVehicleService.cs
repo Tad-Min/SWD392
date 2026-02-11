@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 
-namespace Services
+namespace Services.Interface
 {
-    internal interface IVehicleService
+    public interface IVehicleService
     {
         #region Vehicle
         Task<IEnumerable<Vehicle?>> GetAllVehicles(
@@ -15,16 +12,16 @@ namespace Services
             int? vehicleTypeId,
             int? vehicleStatusId);
         Task<Vehicle?> GetVehicle(int id);
-        Task<Vehicle?>AddVehicle(Vehicle vehicle);
+        Task<Vehicle?> AddVehicle(Vehicle vehicle);
         Task<VehicleAssignment?> AssignVehicle(VehicleAssignment vehicleAssignment);
-        Task<bool>DeleteVehicleById(int id);
-        Task<bool>UdateVehicleInfo(Vehicle vehicle);
+        Task<bool> DeleteVehicleById(int id);
+        Task<bool> UdateVehicleInfo(Vehicle vehicle);
         #endregion
 
         #region Vehicle Type
-        Task<IEnumerable<VehiclesType>?>GetAllVehicleType();
+        Task<IEnumerable<VehiclesType>?> GetAllVehicleType();
         Task<VehiclesType?> GetVehicleTypeById(int id);
-        Task<VehiclesType?>CreateVehicleType(VehiclesType vehiclesType);
+        Task<VehiclesType?> CreateVehicleType(VehiclesType vehiclesType);
         Task<bool> UdateVehicleTypeInfor(VehiclesType vehiclesType);
         Task<bool> DeleteVehicleTypeById(int id);
         #endregion

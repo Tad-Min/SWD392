@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using BusinessObject.OverlutEntiy;
 using DAOs.Overlut;
 using Repositories.Interface;
@@ -9,6 +6,7 @@ namespace Repositories
 {
     public class UserRepository : IUserRepository
     {
+        public async Task<User?> GetUserByEmailAndPassword(string email, string password) => await UserDAO.GetUserByEmailAndPassword(email, password);
         public async Task<User?> GetUserById(int userId) => await UserDAO.GetUserById(userId);
 
         public async Task<User?> GetUserByEmail(string email) => await UserDAO.GetUserByEmail(email);

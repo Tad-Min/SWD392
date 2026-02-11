@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using BusinessObject.OverlutEntiy;
 
 namespace Repositories.Interface
 {
-    internal interface IRescueTeamRepository
+    public interface IRescueTeamRepository
     {
         Task<IEnumerable<RescueTeam>?> GetAllRescueTeam(int? teamId = null, string? teamName = null, int? statusId = null);
         Task<RescueTeam?> CreateRescueTeam(RescueTeam rescueTeam);

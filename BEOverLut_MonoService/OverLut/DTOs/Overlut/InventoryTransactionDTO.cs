@@ -12,7 +12,7 @@ public class InventoryTransactionDTO
 
     public decimal Quantity { get; set; }
 
-    public int? MissionId { get; set; }
+    public int MissionId { get; set; }
 
     public int CreatedByUserId { get; set; }
 

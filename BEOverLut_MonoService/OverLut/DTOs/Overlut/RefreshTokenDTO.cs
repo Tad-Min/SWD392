@@ -8,8 +8,6 @@ public class RefreshTokenDTO
 
     public string? Token { get; set; }
 
-    public string? Jti { get; set; }
-
     public DateTime CreatedAt { get; set; }
 
     public DateTime ExpiredAt { get; set; }

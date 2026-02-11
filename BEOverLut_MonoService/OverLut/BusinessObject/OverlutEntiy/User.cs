@@ -1,4 +1,7 @@
-﻿namespace BusinessObject.OverlutEntiy;
+﻿using System;
+using System.Collections.Generic;
+
+namespace BusinessObject.OverlutEntiy;
 
 public partial class User
 {
@@ -21,8 +24,6 @@ public partial class User
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
-
-    public virtual ICollection<AccessTokenBlacklist> AccessTokenBlacklists { get; set; } = new List<AccessTokenBlacklist>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 
-namespace Services
+namespace Services.Interface
 {
-    internal interface IRescueTeamService
+    public interface IRescueTeamService
     {
         Task<IEnumerable<RescueTeam>?> GetAllRescueTeamsAsync(int? teamId, string? teamName, int? statusId);
         Task<RescueTeam?> DeleteTeamByIdAsync(int id);

@@ -1,14 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using BusinessObject.OverlutEntiy;
 
 namespace Repositories.Interface
 {
-    internal interface IRefreshTokenRepository
+    public interface IRefreshTokenRepository
     {
+        Task<IEnumerable<RefreshToken>?> GetAllActivedRefreshTokenByUserId(int userId);
         Task<RefreshToken?> CreateRefreshToken(RefreshToken refreshToken);
-        Task<bool> UpdateRefreshToken(int refreshTokenId, bool revoked);
-        Task<RefreshToken?> GetRefreshTokenByToken(string tokenString);
+        Task<bool> RevokeToken(RefreshToken refreshToken);
+        Task<RefreshToken?> GetRefreshTokenByUserIdAndToken(int userId, string token);
+
     }
 }

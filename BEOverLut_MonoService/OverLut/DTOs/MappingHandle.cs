@@ -1,12 +1,7 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 using BusinessObject.OverlutStorageEntiy;
 using DTOs.Overlut;
 using DTOs.OverlutStorage;
-using NetTopologySuite.Geometries;
 
 namespace DTOs
 {
@@ -17,18 +12,8 @@ namespace DTOs
         }
 
         #region EntityToDTO
-        public static AccessTokenBlacklistDTO EntityToDTO(AccessTokenBlacklist entity)
-        {
-            return new AccessTokenBlacklistDTO
-            {
-                Jti = entity.Jti,
-                UserId = entity.UserId,
-                ExpireAt = entity.ExpireAt,
-                Reason = entity.Reason
-            };
-        }
-
-        public static AttachmentMissionDTO EntityToDTO(AttachmentMission entity)
+        
+        public static AttachmentMissionDTO? EntityToDTO(AttachmentMission entity)
         {
             return new AttachmentMissionDTO
             {
@@ -39,7 +24,7 @@ namespace DTOs
             };
         }
 
-        public static AttachmentRescueDTO EntityToDTO(AttachmentRescue entity)
+        public static AttachmentRescueDTO? EntityToDTO(AttachmentRescue entity)
         {
             return new AttachmentRescueDTO
             {
@@ -50,7 +35,7 @@ namespace DTOs
             };
         }
 
-        public static CategoryDTO EntityToDTO(Category entity)
+        public static CategoryDTO? EntityToDTO(Category entity)
         {
             return new CategoryDTO
             {
@@ -59,7 +44,7 @@ namespace DTOs
             };
         }
 
-        public static InventoryTransactionDTO EntityToDTO(InventoryTransaction entity)
+        public static InventoryTransactionDTO? EntityToDTO(InventoryTransaction entity)
         {
             return new InventoryTransactionDTO
             {
@@ -74,21 +59,8 @@ namespace DTOs
             };
         }
 
-        public static LogLoginDTO EntityToDTO(LogLogin entity)
-        {
-            return new LogLoginDTO
-            {
-                LogId = entity.LogId,
-                RefreshTokenId = entity.RefreshTokenId,
-                Success = entity.Success,
-                FailReason = entity.FailReason,
-                Ipaddress = entity.Ipaddress,
-                UserAgent = entity.UserAgent,
-                LoginTime = entity.LoginTime
-            };
-        }
-
-        public static MissionLogDTO EntityToDTO(MissionLog entity)
+        
+        public static MissionLogDTO? EntityToDTO(MissionLog entity)
         {
             return new MissionLogDTO
             {
@@ -100,7 +72,7 @@ namespace DTOs
             };
         }
 
-        public static ProductDTO EntityToDTO(Product entity)
+        public static ProductDTO? EntityToDTO(Product entity)
         {
             return new ProductDTO
             {
@@ -111,14 +83,13 @@ namespace DTOs
             };
         }
 
-        public static RefreshTokenDTO EntityToDTO(RefreshToken entity)
+        public static RefreshTokenDTO? EntityToDTO(RefreshToken entity)
         {
             return new RefreshTokenDTO
             {
                 RefreshTokenId = entity.RefreshTokenId,
                 UserId = entity.UserId,
                 Token = entity.Token,
-                Jti = entity.Jti,
                 CreatedAt = entity.CreatedAt,
                 ExpiredAt = entity.ExpiredAt,
                 Revoked = entity.Revoked,
@@ -127,7 +98,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRollDTO EntityToDTO(RescueMembersRoll entity)
+        public static RescueMembersRollDTO? EntityToDTO(RescueMembersRoll entity)
         {
             return new RescueMembersRollDTO
             {
@@ -136,7 +107,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionDTO EntityToDTO(RescueMission entity)
+        public static RescueMissionDTO? EntityToDTO(RescueMission entity)
         {
             return new RescueMissionDTO
             {
@@ -149,7 +120,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionsStatusDTO EntityToDTO(RescueMissionsStatus entity)
+        public static RescueMissionsStatusDTO? EntityToDTO(RescueMissionsStatus entity)
         {
             return new RescueMissionsStatusDTO
             {
@@ -158,7 +129,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestDTO EntityToDTO(RescueRequest entity)
+        public static RescueRequestDTO? EntityToDTO(RescueRequest entity)
         {
             return new RescueRequestDTO
             {
@@ -177,7 +148,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestLogDTO EntityToDTO(RescueRequestLog entity)
+        public static RescueRequestLogDTO? EntityToDTO(RescueRequestLog entity)
         {
             return new RescueRequestLogDTO
             {
@@ -189,7 +160,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsStatusDTO EntityToDTO(RescueRequestsStatus entity)
+        public static RescueRequestsStatusDTO? EntityToDTO(RescueRequestsStatus entity)
         {
             return new RescueRequestsStatusDTO
             {
@@ -198,7 +169,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsTypeDTO EntityToDTO(RescueRequestsType entity)
+        public static RescueRequestsTypeDTO? EntityToDTO(RescueRequestsType entity)
         {
             return new RescueRequestsTypeDTO
             {
@@ -207,7 +178,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamDTO EntityToDTO(RescueTeam entity)
+        public static RescueTeamDTO? EntityToDTO(RescueTeam entity)
         {
             return new RescueTeamDTO
             {
@@ -218,7 +189,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamMemberDTO EntityToDTO(RescueTeamMember entity)
+        public static RescueTeamMemberDTO? EntityToDTO(RescueTeamMember entity)
         {
             return new RescueTeamMemberDTO
             {
@@ -228,7 +199,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamsStatusDTO EntityToDTO(RescueTeamsStatus entity)
+        public static RescueTeamsStatusDTO? EntityToDTO(RescueTeamsStatus entity)
         {
             return new RescueTeamsStatusDTO
             {
@@ -237,7 +208,7 @@ namespace DTOs
             };
         }
 
-        public static RoleDTO EntityToDTO(Role entity)
+        public static RoleDTO? EntityToDTO(Role entity)
         {
             return new RoleDTO
             {
@@ -246,7 +217,7 @@ namespace DTOs
             };
         }
 
-        public static UrgencyLevelDTO EntityToDTO(UrgencyLevel entity)
+        public static UrgencyLevelDTO? EntityToDTO(UrgencyLevel entity)
         {
             return new UrgencyLevelDTO
             {
@@ -255,7 +226,7 @@ namespace DTOs
             };
         }
 
-        public static UserDTO EntityToDTO(User entity)
+        public static UserDTO? EntityToDTO(User entity)
         {
             return new UserDTO
             {
@@ -272,7 +243,7 @@ namespace DTOs
             };
         }
 
-        public static VehicleAssignmentDTO EntityToDTO(VehicleAssignment entity)
+        public static VehicleAssignmentDTO? EntityToDTO(VehicleAssignment entity)
         {
             return new VehicleAssignmentDTO
             {
@@ -283,7 +254,7 @@ namespace DTOs
             };
         }
 
-        public static VehicleDTO EntityToDTO(Vehicle entity)
+        public static VehicleDTO? EntityToDTO(Vehicle entity)
         {
             return new VehicleDTO
             {
@@ -296,7 +267,7 @@ namespace DTOs
             };
         }
 
-        public static VehiclesStatusDTO EntityToDTO(VehiclesStatus entity)
+        public static VehiclesStatusDTO? EntityToDTO(VehiclesStatus entity)
         {
             return new VehiclesStatusDTO
             {
@@ -305,7 +276,7 @@ namespace DTOs
             };
         }
 
-        public static VehiclesTypeDTO EntityToDTO(VehiclesType entity)
+        public static VehiclesTypeDTO? EntityToDTO(VehiclesType entity)
         {
             return new VehiclesTypeDTO
             {
@@ -314,7 +285,7 @@ namespace DTOs
             };
         }
 
-        public static WarehouseDTO EntityToDTO(Warehouse entity)
+        public static WarehouseDTO? EntityToDTO(Warehouse entity)
         {
             return new WarehouseDTO
             {
@@ -327,7 +298,7 @@ namespace DTOs
             };
         }
 
-        public static WarehouseStockDTO EntityToDTO(WarehouseStock entity)
+        public static WarehouseStockDTO? EntityToDTO(WarehouseStock entity)
         {
             return new WarehouseStockDTO
             {
@@ -338,7 +309,7 @@ namespace DTOs
             };
         }
 
-        public static AttachmentDTO EntityToDTO(Attachment entity)
+        public static AttachmentDTO? EntityToDTO(Attachment entity)
         {
             return new AttachmentDTO
             {
@@ -348,7 +319,7 @@ namespace DTOs
             };
         }
 
-        public static FileChunkDTO EntityToDTO(FileChunk entity)
+        public static FileChunkDTO? EntityToDTO(FileChunk entity)
         {
             return new FileChunkDTO
             {
@@ -361,18 +332,9 @@ namespace DTOs
         #endregion
 
         #region DTOToEntity
-        public static AccessTokenBlacklist DTOToEntity(AccessTokenBlacklistDTO dto)
-        {
-            return new AccessTokenBlacklist
-            {
-                Jti = dto.Jti,
-                UserId = dto.UserId,
-                ExpireAt = dto.ExpireAt,
-                Reason = dto.Reason
-            };
-        }
+        
 
-        public static AttachmentMission DTOToEntity(AttachmentMissionDTO dto)
+        public static AttachmentMission? DTOToEntity(AttachmentMissionDTO dto)
         {
             return new AttachmentMission
             {
@@ -383,7 +345,7 @@ namespace DTOs
             };
         }
 
-        public static AttachmentRescue DTOToEntity(AttachmentRescueDTO dto)
+        public static AttachmentRescue? DTOToEntity(AttachmentRescueDTO dto)
         {
             return new AttachmentRescue
             {
@@ -394,7 +356,7 @@ namespace DTOs
             };
         }
 
-        public static Category DTOToEntity(CategoryDTO dto)
+        public static Category? DTOToEntity(CategoryDTO dto)
         {
             return new Category
             {
@@ -403,7 +365,7 @@ namespace DTOs
             };
         }
 
-        public static InventoryTransaction DTOToEntity(InventoryTransactionDTO dto)
+        public static InventoryTransaction? DTOToEntity(InventoryTransactionDTO dto)
         {
             return new InventoryTransaction
             {
@@ -418,21 +380,9 @@ namespace DTOs
             };
         }
 
-        public static LogLogin DTOToEntity(LogLoginDTO dto)
-        {
-            return new LogLogin
-            {
-                LogId = dto.LogId,
-                RefreshTokenId = dto.RefreshTokenId,
-                Success = dto.Success,
-                FailReason = dto.FailReason,
-                Ipaddress = dto.Ipaddress,
-                UserAgent = dto.UserAgent,
-                LoginTime = dto.LoginTime
-            };
-        }
+       
 
-        public static MissionLog DTOToEntity(MissionLogDTO dto)
+        public static MissionLog? DTOToEntity(MissionLogDTO dto)
         {
             return new MissionLog
             {
@@ -444,7 +394,7 @@ namespace DTOs
             };
         }
 
-        public static Product DTOToEntity(ProductDTO dto)
+        public static Product? DTOToEntity(ProductDTO dto)
         {
             return new Product
             {
@@ -455,14 +405,13 @@ namespace DTOs
             };
         }
 
-        public static RefreshToken DTOToEntity(RefreshTokenDTO dto)
+        public static RefreshToken? DTOToEntity(RefreshTokenDTO dto)
         {
             return new RefreshToken
             {
                 RefreshTokenId = dto.RefreshTokenId,
                 UserId = dto.UserId,
                 Token = dto.Token,
-                Jti = dto.Jti,
                 CreatedAt = dto.CreatedAt,
                 ExpiredAt = dto.ExpiredAt,
                 Revoked = dto.Revoked,
@@ -471,7 +420,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRoll DTOToEntity(RescueMembersRollDTO dto)
+        public static RescueMembersRoll? DTOToEntity(RescueMembersRollDTO dto)
         {
             return new RescueMembersRoll
             {
@@ -480,7 +429,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMission DTOToEntity(RescueMissionDTO dto)
+        public static RescueMission? DTOToEntity(RescueMissionDTO dto)
         {
             return new RescueMission
             {
@@ -493,7 +442,7 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionsStatus DTOToEntity(RescueMissionsStatusDTO dto)
+        public static RescueMissionsStatus? DTOToEntity(RescueMissionsStatusDTO dto)
         {
             return new RescueMissionsStatus
             {
@@ -502,7 +451,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequest DTOToEntity(RescueRequestDTO dto)
+        public static RescueRequest? DTOToEntity(RescueRequestDTO dto)
         {
             return new RescueRequest
             {
@@ -521,7 +470,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestLog DTOToEntity(RescueRequestLogDTO dto)
+        public static RescueRequestLog? DTOToEntity(RescueRequestLogDTO dto)
         {
             return new RescueRequestLog
             {
@@ -533,7 +482,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsStatus DTOToEntity(RescueRequestsStatusDTO dto)
+        public static RescueRequestsStatus? DTOToEntity(RescueRequestsStatusDTO dto)
         {
             return new RescueRequestsStatus
             {
@@ -542,7 +491,7 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsType DTOToEntity(RescueRequestsTypeDTO dto)
+        public static RescueRequestsType? DTOToEntity(RescueRequestsTypeDTO dto)
         {
             return new RescueRequestsType
             {
@@ -551,7 +500,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeam DTOToEntity(RescueTeamDTO dto)
+        public static RescueTeam? DTOToEntity(RescueTeamDTO dto)
         {
             return new RescueTeam
             {
@@ -562,7 +511,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamMember DTOToEntity(RescueTeamMemberDTO dto)
+        public static RescueTeamMember? DTOToEntity(RescueTeamMemberDTO dto)
         {
             return new RescueTeamMember
             {
@@ -572,7 +521,7 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamsStatus DTOToEntity(RescueTeamsStatusDTO dto)
+        public static RescueTeamsStatus? DTOToEntity(RescueTeamsStatusDTO dto)
         {
             return new RescueTeamsStatus
             {
@@ -581,7 +530,7 @@ namespace DTOs
             };
         }
 
-        public static Role DTOToEntity(RoleDTO dto)
+        public static Role? DTOToEntity(RoleDTO dto)
         {
             return new Role
             {
@@ -590,7 +539,7 @@ namespace DTOs
             };
         }
 
-        public static UrgencyLevel DTOToEntity(UrgencyLevelDTO dto)
+        public static UrgencyLevel? DTOToEntity(UrgencyLevelDTO dto)
         {
             return new UrgencyLevel
             {
@@ -599,7 +548,7 @@ namespace DTOs
             };
         }
 
-        public static User DTOToEntity(UserDTO dto)
+        public static User? DTOToEntity(UserDTO dto)
         {
             return new User
             {
@@ -616,7 +565,7 @@ namespace DTOs
             };
         }
 
-        public static VehicleAssignment DTOToEntity(VehicleAssignmentDTO dto)
+        public static VehicleAssignment? DTOToEntity(VehicleAssignmentDTO dto)
         {
             return new VehicleAssignment
             {
@@ -627,7 +576,7 @@ namespace DTOs
             };
         }
 
-        public static Vehicle DTOToEntity(VehicleDTO dto)
+        public static Vehicle? DTOToEntity(VehicleDTO dto)
         {
             return new Vehicle
             {
@@ -640,7 +589,7 @@ namespace DTOs
             };
         }
 
-        public static VehiclesStatus DTOToEntity(VehiclesStatusDTO dto)
+        public static VehiclesStatus? DTOToEntity(VehiclesStatusDTO dto)
         {
             return new VehiclesStatus
             {
@@ -649,7 +598,7 @@ namespace DTOs
             };
         }
 
-        public static VehiclesType DTOToEntity(VehiclesTypeDTO dto)
+        public static VehiclesType? DTOToEntity(VehiclesTypeDTO dto)
         {
             return new VehiclesType
             {
@@ -658,7 +607,7 @@ namespace DTOs
             };
         }
 
-        public static Warehouse DTOToEntity(WarehouseDTO dto)
+        public static Warehouse? DTOToEntity(WarehouseDTO dto)
         {
             return new Warehouse
             {
@@ -671,7 +620,7 @@ namespace DTOs
             };
         }
 
-        public static WarehouseStock DTOToEntity(WarehouseStockDTO dto)
+        public static WarehouseStock? DTOToEntity(WarehouseStockDTO dto)
         {
             return new WarehouseStock
             {
@@ -682,7 +631,7 @@ namespace DTOs
             };
         }
 
-        public static Attachment DTOToEntity(AttachmentDTO dto)
+        public static Attachment? DTOToEntity(AttachmentDTO dto)
         {
             return new Attachment
             {
@@ -692,7 +641,7 @@ namespace DTOs
             };
         }
 
-        public static FileChunk DTOToEntity(FileChunkDTO dto)
+        public static FileChunk? DTOToEntity(FileChunkDTO dto)
         {
             return new FileChunk
             {

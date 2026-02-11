@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 
-namespace Services
+namespace Services.Interface
 {
-    internal interface IRescueMissionService
+    public interface IRescueMissionService
     {
         Task<IEnumerable<RescueMission>?> GetAllRescueMissionAsync(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId);
         Task<RescueRequest?> GetRescueMissionByIdAsync(int id);

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BusinessObject.OverlutEntiy;
+﻿using BusinessObject.OverlutEntiy;
 
-namespace Services
+namespace Services.Interface
 {
-    internal interface IWareHouseService
+    public interface IWareHouseService
     {
         #region Inventory Transaction
         Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(

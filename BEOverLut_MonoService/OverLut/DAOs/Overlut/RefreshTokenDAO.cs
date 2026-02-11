@@ -4,6 +4,19 @@ namespace DAOs.Overlut;
 
 public class RefreshTokenDAO
 {
+    public static async Task<IEnumerable<RefreshToken>?> GetAllActivedRefreshTokenByUserId(int UserId)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.RefreshTokens.Where(x => x.UserId == UserId && !x.Revoked).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RefreshTokenDAO-GetAllActivedRefreshTokenByUserId: {ex.Message}, Inner: {ex.InnerException?.Message}");
+            return null;
+        }
+    }
     public static async Task<RefreshToken?> CreateRefreshToken(RefreshToken refreshToken)
     {
         try
@@ -24,43 +37,40 @@ public class RefreshTokenDAO
         }
     }
 
-    public static async Task<bool> UpdateRefreshToken(int refreshTokenId, bool revoked)
+    public static async Task<bool> RevokeToken(RefreshToken refreshToken)
     {
         try
         {
             using var db = new OverlutDbContext();
-            var token = await db.RefreshTokens.FirstOrDefaultAsync(x => x.RefreshTokenId == refreshTokenId);
-            if (token == null) return false;
 
-            token.Revoked = revoked;
-            db.RefreshTokens.Update(token);
+            db.RefreshTokens.Attach(refreshToken);
+
+            refreshToken.Revoked = true;
+            refreshToken.ExpiredAt = DateTime.UtcNow;
+
             await db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"RefreshTokenDAO-UpdateRefreshToken: {ex.Message}");
+            Console.WriteLine($"RefreshTokenDAO-RevokeToken: {ex.Message}, Inner: {ex.InnerException?.Message}");
             return false;
         }
     }
 
-    public static async Task<RefreshToken?> GetRefreshTokenByToken(string tokenString)
+    public static async Task<RefreshToken?> GetRefreshTokenByUserIdAndToken(int userId, string token)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(tokenString))
-                throw new ArgumentException("Token string cannot be null or empty", nameof(tokenString));
-
             using var db = new OverlutDbContext();
-            return await db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == tokenString);
+            return await db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == token && x.UserId == userId);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"RefreshTokenDAO-GetRefreshTokenByToken: {ex.Message}");
+            Console.WriteLine($"RefreshTokenDAO-GetRefreshTokenByUserIdAndToken: {ex.Message}");
             return null;
         }
     }
-
     public static async Task<IEnumerable<RefreshToken>?> GetRefreshTokenByUserId(int userId)
     {
         try
