@@ -1,4 +1,4 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
 using BusinessObject.OverlutStorageEntiy;
 using DTOs.Overlut;
 using DTOs.OverlutStorage;
@@ -13,8 +13,9 @@ namespace DTOs
 
         #region EntityToDTO
         
-        public static AttachmentMissionDTO? EntityToDTO(AttachmentMission entity)
+        public static AttachmentMissionDTO? EntityToDTO(AttachmentMission? entity)
         {
+            if (entity == null) return null;
             return new AttachmentMissionDTO
             {
                 AttachmentId = entity.AttachmentId,
@@ -24,8 +25,9 @@ namespace DTOs
             };
         }
 
-        public static AttachmentRescueDTO? EntityToDTO(AttachmentRescue entity)
+        public static AttachmentRescueDTO? EntityToDTO(AttachmentRescue? entity)
         {
+            if (entity == null) return null;
             return new AttachmentRescueDTO
             {
                 AttachmentId = entity.AttachmentId,
@@ -35,8 +37,9 @@ namespace DTOs
             };
         }
 
-        public static CategoryDTO? EntityToDTO(Category entity)
+        public static CategoryDTO? EntityToDTO(Category? entity)
         {
+            if (entity == null) return null;
             return new CategoryDTO
             {
                 CategoryId = entity.CategoryId,
@@ -44,8 +47,9 @@ namespace DTOs
             };
         }
 
-        public static InventoryTransactionDTO? EntityToDTO(InventoryTransaction entity)
+        public static InventoryTransactionDTO? EntityToDTO(InventoryTransaction? entity)
         {
+            if (entity == null) return null;
             return new InventoryTransactionDTO
             {
                 TxId = entity.TxId,
@@ -59,9 +63,9 @@ namespace DTOs
             };
         }
 
-        
-        public static MissionLogDTO? EntityToDTO(MissionLog entity)
+        public static MissionLogDTO? EntityToDTO(MissionLog? entity)
         {
+            if (entity == null) return null;
             return new MissionLogDTO
             {
                 LogId = entity.LogId,
@@ -72,8 +76,9 @@ namespace DTOs
             };
         }
 
-        public static ProductDTO? EntityToDTO(Product entity)
+        public static ProductDTO? EntityToDTO(Product? entity)
         {
+            if (entity == null) return null;
             return new ProductDTO
             {
                 ProductId = entity.ProductId,
@@ -83,8 +88,9 @@ namespace DTOs
             };
         }
 
-        public static RefreshTokenDTO? EntityToDTO(RefreshToken entity)
+        public static RefreshTokenDTO? EntityToDTO(RefreshToken? entity)
         {
+            if (entity == null) return null;
             return new RefreshTokenDTO
             {
                 RefreshTokenId = entity.RefreshTokenId,
@@ -98,8 +104,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRollDTO? EntityToDTO(RescueMembersRoll entity)
+        public static RescueMembersRollDTO? EntityToDTO(RescueMembersRoll? entity)
         {
+            if (entity == null) return null;
             return new RescueMembersRollDTO
             {
                 RescueMembersRollId = entity.RescueMembersRollId,
@@ -107,8 +114,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionDTO? EntityToDTO(RescueMission entity)
+        public static RescueMissionDTO? EntityToDTO(RescueMission? entity)
         {
+            if (entity == null) return null;
             return new RescueMissionDTO
             {
                 MissionId = entity.MissionId,
@@ -120,8 +128,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionsStatusDTO? EntityToDTO(RescueMissionsStatus entity)
+        public static RescueMissionsStatusDTO? EntityToDTO(RescueMissionsStatus? entity)
         {
+            if (entity == null) return null;
             return new RescueMissionsStatusDTO
             {
                 RescueMissionsStatusId = entity.RescueMissionsStatusId,
@@ -129,8 +138,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestDTO? EntityToDTO(RescueRequest entity)
+        public static RescueRequestDTO? EntityToDTO(RescueRequest? entity)
         {
+            if (entity == null) return null;
             return new RescueRequestDTO
             {
                 RescueRequestId = entity.RescueRequestId,
@@ -148,8 +158,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestLogDTO? EntityToDTO(RescueRequestLog entity)
+        public static RescueRequestLogDTO? EntityToDTO(RescueRequestLog? entity)
         {
+            if (entity == null) return null;
             return new RescueRequestLogDTO
             {
                 LogId = entity.LogId,
@@ -160,8 +171,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsStatusDTO? EntityToDTO(RescueRequestsStatus entity)
+        public static RescueRequestsStatusDTO? EntityToDTO(RescueRequestsStatus? entity)
         {
+            if (entity == null) return null;
             return new RescueRequestsStatusDTO
             {
                 RescueRequestsStatusId = entity.RescueRequestsStatusId,
@@ -169,8 +181,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsTypeDTO? EntityToDTO(RescueRequestsType entity)
+        public static RescueRequestsTypeDTO? EntityToDTO(RescueRequestsType? entity)
         {
+            if (entity == null) return null;
             return new RescueRequestsTypeDTO
             {
                 RescueRequestsTypeId = entity.RescueRequestsTypeId,
@@ -178,8 +191,9 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamDTO? EntityToDTO(RescueTeam entity)
+        public static RescueTeamDTO? EntityToDTO(RescueTeam? entity)
         {
+            if (entity == null) return null;
             return new RescueTeamDTO
             {
                 TeamId = entity.TeamId,
@@ -188,9 +202,10 @@ namespace DTOs
                 CreatedAt = entity.CreatedAt
             };
         }
-
-        public static RescueTeamMemberDTO? EntityToDTO(RescueTeamMember entity)
+        
+        public static RescueTeamMemberDTO? EntityToDTO(RescueTeamMember? entity)
         {
+            if(entity == null) return null; 
             return new RescueTeamMemberDTO
             {
                 UserId = entity.UserId,
@@ -199,8 +214,9 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamsStatusDTO? EntityToDTO(RescueTeamsStatus entity)
+        public static RescueTeamsStatusDTO? EntityToDTO(RescueTeamsStatus? entity)
         {
+            if (entity == null) return null;
             return new RescueTeamsStatusDTO
             {
                 RescueTeamsStatusId = entity.RescueTeamsStatusId,
@@ -208,8 +224,9 @@ namespace DTOs
             };
         }
 
-        public static RoleDTO? EntityToDTO(Role entity)
+        public static RoleDTO? EntityToDTO(Role? entity)
         {
+            if (entity == null) return null;
             return new RoleDTO
             {
                 RoleId = entity.RoleId,
@@ -217,8 +234,9 @@ namespace DTOs
             };
         }
 
-        public static UrgencyLevelDTO? EntityToDTO(UrgencyLevel entity)
+        public static UrgencyLevelDTO? EntityToDTO(UrgencyLevel? entity)
         {
+            if (entity == null) return null;
             return new UrgencyLevelDTO
             {
                 UrgencyLevelId = entity.UrgencyLevelId,
@@ -226,8 +244,9 @@ namespace DTOs
             };
         }
 
-        public static UserDTO? EntityToDTO(User entity)
+        public static UserDTO? EntityToDTO(User? entity)
         {
+            if (entity == null) return null;
             return new UserDTO
             {
                 UserId = entity.UserId,
@@ -243,8 +262,9 @@ namespace DTOs
             };
         }
 
-        public static VehicleAssignmentDTO? EntityToDTO(VehicleAssignment entity)
+        public static VehicleAssignmentDTO? EntityToDTO(VehicleAssignment? entity)
         {
+            if (entity == null) return null;
             return new VehicleAssignmentDTO
             {
                 MissionId = entity.MissionId,
@@ -254,8 +274,9 @@ namespace DTOs
             };
         }
 
-        public static VehicleDTO? EntityToDTO(Vehicle entity)
+        public static VehicleDTO? EntityToDTO(Vehicle? entity)
         {
+            if (entity == null) return null;
             return new VehicleDTO
             {
                 VehicleId = entity.VehicleId,
@@ -267,8 +288,9 @@ namespace DTOs
             };
         }
 
-        public static VehiclesStatusDTO? EntityToDTO(VehiclesStatus entity)
+        public static VehiclesStatusDTO? EntityToDTO(VehiclesStatus? entity)
         {
+            if (entity == null) return null;
             return new VehiclesStatusDTO
             {
                 VehiclesStatusId = entity.VehiclesStatusId,
@@ -276,8 +298,9 @@ namespace DTOs
             };
         }
 
-        public static VehiclesTypeDTO? EntityToDTO(VehiclesType entity)
+        public static VehiclesTypeDTO? EntityToDTO(VehiclesType? entity)
         {
+            if (entity == null) return null;
             return new VehiclesTypeDTO
             {
                 VehicleTypeId = entity.VehicleTypeId,
@@ -285,8 +308,9 @@ namespace DTOs
             };
         }
 
-        public static WarehouseDTO? EntityToDTO(Warehouse entity)
+        public static WarehouseDTO? EntityToDTO(Warehouse? entity)
         {
+            if (entity == null) return null;
             return new WarehouseDTO
             {
                 WarehouseId = entity.WarehouseId,
@@ -298,8 +322,9 @@ namespace DTOs
             };
         }
 
-        public static WarehouseStockDTO? EntityToDTO(WarehouseStock entity)
+        public static WarehouseStockDTO? EntityToDTO(WarehouseStock? entity)
         {
+            if (entity == null) return null;
             return new WarehouseStockDTO
             {
                 WarehouseId = entity.WarehouseId,
@@ -309,8 +334,9 @@ namespace DTOs
             };
         }
 
-        public static AttachmentDTO? EntityToDTO(Attachment entity)
+        public static AttachmentDTO? EntityToDTO(Attachment? entity)
         {
+            if (entity == null) return null;
             return new AttachmentDTO
             {
                 AttachmentId = entity.AttachmentId,
@@ -319,8 +345,9 @@ namespace DTOs
             };
         }
 
-        public static FileChunkDTO? EntityToDTO(FileChunk entity)
+        public static FileChunkDTO? EntityToDTO(FileChunk? entity)
         {
+            if (entity == null) return null;
             return new FileChunkDTO
             {
                 ChunkId = entity.ChunkId,
@@ -334,8 +361,9 @@ namespace DTOs
         #region DTOToEntity
         
 
-        public static AttachmentMission? DTOToEntity(AttachmentMissionDTO dto)
+        public static AttachmentMission? DTOToEntity(AttachmentMissionDTO? dto)
         {
+            if (dto == null) return null;
             return new AttachmentMission
             {
                 AttachmentId = dto.AttachmentId,
@@ -345,8 +373,9 @@ namespace DTOs
             };
         }
 
-        public static AttachmentRescue? DTOToEntity(AttachmentRescueDTO dto)
+        public static AttachmentRescue? DTOToEntity(AttachmentRescueDTO? dto)
         {
+            if (dto == null) return null;
             return new AttachmentRescue
             {
                 AttachmentId = dto.AttachmentId,
@@ -356,8 +385,9 @@ namespace DTOs
             };
         }
 
-        public static Category? DTOToEntity(CategoryDTO dto)
+        public static Category? DTOToEntity(CategoryDTO? dto)
         {
+            if (dto == null) return null;
             return new Category
             {
                 CategoryId = dto.CategoryId,
@@ -365,8 +395,9 @@ namespace DTOs
             };
         }
 
-        public static InventoryTransaction? DTOToEntity(InventoryTransactionDTO dto)
+        public static InventoryTransaction? DTOToEntity(InventoryTransactionDTO? dto)
         {
+            if (dto == null) return null;
             return new InventoryTransaction
             {
                 TxId = dto.TxId,
@@ -380,10 +411,9 @@ namespace DTOs
             };
         }
 
-       
-
-        public static MissionLog? DTOToEntity(MissionLogDTO dto)
+        public static MissionLog? DTOToEntity(MissionLogDTO? dto)
         {
+            if (dto == null) return null;
             return new MissionLog
             {
                 LogId = dto.LogId,
@@ -394,8 +424,9 @@ namespace DTOs
             };
         }
 
-        public static Product? DTOToEntity(ProductDTO dto)
+        public static Product? DTOToEntity(ProductDTO? dto)
         {
+            if (dto == null) return null;
             return new Product
             {
                 ProductId = dto.ProductId,
@@ -405,8 +436,9 @@ namespace DTOs
             };
         }
 
-        public static RefreshToken? DTOToEntity(RefreshTokenDTO dto)
+        public static RefreshToken? DTOToEntity(RefreshTokenDTO? dto)
         {
+            if (dto == null) return null;
             return new RefreshToken
             {
                 RefreshTokenId = dto.RefreshTokenId,
@@ -420,8 +452,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRoll? DTOToEntity(RescueMembersRollDTO dto)
+        public static RescueMembersRoll? DTOToEntity(RescueMembersRollDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueMembersRoll
             {
                 RescueMembersRollId = dto.RescueMembersRollId,
@@ -429,8 +462,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMission? DTOToEntity(RescueMissionDTO dto)
+        public static RescueMission? DTOToEntity(RescueMissionDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueMission
             {
                 MissionId = dto.MissionId,
@@ -442,8 +476,9 @@ namespace DTOs
             };
         }
 
-        public static RescueMissionsStatus? DTOToEntity(RescueMissionsStatusDTO dto)
+        public static RescueMissionsStatus? DTOToEntity(RescueMissionsStatusDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueMissionsStatus
             {
                 RescueMissionsStatusId = dto.RescueMissionsStatusId,
@@ -451,8 +486,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequest? DTOToEntity(RescueRequestDTO dto)
+        public static RescueRequest? DTOToEntity(RescueRequestDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueRequest
             {
                 RescueRequestId = dto.RescueRequestId,
@@ -470,8 +506,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestLog? DTOToEntity(RescueRequestLogDTO dto)
+        public static RescueRequestLog? DTOToEntity(RescueRequestLogDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueRequestLog
             {
                 LogId = dto.LogId,
@@ -482,8 +519,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsStatus? DTOToEntity(RescueRequestsStatusDTO dto)
+        public static RescueRequestsStatus? DTOToEntity(RescueRequestsStatusDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueRequestsStatus
             {
                 RescueRequestsStatusId = dto.RescueRequestsStatusId,
@@ -491,8 +529,9 @@ namespace DTOs
             };
         }
 
-        public static RescueRequestsType? DTOToEntity(RescueRequestsTypeDTO dto)
+        public static RescueRequestsType? DTOToEntity(RescueRequestsTypeDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueRequestsType
             {
                 RescueRequestsTypeId = dto.RescueRequestsTypeId,
@@ -500,8 +539,9 @@ namespace DTOs
             };
         }
 
-        public static RescueTeam? DTOToEntity(RescueTeamDTO dto)
+        public static RescueTeam? DTOToEntity(RescueTeamDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueTeam
             {
                 TeamId = dto.TeamId,
@@ -511,8 +551,9 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamMember? DTOToEntity(RescueTeamMemberDTO dto)
+        public static RescueTeamMember? DTOToEntity(RescueTeamMemberDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueTeamMember
             {
                 UserId = dto.UserId,
@@ -521,8 +562,9 @@ namespace DTOs
             };
         }
 
-        public static RescueTeamsStatus? DTOToEntity(RescueTeamsStatusDTO dto)
+        public static RescueTeamsStatus? DTOToEntity(RescueTeamsStatusDTO? dto)
         {
+            if (dto == null) return null;
             return new RescueTeamsStatus
             {
                 RescueTeamsStatusId = dto.RescueTeamsStatusId,
@@ -530,8 +572,9 @@ namespace DTOs
             };
         }
 
-        public static Role? DTOToEntity(RoleDTO dto)
+        public static Role? DTOToEntity(RoleDTO? dto)
         {
+            if (dto == null) return null;
             return new Role
             {
                 RoleId = dto.RoleId,
@@ -539,8 +582,9 @@ namespace DTOs
             };
         }
 
-        public static UrgencyLevel? DTOToEntity(UrgencyLevelDTO dto)
+        public static UrgencyLevel? DTOToEntity(UrgencyLevelDTO? dto)
         {
+            if (dto == null) return null;
             return new UrgencyLevel
             {
                 UrgencyLevelId = dto.UrgencyLevelId,
@@ -548,8 +592,9 @@ namespace DTOs
             };
         }
 
-        public static User? DTOToEntity(UserDTO dto)
+        public static User? DTOToEntity(UserDTO? dto)
         {
+            if (dto == null) return null;
             return new User
             {
                 UserId = dto.UserId,
@@ -565,8 +610,9 @@ namespace DTOs
             };
         }
 
-        public static VehicleAssignment? DTOToEntity(VehicleAssignmentDTO dto)
+        public static VehicleAssignment? DTOToEntity(VehicleAssignmentDTO? dto)
         {
+            if (dto == null) return null;
             return new VehicleAssignment
             {
                 MissionId = dto.MissionId,
@@ -576,8 +622,9 @@ namespace DTOs
             };
         }
 
-        public static Vehicle? DTOToEntity(VehicleDTO dto)
+        public static Vehicle? DTOToEntity(VehicleDTO? dto)
         {
+            if (dto == null) return null;
             return new Vehicle
             {
                 VehicleId = dto.VehicleId,
@@ -589,8 +636,9 @@ namespace DTOs
             };
         }
 
-        public static VehiclesStatus? DTOToEntity(VehiclesStatusDTO dto)
+        public static VehiclesStatus? DTOToEntity(VehiclesStatusDTO? dto)
         {
+            if (dto == null) return null;
             return new VehiclesStatus
             {
                 VehiclesStatusId = dto.VehiclesStatusId,
@@ -598,8 +646,9 @@ namespace DTOs
             };
         }
 
-        public static VehiclesType? DTOToEntity(VehiclesTypeDTO dto)
+        public static VehiclesType? DTOToEntity(VehiclesTypeDTO? dto)
         {
+            if (dto == null) return null;
             return new VehiclesType
             {
                 VehicleTypeId = dto.VehicleTypeId,
@@ -607,8 +656,9 @@ namespace DTOs
             };
         }
 
-        public static Warehouse? DTOToEntity(WarehouseDTO dto)
+        public static Warehouse? DTOToEntity(WarehouseDTO? dto)
         {
+            if (dto == null) return null;
             return new Warehouse
             {
                 WarehouseId = dto.WarehouseId,
@@ -620,8 +670,9 @@ namespace DTOs
             };
         }
 
-        public static WarehouseStock? DTOToEntity(WarehouseStockDTO dto)
+        public static WarehouseStock? DTOToEntity(WarehouseStockDTO? dto)
         {
+            if (dto == null) return null;
             return new WarehouseStock
             {
                 WarehouseId = dto.WarehouseId,
@@ -631,8 +682,9 @@ namespace DTOs
             };
         }
 
-        public static Attachment? DTOToEntity(AttachmentDTO dto)
+        public static Attachment? DTOToEntity(AttachmentDTO? dto)
         {
+            if (dto == null) return null;
             return new Attachment
             {
                 AttachmentId = dto.AttachmentId,
@@ -641,8 +693,9 @@ namespace DTOs
             };
         }
 
-        public static FileChunk? DTOToEntity(FileChunkDTO dto)
+        public static FileChunk? DTOToEntity(FileChunkDTO? dto)
         {
+            if (dto == null) return null;
             return new FileChunk
             {
                 ChunkId = dto.ChunkId,

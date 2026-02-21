@@ -4,7 +4,7 @@ namespace DAOs.Overlut;
 
 public class RescueRequestDAO
 {
-    public static async Task<RescueRequest?> AddRescueRequest(RescueRequest rescueRequest)
+    public static async Task<RescueRequest?> AddRescueRequest(RescueRequest? rescueRequest)
     {
         try
         {

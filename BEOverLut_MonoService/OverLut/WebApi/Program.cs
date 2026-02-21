@@ -1,15 +1,22 @@
 using System.Text;
+using System.Text.Json.Nodes;
 using BusinessObject.OverlutEntiy;
 using DAOs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO.Converters;
 using Repositories;
 using Repositories.Interface;
 using Scalar.AspNetCore;
 using Services;
 using Services.Interface;
 using WebApi.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,11 +30,20 @@ builder.Services.AddDbContext<OverlutDbContext>(options =>
 builder.Services.AddDbContext<OverlutDbStorageContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection:overlutstoragedb")));
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+        options.JsonSerializerOptions.Converters.Add(new GeoJsonConverterFactory(geometryFactory));
+    });
+
 //
 builder.Services.AddAppConfigurations(builder.Configuration);
 // Add Repository scope
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IRescueRequestLogRepository, RescueRequestLogRepository>();
+builder.Services.AddScoped<IRescueRequestRepository, RescueRequestRepository>();
 
 // Add service scope.
 
@@ -68,6 +84,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "OverLut API", Version = "v1" });
+    c.MapType<Geometry>(() => new OpenApiSchema
+    {
+        Type = JsonSchemaType.Object,
+        Description = "GeoJSON format (Point, LineString, Polygon, etc.)",
+        Example = JsonNode.Parse("{\"type\": \"Point\", \"coordinates\": [106.7725, 10.9024]}")
+    });
 });
 
 var app = builder.Build();

@@ -65,7 +65,8 @@ namespace Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName??""),
                 new Claim(ClaimTypes.Role, user.RoleId.ToString()),
             };
             var key = new SymmetricSecurityKey(

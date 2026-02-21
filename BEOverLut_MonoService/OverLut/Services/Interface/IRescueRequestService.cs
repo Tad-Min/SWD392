@@ -1,4 +1,5 @@
 ﻿using BusinessObject.OverlutEntiy;
+using DTOs.Overlut;
 
 namespace Services.Interface
 {
@@ -14,7 +15,7 @@ namespace Services.Interface
         Task<RescueRequest?> GetRescueRequestByIdAsync(int id);
         Task<bool> UpdateRescueRequestAsync(RescueRequest rescueRequest);
         Task<bool> DeleteRescueRequestAsync(int id);
-        Task<RescueRequest?> AddRescueRequestAsync(RescueRequest rescueRequest);
+        Task<RescueRequestDTO?> AddRescueRequestAsync(RescueRequestDTO rescueRequest);
         Task<bool> AddAttachmentRescueAsync(AttachmentRescue attachmentRescue);
         Task<bool> DeleteAttachmentRescueByIdAsync(Guid id);
     }

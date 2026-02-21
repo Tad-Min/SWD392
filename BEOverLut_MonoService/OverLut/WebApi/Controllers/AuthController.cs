@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Services.Interface;
 using WebApi.Models;
+using WebApi.Models.AuthModel;
 
 namespace WebApi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -30,7 +32,7 @@ namespace WebApi.Controllers
                 }
                 return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email, registerModel.Password)??null!));
             }
-            catch (Exception ex) {
+            catch {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -49,7 +51,14 @@ namespace WebApi.Controllers
                     return BadRequest("Wrong email or password!");
                 }
                 var refToken = await iAuthService.GenerateRefreshTokenAsync(user, GetUserAgent(HttpContext), GetClientIp(HttpContext));
+                if (refToken == null)
+                {
+                    throw new Exception("Can't generate token");
+                }
                 var accessToken = await iAuthService.GenerateAccessTokenAsync(user, refToken);
+                if (accessToken == null) {
+                    throw new Exception("Can't generate token");
+                }
                 return Ok(new ReturnLoginModel
                 {
                     UserId = user.UserId,
@@ -100,9 +109,9 @@ namespace WebApi.Controllers
         {
             return context.Request.Headers["User-Agent"].FirstOrDefault() ?? string.Empty;
         }
-        private string GetClientIp(HttpContext context)
+        private string? GetClientIp(HttpContext context)
         {
-            string ip = string.Empty;
+            string? ip = string.Empty;
 
             // Check X-Forwarded-For 
             var forwardedHeader = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();

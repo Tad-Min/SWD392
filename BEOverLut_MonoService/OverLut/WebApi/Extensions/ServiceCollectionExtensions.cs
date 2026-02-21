@@ -15,6 +15,10 @@ namespace WebApi.Extensions
                     .Bind(config.GetSection("UserSettings"))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
+            services.AddOptions<RescueReqSettings>()
+                    .Bind(config.GetSection("RescueReqSettings"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart();
             return services;
         }
     }
