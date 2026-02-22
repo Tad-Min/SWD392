@@ -59,6 +59,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IWareHouseService, WareHouseService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
+
+// Add Status Repositories
+builder.Services.AddScoped<IRescueMissionsStatusRepository, RescueMissionsStatusRepository>();
+builder.Services.AddScoped<IRescueRequestsStatusRepository, RescueRequestsStatusRepository>();
+builder.Services.AddScoped<IRescueTeamsStatusRepository, RescueTeamsStatusRepository>();
+builder.Services.AddScoped<IVehiclesStatusRepository, VehiclesStatusRepository>();
 
 // Add authentication
 
