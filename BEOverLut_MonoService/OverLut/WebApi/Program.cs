@@ -67,6 +67,11 @@ builder.Services.AddScoped<IRescueRequestsStatusRepository, RescueRequestsStatus
 builder.Services.AddScoped<IRescueTeamsStatusRepository, RescueTeamsStatusRepository>();
 builder.Services.AddScoped<IVehiclesStatusRepository, VehiclesStatusRepository>();
 
+// Add Types Service and Repositories
+builder.Services.AddScoped<ITypesService, TypesService>();
+builder.Services.AddScoped<IRescueRequestsTypeRepository, RescueRequestsTypeRepository>();
+builder.Services.AddScoped<IVehiclesTypeRepository, VehiclesTypeRepository>();
+
 // Add authentication
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

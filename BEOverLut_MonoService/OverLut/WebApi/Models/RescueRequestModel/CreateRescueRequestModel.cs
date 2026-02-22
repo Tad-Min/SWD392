@@ -6,7 +6,7 @@ namespace WebApi.Models.RescueRequestModel
 {
     public class CreateRescueRequestModel
     {
-        public string Description { get; set; }
+        public string? Description { get; set; }
         [Required]
         public int RequestType { get; set; }
         [Required]
@@ -14,7 +14,7 @@ namespace WebApi.Models.RescueRequestModel
         [Required]
         public int PeopleCount { get; set; } = 1;
         [Required]
-        public Geometry Currentlocation { get; set; }
+        public Geometry Currentlocation { get; set; } = null!;
         public String? LocationText { get; set; }
     }
 }
