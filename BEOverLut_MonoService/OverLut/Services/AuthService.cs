@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using BusinessObject.OverlutEntiy;
 using DTOs.Appsettings;
+using DTOs.Overlut;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -61,7 +62,7 @@ namespace Services
         }
         #endregion
         #region GenerateAccessToken, GenerateRefreshToken, ValidateRefreshTokenAsync
-        public async Task<string?> GenerateAccessTokenAsync(User user, string refreshToken)
+        public async Task<string?> GenerateAccessTokenAsync(UserDTO user, string refreshToken)
         {
             var claims = new List<Claim>
             {
@@ -89,7 +90,7 @@ namespace Services
                 return Convert.ToBase64String(randomNumber);
             }
         }
-        public async Task<string> GenerateRefreshTokenAsync(User user, string? UserAngent, string? ipAddress)
+        public async Task<string> GenerateRefreshTokenAsync(UserDTO user, string? UserAngent, string? ipAddress)
         {
             var refreshToken = generateRefreshToken();
 

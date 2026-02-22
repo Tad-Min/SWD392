@@ -7,5 +7,8 @@ namespace WebApi.Controllers
     [ApiController]
     public class VehicleController : ControllerBase
     {
+        //All data must be retrieved from the Service Layer.
+        //All method must follow Restfull API
+        //All method must handel Error
     }
 }

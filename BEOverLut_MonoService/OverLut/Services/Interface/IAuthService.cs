@@ -1,4 +1,5 @@
 ﻿using BusinessObject.OverlutEntiy;
+using DTOs.Overlut;
 
 namespace Services.Interface
 {
@@ -14,8 +15,8 @@ namespace Services.Interface
         Task<bool> ComfirmEmailAsync(string email, string token);
         #endregion
         #region GetAccessToken & GetRefreshToken
-        Task<string?> GenerateAccessTokenAsync(User user,string refreshToken);
-        Task<string> GenerateRefreshTokenAsync(User user, string? UserAngent, string? ipAddress);
+        Task<string?> GenerateAccessTokenAsync(UserDTO user,string refreshToken);
+        Task<string> GenerateRefreshTokenAsync(UserDTO user, string? UserAngent, string? ipAddress);
         #endregion
     }
 }
