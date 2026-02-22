@@ -17,6 +17,8 @@ public partial class RescueMission
 
     public DateTime AssignedAt { get; set; }
 
+    public string? Description { get; set; }
+
     public virtual ICollection<AttachmentMission> AttachmentMissions { get; set; } = new List<AttachmentMission>();
 
     public virtual User CoordinatorUser { get; set; } = null!;

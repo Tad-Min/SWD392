@@ -4,7 +4,7 @@ using NetTopologySuite.GeometriesGraph;
 
 namespace WebApi.Models.RescueRequestModel
 {
-    public class RescueRequestModel
+    public class CreateRescueRequestModel
     {
         public string Description { get; set; }
         [Required]

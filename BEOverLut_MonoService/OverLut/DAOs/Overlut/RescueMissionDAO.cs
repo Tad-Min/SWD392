@@ -4,7 +4,7 @@ namespace DAOs.Overlut;
 
 public class RescueMissionDAO
 {
-    public static async Task<IEnumerable<RescueMission>?> GetAllRescueMission(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId)
+    public static async Task<IEnumerable<RescueMission>?> GetAllRescueMission(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description)
     {
         try
         {
@@ -26,6 +26,8 @@ public class RescueMissionDAO
             if (statusId.HasValue)
                 query = query.Where(x => x.StatusId == statusId.Value);
 
+            if (!string.IsNullOrEmpty(description))
+                query = query.Where(x => x.Description != null && x.Description.Contains(description));
             return await query.ToListAsync();
         }
         catch (Exception ex)

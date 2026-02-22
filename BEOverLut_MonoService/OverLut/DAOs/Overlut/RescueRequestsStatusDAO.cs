@@ -12,7 +12,7 @@ public class RescueRequestsStatusDAO
             var query = db.RescueRequestsStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
-                query = query.Where(x => x.StatusName.Contains(statusName));
+                query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
 
             return await query.ToListAsync();
         }
@@ -28,7 +28,7 @@ public class RescueRequestsStatusDAO
         try
         {
             using var db = new OverlutDbContext();
-            return await db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id);
+            return await db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {

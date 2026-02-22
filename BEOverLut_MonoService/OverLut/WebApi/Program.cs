@@ -43,7 +43,10 @@ builder.Services.AddAppConfigurations(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IRescueRequestLogRepository, RescueRequestLogRepository>();
+builder.Services.AddScoped<IMissionLogRepository, MissionLogRepository>();
 builder.Services.AddScoped<IRescueRequestRepository, RescueRequestRepository>();
+builder.Services.AddScoped<IRescueMissionRepository, RescueMissionRepository>();
+builder.Services.AddScoped<IAttachmentMissionRepository, AttachmentMissionRepository>();
 
 // Add service scope.
 
@@ -55,6 +58,7 @@ builder.Services.AddScoped<IRescueTeamService, RescueTeamService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IWareHouseService, WareHouseService>();
+builder.Services.AddScoped<ILogService, LogService>();
 
 // Add authentication
 
@@ -83,7 +87,23 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "OverLut API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OverLut API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter into field the word 'Bearer' following by space and JWT",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(securityRequirement => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", null),
+            new List<string>()
+        }
+    });
     c.MapType<Geometry>(() => new OpenApiSchema
     {
         Type = JsonSchemaType.Object,

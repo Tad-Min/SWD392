@@ -5,4 +5,6 @@ public class VehiclesStatusDTO
     public int VehiclesStatusId { get; set; }
 
     public string StatusName { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
 }

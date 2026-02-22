@@ -12,7 +12,7 @@ public class RescueMissionsStatusDAO
             var query = db.RescueMissionsStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
-                query = query.Where(x => x.StatusName.Contains(statusName));
+                query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
 
             return await query.ToListAsync();
         }
@@ -28,7 +28,7 @@ public class RescueMissionsStatusDAO
         try
         {
             using var db = new OverlutDbContext();
-            return await db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id);
+            return await db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -75,8 +75,15 @@ public class RescueMissionsStatusDAO
 
             if (existingStatus == null) return false;
 
-            existingStatus.StatusName = status.StatusName;
+            existingStatus.IsDeleted = true;
             db.RescueMissionsStatuses.Update(existingStatus);
+
+            var newStatus = new RescueMissionsStatus
+            {
+                StatusName = status.StatusName,
+                IsDeleted = false
+            };
+            await db.RescueMissionsStatuses.AddAsync(newStatus);
             await db.SaveChangesAsync();
             return true;
         }
@@ -96,7 +103,8 @@ public class RescueMissionsStatusDAO
 
             if (status == null) return false;
 
-            db.RescueMissionsStatuses.Remove(status);
+            status.IsDeleted = true;
+            db.RescueMissionsStatuses.Update(status);
             await db.SaveChangesAsync();
             return true;
         }

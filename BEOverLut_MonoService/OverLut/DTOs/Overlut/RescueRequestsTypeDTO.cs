@@ -5,4 +5,6 @@ public class RescueRequestsTypeDTO
     public int RescueRequestsTypeId { get; set; }
 
     public string TypeName { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
 }

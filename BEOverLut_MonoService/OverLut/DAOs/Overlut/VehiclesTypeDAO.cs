@@ -12,7 +12,7 @@ public class VehiclesTypeDAO
             var query = db.VehiclesTypes.AsQueryable();
 
             if (!string.IsNullOrEmpty(typeName))
-                query = query.Where(x => x.TypeName.Contains(typeName));
+                query = query.Where(x => x.TypeName.Contains(typeName) && !x.IsDeleted);
 
             return await query.ToListAsync();
         }
@@ -28,7 +28,7 @@ public class VehiclesTypeDAO
         try
         {
             using var db = new OverlutDbContext();
-            return await db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id);
+            return await db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {

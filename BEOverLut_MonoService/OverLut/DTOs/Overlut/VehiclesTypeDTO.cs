@@ -5,4 +5,6 @@ public class VehiclesTypeDTO
     public int VehicleTypeId { get; set; }
 
     public string TypeName { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
 }

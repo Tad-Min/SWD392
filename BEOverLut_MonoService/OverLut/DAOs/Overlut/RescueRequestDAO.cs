@@ -1,5 +1,6 @@
 ﻿using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 namespace DAOs.Overlut;
 
 public class RescueRequestDAO
@@ -12,7 +13,6 @@ public class RescueRequestDAO
                 throw new ArgumentNullException(nameof(rescueRequest));
 
             using var db = new OverlutDbContext();
-            rescueRequest.CreatedAt = DateTime.UtcNow;
             await db.RescueRequests.AddAsync(rescueRequest);
             await db.SaveChangesAsync();
             return rescueRequest;
@@ -24,6 +24,21 @@ public class RescueRequestDAO
         }
     }
 
+    public static async Task<RescueRequest?> GetRescueRequestByIdAsync(int id)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.RescueRequests.FirstOrDefaultAsync(e => e.RescueRequestId == id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueRequestDAO-GetRescueRequestByIdAsync: {ex.Message}");
+            return null;
+        }
+
+
+    }
     public static async Task<IEnumerable<RescueRequest>?> GetAllRescueRequests(
         int? rescueRequestId,
         int? userReqId,
@@ -87,7 +102,6 @@ public class RescueRequestDAO
             existingRequest.PeopleCount = rescueRequest.PeopleCount;
             existingRequest.Location = rescueRequest.Location;
             existingRequest.LocationText = rescueRequest.LocationText;
-
             db.RescueRequests.Update(existingRequest);
             await db.SaveChangesAsync();
             return true;

@@ -1,6 +1,9 @@
-﻿using BusinessObject.OverlutEntiy;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
+using BusinessObject.OverlutEntiy;
 using DTOs;
 using DTOs.Appsettings;
+
 using DTOs.Overlut;
 using Microsoft.Extensions.Options;
 using Repositories.Interface;
@@ -48,24 +51,22 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteRescueRequestAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<IEnumerable<RescueRequest>?> GetAllRescueRequestsAsync(int? rescueRequestId, int? userReqId, int? requestType, int? urgencyLevel, int? status, string? description)
+        public async Task<IEnumerable<RescueRequestDTO>?> GetAllRescueRequestsAsync(int? rescueRequestId, int? userReqId, int? requestType, int? urgencyLevel, int? status, string? description)
         {
-            throw new NotImplementedException();
+            var requests = await iRescueRequestRepository.GetAllRescueRequests(rescueRequestId, userReqId, requestType, urgencyLevel, status, description);
+            if (requests == null) return null;
+            return requests.Select(x => MappingHandle.EntityToDTO(x)).OfType<RescueRequestDTO>();
         }
 
         public Task<RescueRequest?> GetRescueRequestByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return iRescueRequestRepository.GetRescueRequestByIdAsync(id);
         }
 
-        public Task<bool> UpdateRescueRequestAsync(RescueRequest rescueRequest)
+        public async Task<bool> UpdateRescueRequestAsync(RescueRequestDTO model)
         {
-            throw new NotImplementedException();
+            return await iRescueRequestRepository.UpdateRescueRequest(MappingHandle.DTOToEntity(model)!);
         }
     }
 }

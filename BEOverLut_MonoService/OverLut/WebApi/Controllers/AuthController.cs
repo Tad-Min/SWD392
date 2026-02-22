@@ -3,7 +3,6 @@ using DTOs.Appsettings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Services.Interface;
-using WebApi.Models;
 using WebApi.Models.AuthModel;
 
 namespace WebApi.Controllers

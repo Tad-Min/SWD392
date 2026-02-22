@@ -12,7 +12,7 @@ public class VehiclesStatusDAO
             var query = db.VehiclesStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
-                query = query.Where(x => x.StatusName.Contains(statusName));
+                query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
 
             return await query.ToListAsync();
         }
@@ -28,7 +28,7 @@ public class VehiclesStatusDAO
         try
         {
             using var db = new OverlutDbContext();
-            return await db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id);
+            return await db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {

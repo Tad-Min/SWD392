@@ -60,8 +60,16 @@ public class UrgencyLevelDAO
             var existingLevel = await db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevel.UrgencyLevelId);
             if (existingLevel == null)
                 throw new Exception("UrgencyLevel not found");
-            existingLevel.UrgencyName = urgencyLevel.UrgencyName;
+            
+            existingLevel.IsDeleted = true;
             db.UrgencyLevels.Update(existingLevel);
+
+            var newLevel = new UrgencyLevel
+            {
+                UrgencyName = urgencyLevel.UrgencyName,
+                IsDeleted = false
+            };
+            await db.UrgencyLevels.AddAsync(newLevel);
             await db.SaveChangesAsync();
             return true;
         }
@@ -80,7 +88,9 @@ public class UrgencyLevelDAO
             var urgencyLevel = await db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevelId);
             if (urgencyLevel == null)
                 throw new Exception("UrgencyLevel not found");
-            db.UrgencyLevels.Remove(urgencyLevel);
+            
+            urgencyLevel.IsDeleted = true;
+            db.UrgencyLevels.Update(urgencyLevel);
             await db.SaveChangesAsync();
             return true;
         }

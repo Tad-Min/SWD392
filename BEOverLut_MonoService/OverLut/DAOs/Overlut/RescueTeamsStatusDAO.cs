@@ -12,7 +12,7 @@ public class RescueTeamsStatusDAO
             var query = db.RescueTeamsStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
-                query = query.Where(x => x.StatusName.Contains(statusName));
+                query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
 
             return await query.ToListAsync();
         }
@@ -28,7 +28,7 @@ public class RescueTeamsStatusDAO
         try
         {
             using var db = new OverlutDbContext();
-            return await db.RescueTeamsStatuses.FirstOrDefaultAsync(x => x.RescueTeamsStatusId == id);
+            return await db.RescueTeamsStatuses.FirstOrDefaultAsync(x => x.RescueTeamsStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -75,8 +75,15 @@ public class RescueTeamsStatusDAO
 
             if (existingStatus == null) return false;
 
-            existingStatus.StatusName = status.StatusName;
+            existingStatus.IsDeleted = true;
             db.RescueTeamsStatuses.Update(existingStatus);
+
+            var newStatus = new RescueTeamsStatus
+            {
+                StatusName = status.StatusName,
+                IsDeleted = false
+            };
+            await db.RescueTeamsStatuses.AddAsync(newStatus);
             await db.SaveChangesAsync();
             return true;
         }
@@ -96,7 +103,8 @@ public class RescueTeamsStatusDAO
 
             if (status == null) return false;
 
-            db.RescueTeamsStatuses.Remove(status);
+            status.IsDeleted = true;
+            db.RescueTeamsStatuses.Update(status);
             await db.SaveChangesAsync();
             return true;
         }

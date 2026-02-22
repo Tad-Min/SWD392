@@ -9,5 +9,7 @@ public partial class VehiclesType
 
     public string TypeName { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 }

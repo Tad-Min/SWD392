@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace BusinessObject.OverlutEntiy;
+namespace DAOs;
 
 public partial class OverlutDbContext : DbContext
 {
@@ -119,7 +120,7 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0E9BB5128").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0C548B5F7").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(100);
@@ -180,11 +181,11 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39C8FE4BD5");
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39E5FA7B68");
 
             entity.ToTable("RefreshToken");
 
-            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F8174B220B10").IsUnique();
+            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F8179C3F916A").IsUnique();
 
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(255)
@@ -215,6 +216,7 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.MissionId).HasColumnName("MissionID");
             entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.CoordinatorUserId).HasColumnName("CoordinatorUserID");
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.RescueRequestId).HasColumnName("RescueRequestID");
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
@@ -299,8 +301,6 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("RescueRequestsStatus");
 
-            entity.HasIndex(e => e.StatusName, "UQ_RescueRequestsStatus_StatusName").IsUnique();
-
             entity.Property(e => e.RescueRequestsStatusId)
                 .ValueGeneratedNever()
                 .HasColumnName("RescueRequestsStatusID");
@@ -309,8 +309,6 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RescueRequestsType>(entity =>
         {
-            entity.HasIndex(e => e.TypeName, "UQ_RescueRequestsTypes_TypeName").IsUnique();
-
             entity.Property(e => e.RescueRequestsTypeId)
                 .ValueGeneratedNever()
                 .HasColumnName("RescueRequestsTypeID");
@@ -361,8 +359,6 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("RescueTeamsStatus");
 
-            entity.HasIndex(e => e.StatusName, "UQ_RescueTeamsStatus_StatusName").IsUnique();
-
             entity.Property(e => e.RescueTeamsStatusId)
                 .ValueGeneratedNever()
                 .HasColumnName("RescueTeamsStatusID");
@@ -382,8 +378,6 @@ public partial class OverlutDbContext : DbContext
         modelBuilder.Entity<UrgencyLevel>(entity =>
         {
             entity.HasKey(e => e.UrgencyLevelId).HasName("PK_UrgencyLevel");
-
-            entity.HasIndex(e => e.UrgencyName, "UQ_UrgencyLevels_TypeName").IsUnique();
 
             entity.Property(e => e.UrgencyLevelId)
                 .ValueGeneratedNever()
@@ -460,8 +454,6 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("VehiclesStatus");
 
-            entity.HasIndex(e => e.StatusName, "UQ_VehiclesStatus_StatusName").IsUnique();
-
             entity.Property(e => e.VehiclesStatusId)
                 .ValueGeneratedNever()
                 .HasColumnName("VehiclesStatusID");
@@ -471,8 +463,6 @@ public partial class OverlutDbContext : DbContext
         modelBuilder.Entity<VehiclesType>(entity =>
         {
             entity.HasKey(e => e.VehicleTypeId);
-
-            entity.HasIndex(e => e.TypeName, "UQ_VehiclesTypes_TypeName").IsUnique();
 
             entity.Property(e => e.VehicleTypeId)
                 .ValueGeneratedNever()

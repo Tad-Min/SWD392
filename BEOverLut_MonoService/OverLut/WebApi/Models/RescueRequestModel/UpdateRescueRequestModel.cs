@@ -7,7 +7,6 @@ namespace WebApi.Models.RescueRequestModel
     {
         [Required(ErrorMessage ="Must have Rescue Request Id")]
         public int RescueRequestId { get; set; }
-        public int? UserReqId { get; set; }
         [Required(ErrorMessage ="Must have Request Type")]
         public int RequestType { get; set; }
         [Required(ErrorMessage ="Must have urgency level")]

@@ -9,5 +9,7 @@ public partial class RescueMissionsStatus
 
     public string StatusName { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<RescueMission> RescueMissions { get; set; } = new List<RescueMission>();
 }

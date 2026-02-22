@@ -9,5 +9,7 @@ public partial class RescueRequestsType
 
     public string TypeName { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<RescueRequest> RescueRequests { get; set; } = new List<RescueRequest>();
 }
