@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using NetTopologySuite.Geometries;
 
 namespace BusinessObject.OverlutEntiy;
@@ -9,7 +10,7 @@ public partial class Warehouse
     public int WarehouseId { get; set; }
 
     public string WarehouseName { get; set; } = null!;
-
+    [NotMapped]
     public Geometry Location { get; set; } = null!;
 
     public string? LocationText { get; set; }
