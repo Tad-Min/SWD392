@@ -12,7 +12,7 @@ public class VehicleAssignmentDAO
             var query = db.VehicleAssignments.AsQueryable();
             if (missionId.HasValue) query = query.Where(x => x.MissionId == missionId.Value);
             if (vehicleId.HasValue) query = query.Where(x => x.VehicleId == vehicleId.Value);
-            if (assignedAt.HasValue) query = query.Where(x => x.AssignedAt == assignedAt.Value);
+            if (assignedAt.HasValue) query = query.Where(x => x.AssignedAt. == assignedAt.Value);
             if (releasedAt.HasValue) query = query.Where(x => x.ReleasedAt == releasedAt.Value);
             return await query.ToListAsync();
         }
@@ -23,6 +23,19 @@ public class VehicleAssignmentDAO
         }
     }
 
+    public static async Task<VehicleAssignment?> GetVehicleAssignmentById(int id)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.VehicleAssignments.FirstOrDefaultAsync(v => v.VehicleId == id);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"VehicleAssignmentDAO-GetVehicleAssignmentById: {ex.Message}");
+            return null;
+        }
+    }
     public static async Task<IEnumerable<VehicleAssignment>?> GetVehicleAssignmentByMissionId(int missionId)
     {
         try
@@ -36,6 +49,7 @@ public class VehicleAssignmentDAO
             return null;
         }
     }
+
 
     public static async Task<VehicleAssignment?> AddVehicleAssignment(VehicleAssignment vehicleAssignment)
     {
@@ -93,6 +107,20 @@ public class VehicleAssignmentDAO
         catch (Exception ex)
         {
             Console.WriteLine($"VehicleAssignmentDAO-DeleteVehicleAssignmentById: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static async Task<bool> IsVehicleRelease(int vehicleId)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return !await db.VehicleAssignments.AnyAsync(x => x.VehicleId == vehicleId && x.ReleasedAt == null);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"VehicleAssignmentDAO-IsVehicleRelease: {ex.Message}");
             return false;
         }
     }

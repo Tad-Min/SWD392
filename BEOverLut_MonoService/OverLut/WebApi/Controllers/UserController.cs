@@ -18,18 +18,18 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllUsers(GetAllUserModel model)
+        public async Task<IActionResult> GetAllUsers(GetAllUserModel? model)
         {
             try
             {
                 var users = await _userService.GetAllUserAsync(
-                    model.userId, 
-                    model.roleId, 
-                    model.fullName, 
-                    model.identifyId, 
-                    model.address, 
-                    model.email, 
-                    model.phone
+                    model?.userId, 
+                    model?.roleId, 
+                    model?.fullName, 
+                    model?.identifyId, 
+                    model?.address, 
+                    model?.email, 
+                    model?.phone
                 );
                 return Ok(users);
             }

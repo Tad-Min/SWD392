@@ -7,5 +7,6 @@ namespace WebApi.Controllers
     [ApiController]
     public class RescueTeamController : ControllerBase
     {
+        
     }
 }

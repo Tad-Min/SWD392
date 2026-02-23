@@ -27,7 +27,7 @@ namespace Services
             return MappingHandle.EntityToDTO(user);
         }
 
-        public async Task<IEnumerable<UserDTO>> GetAllUserAsync(int? userId = null, int? roleId = null, string? fullName = null, string? identifyId = null, string? address = null, string? email = null, string? phone = null)
+        public async Task<IEnumerable<UserDTO>?> GetAllUserAsync(int? userId = null, int? roleId = null, string? fullName = null, string? identifyId = null, string? address = null, string? email = null, string? phone = null)
         {
             var users = await iUserRepository.GetAllUsers(userId, roleId, fullName, identifyId, address, email, phone);
             if (users == null) return new List<UserDTO>();

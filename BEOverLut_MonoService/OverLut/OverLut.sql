@@ -40,7 +40,7 @@ CREATE TABLE Users (
 	CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
 );
 CREATE TABLE RefreshToken (
-	RefreshTokenId INT PRIMARY KEY IDENTITY(0,1),
+	RefreshTokenId INT PRIMARY KEY IDENTITY(1,1),
 	UserID INT FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
 	Token NVARCHAR(500) UNIQUE,
 	CreatedAt DATETIME2 NOT NULL,
@@ -51,31 +51,31 @@ CREATE TABLE RefreshToken (
 );
 
 CREATE TABLE RescueRequestsStatus(
-	RescueRequestsStatusID INT IDENTITY(0,1) NOT NULL CONSTRAINT  PK_RescueRequestsStatus PRIMARY KEY,
+	RescueRequestsStatusID INT IDENTITY(1,1) NOT NULL CONSTRAINT  PK_RescueRequestsStatus PRIMARY KEY,
 	StatusName NVARCHAR(100) NOT NULL,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
 -- 0: New, 1: Verified, 2: Assigned, 3: EnRoute, 4: OnSite, 5: Resolved, 6: Cancelled, 7: DuplicateMerged
-INSERT RescueRequestsStatus(RescueRequestsStatusID, StatusName) VALUES (0,N'New'),(1,N'Verified'),(2,N'Assigned'),(3,N'EnRoute'),(4,N'OnSite'),(5,N'Resolved'),(6,N'Cancelled'),(7,N'DuplicateMerged');
+INSERT RescueRequestsStatus(StatusName) VALUES (N'New'),(N'Verified'),(N'Assigned'),(N'EnRoute'),(N'OnSite'),(N'Resolved'),(N'Cancelled'),(N'DuplicateMerged');
 CREATE TABLE RescueRequestsTypes(
-	RescueRequestsTypeID INT IDENTITY(0,1) NOT NULL CONSTRAINT  PK_RescueRequestsTypes PRIMARY KEY,
+	RescueRequestsTypeID INT IDENTITY(1,1) NOT NULL CONSTRAINT  PK_RescueRequestsTypes PRIMARY KEY,
 	TypeName NVARCHAR(100) NOT NULL, 
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
 -- 0: Rescue, 1: Relief, 2: Both
-INSERT RescueRequestsTypes(RescueRequestsTypeID, TypeName) VALUES (0,N'Rescue'),(1,N'Relief'),(2,N'Both');
+INSERT RescueRequestsTypes(TypeName) VALUES (N'Rescue'),(N'Relief'),(N'Both');
 CREATE TABLE UrgencyLevels(
-	UrgencyLevelID INT IDENTITY(0,1) NOT NULL CONSTRAINT  PK_UrgencyLevel PRIMARY KEY,
+	UrgencyLevelID INT IDENTITY(1,1) NOT NULL CONSTRAINT  PK_UrgencyLevel PRIMARY KEY,
 	UrgencyName NVARCHAR(100) NOT NULL,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
-INSERT UrgencyLevels(UrgencyLevelID, UrgencyName) VALUES (1,N'Normal'),(2,N'High'),(3,N'Critical');
+INSERT UrgencyLevels(UrgencyName) VALUES (N'Normal'),(N'High'),(N'Critical');
 
 CREATE TABLE RescueRequests(
-  RescueRequestID INT IDENTITY(0,1) NOT NULL CONSTRAINT PK_RescueRequests PRIMARY KEY,
+  RescueRequestID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_RescueRequests PRIMARY KEY,
   UserReqID INT NULL CONSTRAINT FK_RescueRequests_UserReqID REFERENCES Users(UserID),
   RequestType INT NOT NULL CONSTRAINT FK_RescueRequests_RescueRequestsTypes REFERENCES RescueRequestsTypes(RescueRequestsTypeID),
   UrgencyLevel INT NULL CONSTRAINT FK_RescueRequests_UrgencyLevels REFERENCES UrgencyLevels(UrgencyLevelID),
@@ -94,7 +94,7 @@ CREATE TABLE RescueRequests(
 GO
 
 CREATE TABLE RescueRequestLogs(
-  LogID BIGINT IDENTITY(0,1),
+  LogID BIGINT IDENTITY(1,1),
   RescueRequestID INT NOT NULL CONSTRAINT FK_ReqStatusHistory_RescueRequests REFERENCES RescueRequests(RescueRequestID) ON DELETE CASCADE,
   OldRescueRequests NVARCHAR(2000),
   ChangedByUserID INT NULL,
@@ -113,17 +113,17 @@ CREATE TABLE AttachmentRescue(
 GO
 
 CREATE TABLE RescueMissionsStatus(
-	RescueMissionsStatusID INT IDENTITY(0,1) NOT NULL CONSTRAINT PK_RescueMissionsStatus PRIMARY KEY,
+	RescueMissionsStatusID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_RescueMissionsStatus PRIMARY KEY,
 	StatusName NVARCHAR(100) NOT NULL CONSTRAINT UQ_RescueMissionsStatus_StatusName UNIQUE,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
 
 -- 0 Assigned, 1 EnRoute, 2 Rescuing, 3 Completed, 4 Failed
-INSERT RescueMissionsStatus(RescueMissionsStatusID, StatusName) VALUES (0,N'Assigned'),(1,N'EnRoute'),(2,N'Rescuing'),(3,N'Completed'),(4,N'Failed');
+INSERT RescueMissionsStatus(StatusName) VALUES (N'Assigned'),(N'EnRoute'),(N'Rescuing'),(N'Completed'),(N'Failed');
 
 CREATE TABLE RescueMissions(
-  MissionID INT NOT NULL IDENTITY(0,1) CONSTRAINT PK_RescueMissions PRIMARY KEY,
+  MissionID INT NOT NULL IDENTITY(1,1) CONSTRAINT PK_RescueMissions PRIMARY KEY,
   RescueRequestID INT NOT NULL CONSTRAINT FK_RescueMissions_RescueRequests REFERENCES  RescueRequests(RescueRequestID),
   CoordinatorUserID INT NOT NULL  CONSTRAINT FK_RescueMissions_Users REFERENCES  Users(UserID),
   TeamID INT NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE RescueMissions(
 GO
 
 CREATE TABLE MissionLogs(
-  LogID BIGINT IDENTITY(0,1),
+  LogID BIGINT IDENTITY(1,1),
   MissionID INT NOT NULL CONSTRAINT FK_MissionLogs_RescueMissions REFERENCES RescueMissions(MissionID) ON DELETE CASCADE,
   OldRescueMissions NVARCHAR(2000),
   ChangedByUserID INT NOT NULL,
@@ -152,22 +152,22 @@ CREATE TABLE AttachmentMission(
 GO
 
 CREATE TABLE VehiclesTypes(
-	VehicleTypeID INT IDENTITY(0,1) NOT NULL CONSTRAINT PK_VehiclesTypes PRIMARY KEY,
+	VehicleTypeID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_VehiclesTypes PRIMARY KEY,
 	TypeName NVARCHAR(100) NOT NULL,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
 -- 0: boat, 1: truck, 2: ambulance
-INSERT VehiclesTypes(VehicleTypeID, TypeName) VALUES (0,N'Boat'),(1,N'Truck'),(2,N'Ambulance');
+INSERT VehiclesTypes(TypeName) VALUES (N'Boat'),(N'Truck'),(N'Ambulance');
 
 CREATE TABLE VehiclesStatus(
-	VehiclesStatusID INT IDENTITY(0,1) NOT NULL CONSTRAINT PK_VehiclesStatus PRIMARY KEY,
+	VehiclesStatusID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_VehiclesStatus PRIMARY KEY,
 	StatusName NVARCHAR(100) NOT NULL,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
  -- 0: Available, 1: InUse, 2: Maintenance
-INSERT VehiclesStatus(VehiclesStatusID, StatusName) VALUES (0,N'Available'),(1,N'InUse'),(2,N'Maintenance');
+INSERT VehiclesStatus(StatusName) VALUES (N'Available'),(N'InUse'),(N'Maintenance');
 
 CREATE TABLE Vehicles(
   VehicleID INT IDENTITY(1,1) CONSTRAINT PK_Vehicles PRIMARY KEY,
@@ -180,7 +180,7 @@ CREATE TABLE Vehicles(
 GO
 
 CREATE TABLE VehicleAssignments(
-  MissionID INT IDENTITY(0,1) NOT NULL CONSTRAINT FK_VehicleAssignments_RescueMissions REFERENCES RescueMissions(MissionID),
+  MissionID INT IDENTITY(1,1) NOT NULL CONSTRAINT FK_VehicleAssignments_RescueMissions REFERENCES RescueMissions(MissionID),
   VehicleID INT NOT NULL CONSTRAINT FK_VehicleAssignments_Vehicle REFERENCES Vehicles(VehicleID),
   AssignedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
   ReleasedAt DATETIME2 NULL,
@@ -189,19 +189,20 @@ CREATE TABLE VehicleAssignments(
 GO
 
 CREATE TABLE RescueTeamsStatus(
-	RescueTeamsStatusID INT IDENTITY(0,1) NOT NULL CONSTRAINT PK_RescueTeamsStatus PRIMARY KEY,
+	RescueTeamsStatusID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_RescueTeamsStatus PRIMARY KEY,
 	StatusName NVARCHAR(100) NOT NULL,
 	IsDeleted BIT NOT NULL DEFAULT 0,
 );
 GO
 -- 0: Available, 1: Busy, 2: Offline
-INSERT RescueTeamsStatus(RescueTeamsStatusID, StatusName) VALUES (0,N'Available'),(1,N'Busy'),(2,N'Offline');
+INSERT RescueTeamsStatus(StatusName) VALUES (N'Available'),(N'Busy'),(N'Offline');
 
 CREATE TABLE RescueTeams(
-  TeamID INT IDENTITY(0,1) CONSTRAINT PK_RescueTeams PRIMARY KEY,
+  TeamID INT IDENTITY(1,1) CONSTRAINT PK_RescueTeams PRIMARY KEY,
   TeamName NVARCHAR(200) NOT NULL,
   StatusID INT NOT NULL DEFAULT 0 CONSTRAINT FK_RescueTeams_RescueTeamsStatus REFERENCES RescueTeamsStatus(RescueTeamsStatusID), 
-  CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+  IsActive Bit NOT NULL Default 0
 );
 GO
 
@@ -212,7 +213,7 @@ CREATE TABLE RescueMembersRoles(
 GO
 
 -- 0: Leader, 1: Member
-INSERT RescueMembersRolls(RescueMembersRollID, RollName) VALUES (0,N'Leader'),(1,N'Member');
+INSERT RescueMembersRoles(RescueMembersRoleID, RollName) VALUES (0,N'Leader'),(1,N'Member');
 
 CREATE TABLE RescueTeamMembers(
 	UserID INT NOT NULL CONSTRAINT FK_RescueTeamMembers_Users REFERENCES Users(UserID),
