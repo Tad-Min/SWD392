@@ -23,9 +23,6 @@ namespace Services
 
         public Task<bool> AddAttachmentMissionAsync(AttachmentMission attachmentMission)
         {
-             // Repository expects Guid attachmentId, int missionId, long fileSize, String fileType
-             // But the interface for repo is weird: AddAttachmentMissionsByMissionId(Guid attachmentId, int missionId, long fileSize, String fileType)
-             // So I'll just call it.
              return _attachmentMissionRepository.AddAttachmentMissionsByMissionId(
                  attachmentMission.AttachmentId, 
                  attachmentMission.MissionId, 
@@ -38,10 +35,6 @@ namespace Services
         {
             rescueMission.CoordinatorUserId = createdByUserId;
             rescueMission.AssignedAt = DateTime.UtcNow;
-            
-            // Set default status if needed, assuming status 1 is pending/assigned.
-            // But usually created via controller with explicit status or default.
-            // If status is 0, maybe set a default? The repo might handle it or DB default.
             if (rescueMission.StatusId == 0) rescueMission.StatusId = 1; 
 
             var addedMission = await _rescueMissionRepository.CreateRescueMission(rescueMission);
@@ -77,12 +70,7 @@ namespace Services
 
         public Task<RescueMission?> GetRescueMissionByIdAsync(int id)
         {
-            // The repo has GetAllRescueMission, usually GetById is implemented via GetAll with ID filter or specific method.
-            // But wait, Repository has GetAllRescueMission(int? missionId, ...)
-            // It doesn't have GetRescueMissionById explicitly?
-            // Let's check IRescueMissionRepository again.
-            // It has GetAllRescueMission(...). No GetById.
-            // So I use GetAll with missionId.
+
             return _rescueMissionRepository.GetAllRescueMission(id, null, null, null, null, null)
                 .ContinueWith(t => t.Result?.FirstOrDefault());
         }
@@ -97,20 +85,10 @@ namespace Services
 
             string oldData = JsonSerializer.Serialize(oldMission);
 
-            // Update fields
+            
             oldMission.StatusId = rescueMission.StatusId;
             oldMission.Description = rescueMission.Description;
             oldMission.TeamId = rescueMission.TeamId;
-            // Coordinator might change? If so:
-            // oldMission.CoordinatorUserId = rescueMission.CoordinatorUserId; 
-            // The controller passes the current user as coordinator for updates?
-            // "UpdateRescueMisstion(UpdateRescueMisstionModel model). coordinatorUserId get from ClaimTypes.NameIdentifier"
-            // Usually updates are done by the coordinator, so they stay the coordinator. 
-            // Or maybe assigning to another coordinator?
-            // The model doesn't have CoordinatorUserId. So it stays same?
-            // But the controller says "coordinatorUserId get from ClaimTypes". This implies passing it to service.
-            // If I pass it to service as updatedByUserId, it's for logging.
-            // I will assume only fields in the model are updated.
 
             var result = await _rescueMissionRepository.UpdateRescueMission(oldMission);
             

@@ -4,8 +4,8 @@ namespace Repositories.Interface
 {
     public interface IRescueMembersRollRepository
     {
-        Task<IEnumerable<RescueMembersRoll>?> GetRescueMembersRolls(int? rescueMembersRollId, string? rollName);
-        Task<RescueMembersRoll?> CreateRescueMembersRoll(RescueMembersRoll roll);
-        Task<bool> UpdateRescueMembersRoll(RescueMembersRoll roll);
+        Task<IEnumerable<RescueMembersRole>?> GetRescueMembersRolls(int? rescueMembersRollId, string? rollName);
+        Task<RescueMembersRole?> CreateRescueMembersRoll(RescueMembersRole roll);
+        Task<bool> UpdateRescueMembersRoll(RescueMembersRole roll);
     }
 }

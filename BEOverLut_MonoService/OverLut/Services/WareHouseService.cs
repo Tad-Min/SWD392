@@ -1,88 +1,74 @@
-﻿using BusinessObject.OverlutEntiy;
+﻿using DTOs;
+using DTOs.Overlut;
+using Repositories.Interface;
 using Services.Interface;
 
 namespace Services
 {
     public class WareHouseService : IWareHouseService
     {
-        public Task<Category?> AddCategory(string categoryName)
+        private readonly IWarehouseRepository _warehouseRepository;
+        private readonly IWarehouseStockRepository _warehouseStockRepository;
+
+        public WareHouseService(
+            IWarehouseRepository warehouseRepository,
+            IWarehouseStockRepository warehouseStockRepository)
         {
-            throw new NotImplementedException();
+            _warehouseRepository = warehouseRepository;
+            _warehouseStockRepository = warehouseStockRepository;
         }
 
-        public Task<InventoryTransaction?> AddInventoryTransaction(InventoryTransaction transaction)
+        #region Warehouse
+        public async Task<IEnumerable<WarehouseDTO>?> GetAllWarehouses(int? warehouseId = null, string? warehouseName = null, string? address = null, bool? isActive = null)
         {
-            throw new NotImplementedException();
+            var warehouses = await _warehouseRepository.GetAllWarehouses(warehouseId, warehouseName, address, isActive);
+            if (warehouses == null) return new List<WarehouseDTO>();
+            return warehouses.Select(w => MappingHandle.EntityToDTO(w)).Where(w => w != null).Cast<WarehouseDTO>();
         }
 
-        public Task<Product?> AddProductAtWareHouse(Product product, Warehouse warehouse)
+        public async Task<WarehouseDTO?> GetWarehouseById(int warehouseId)
         {
-            throw new NotImplementedException();
+            return MappingHandle.EntityToDTO(await _warehouseRepository.GetWarehouseById(warehouseId));
         }
 
-        public Task<Warehouse?> AddWarehouse(Warehouse warehouse)
+        public async Task<WarehouseDTO?> CreateWarehouse(WarehouseDTO dto)
         {
-            throw new NotImplementedException();
+            return MappingHandle.EntityToDTO(await _warehouseRepository.AddWarehouse(MappingHandle.DTOToEntity(dto)!));
         }
 
-        public Task<bool> DeleteCategory(int categoryId)
+        public async Task<bool> UpdateWarehouse(WarehouseDTO dto)
         {
-            throw new NotImplementedException();
+            return await _warehouseRepository.UpdateWarehouse(MappingHandle.DTOToEntity(dto)!);
         }
 
-        public Task<bool> DeleteProduct(int productId)
+        public async Task<bool> DeleteWarehouse(int warehouseId)
         {
-            throw new NotImplementedException();
+            return await _warehouseRepository.DeleteWarehouse(warehouseId);
+        }
+        #endregion
+
+        #region WarehouseStock
+        public async Task<IEnumerable<WarehouseStockDTO>?> GetAllWarehouseStocks(int? warehouseId = null, int? productId = null)
+        {
+            var stocks = await _warehouseStockRepository.GetAllWarehouseStocks(warehouseId, productId);
+            if (stocks == null) return new List<WarehouseStockDTO>();
+            return stocks.Select(s => MappingHandle.EntityToDTO(s)).Where(s => s != null).Cast<WarehouseStockDTO>();
         }
 
-        public Task<bool> DeleteWarehouseById(int warehouseId)
+        public async Task<WarehouseStockDTO?> CreateWarehouseStock(WarehouseStockDTO dto)
         {
-            throw new NotImplementedException();
+            return MappingHandle.EntityToDTO(await _warehouseStockRepository.AddWarehouseStock(MappingHandle.DTOToEntity(dto)!));
         }
 
-        public Task<IEnumerable<Category>> GetAllCategories()
+        public async Task<bool> UpdateWarehouseStock(WarehouseStockDTO dto)
         {
-            throw new NotImplementedException();
+            return await _warehouseStockRepository.UpdateWarehouseStock(MappingHandle.DTOToEntity(dto)!);
         }
 
-        public Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(int? txId, int? warehouseId, int? productId, int? txType, int? missionId, int? createdByUserID, DateTime? CreatedAt)
+        public async Task<bool> DeleteWarehouseStock(int warehouseId, int productId)
         {
-            throw new NotImplementedException();
+            return await _warehouseStockRepository.DeleteWarehouseStock(warehouseId, productId);
         }
-
-        public Task<IEnumerable<Warehouse>?> GetAllWarehouses(int? warehouseId, string? warehouseName, string? address, bool? isActive)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Category?> GetCategoryById(int categoryId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Product>?> GetProductById(int? productId, string? productName, int? categoryId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Warehouse?> GetWarehouseById(int warehouseId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateCategory(int categoryId, string categoryName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateProduct(Product product)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateWarehouse(Warehouse warehouse)
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }

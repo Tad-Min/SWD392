@@ -122,7 +122,7 @@ namespace WebApi.Controllers
 
         #region Vehicle
         [HttpGet("Vehicle")]
-        public async Task<IActionResult> GetAllVehicle( GetAllVehicleModel? model)
+        public async Task<IActionResult> GetAllVehicle(GetAllVehicleModel? model)
         {
             try
             {

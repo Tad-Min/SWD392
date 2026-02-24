@@ -6,10 +6,10 @@ namespace Repositories
 {
     public class RescueMembersRollRepository : IRescueMembersRollRepository
     {
-        public async Task<IEnumerable<RescueMembersRoll>?> GetRescueMembersRolls(int? rescueMembersRollId, string? rollName) => await RescueMembersRollDAO.GetRescueMembersRolls(rescueMembersRollId, rollName);
+        public async Task<IEnumerable<RescueMembersRole>?> GetRescueMembersRolls(int? rescueMembersRollId, string? rollName) => await RescueMembersRoleDAO.GetRescueMembersRoles(rescueMembersRollId, rollName);
 
-        public async Task<RescueMembersRoll?> CreateRescueMembersRoll(RescueMembersRoll roll) => await RescueMembersRollDAO.CreateRescueMembersRoll(roll);
+        public async Task<RescueMembersRole?> CreateRescueMembersRoll(RescueMembersRole roll) => await RescueMembersRoleDAO.CreateRescueMembersRole(roll);
 
-        public async Task<bool> UpdateRescueMembersRoll(RescueMembersRoll roll) => await RescueMembersRollDAO.UpdateRescueMembersRoll(roll);
+        public async Task<bool> UpdateRescueMembersRoll(RescueMembersRole roll) => await RescueMembersRoleDAO.UpdateRescueMembersRole(roll);
     }
 }

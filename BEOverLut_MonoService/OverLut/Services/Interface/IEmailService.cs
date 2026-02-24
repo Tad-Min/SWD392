@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Services.Interface
+﻿namespace Services.Interface
 {
-    internal interface IEmailService
+    public interface IEmailService
     {
+        Task SendEmailAsync(string to, string subject, string body);
     }
 }

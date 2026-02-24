@@ -49,6 +49,15 @@ builder.Services.AddScoped<IMissionLogRepository, MissionLogRepository>();
 builder.Services.AddScoped<IRescueRequestRepository, RescueRequestRepository>();
 builder.Services.AddScoped<IRescueMissionRepository, RescueMissionRepository>();
 builder.Services.AddScoped<IAttachmentMissionRepository, AttachmentMissionRepository>();
+builder.Services.AddScoped<IAttachmentRescueRepository, AttachmentRescueRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
+builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+builder.Services.AddScoped<IWarehouseStockRepository, WarehouseStockRepository>();
+builder.Services.AddScoped<IRescueTeamRepository, RescueTeamRepository>();
+builder.Services.AddScoped<IRescueTeamMemberRepository, RescueTeamMemberRepository>();
+builder.Services.AddScoped<IRescueMembersRollRepository, RescueMembersRollRepository>();
 
 // Add service scope.
 
@@ -62,6 +71,10 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IWareHouseService, WareHouseService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add Status Repositories
 builder.Services.AddScoped<IRescueMissionsStatusRepository, RescueMissionsStatusRepository>();

@@ -11,19 +11,11 @@ namespace Services.Interface
         Task<RescueTeam?> AddTeamMemberAsync(RescueTeamMember rescueTeamMember);
         Task<bool> UpdateRescueTeamAsync(RescueTeam rescueTeam);
         #region Rescue Members Roll
-        Task<IEnumerable<RescueMembersRoll>?> GetAllRescueMemberRollsAsync();
-        Task<RescueMembersRoll?> GetRescueMembersRollByIdAsync(int id);
-        Task<RescueMembersRoll?> AddRescueMembersRollAsync(RescueMembersRoll rescueMembersRoll);
-        Task<bool> UpdateRescueMembersRollAsync(RescueMembersRoll rescueMembersRoll);
+        Task<IEnumerable<RescueMembersRole>?> GetAllRescueMemberRollsAsync();
+        Task<RescueMembersRole?> GetRescueMembersRoleByIdAsync(int id);
+        Task<RescueMembersRole?> AddRescueMembersRoleAsync(RescueMembersRole rescueMembersRoll);
+        Task<bool> UpdateRescueMembersRoleAsync(RescueMembersRole rescueMembersRoll);
         Task<bool> DeleteRescueMemberRollByIdAsync(int id);
         #endregion
-        #region rescue status
-        Task<IEnumerable<RescueTeamsStatus>?> GetAllRescueTeamStatusesAsync();
-        Task<RescueTeamsStatus?> GetRescueTeamStatusByIdAsync(int id);
-        Task<RescueTeamsStatus?> AddRescueTeamStatusAsync(RescueTeamsStatus rescueTeamsStatus);
-        Task<bool> UpdateRescueTeamStatusAsync(RescueTeamsStatus rescueTeamsStatus);
-        Task<bool> DeleteRescueTeamStatusByIdAsync(int id);
-        #endregion
-
     }
 }
