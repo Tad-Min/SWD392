@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace BusinessObject.OverlutEntiy;
 
-public partial class RescueMembersRoll
+public partial class RescueMembersRole
 {
-    public int RescueMembersRollId { get; set; }
+    public int RescueMembersRoleId { get; set; }
 
     public string RollName { get; set; } = null!;
 

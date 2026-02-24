@@ -12,7 +12,7 @@ public class VehicleAssignmentDAO
             var query = db.VehicleAssignments.AsQueryable();
             if (missionId.HasValue) query = query.Where(x => x.MissionId == missionId.Value);
             if (vehicleId.HasValue) query = query.Where(x => x.VehicleId == vehicleId.Value);
-            if (assignedAt.HasValue) query = query.Where(x => x.AssignedAt. == assignedAt.Value);
+            if (assignedAt.HasValue) query = query.Where(x => x.AssignedAt == assignedAt.Value);
             if (releasedAt.HasValue) query = query.Where(x => x.ReleasedAt == releasedAt.Value);
             return await query.ToListAsync();
         }

@@ -15,7 +15,7 @@ namespace DTOs
         static abstract MissionLogDTO? EntityToDTO(MissionLog? entity);
         static abstract ProductDTO? EntityToDTO(Product? entity);
         static abstract RefreshTokenDTO? EntityToDTO(RefreshToken? entity);
-        static abstract RescueMembersRollDTO? EntityToDTO(RescueMembersRoll? entity);
+        static abstract RescueMembersRoleDTO? EntityToDTO(RescueMembersRole? entity);
         static abstract RescueMissionDTO? EntityToDTO(RescueMission? entity);
         static abstract RescueMissionsStatusDTO? EntityToDTO(RescueMissionsStatus? entity);
         static abstract RescueRequestDTO? EntityToDTO(RescueRequest? entity);
@@ -45,7 +45,7 @@ namespace DTOs
         static abstract MissionLog? DTOToEntity(MissionLogDTO? dto);
         static abstract Product? DTOToEntity(ProductDTO? dto);
         static abstract RefreshToken? DTOToEntity(RefreshTokenDTO? dto);
-        static abstract RescueMembersRoll? DTOToEntity(RescueMembersRollDTO? dto);
+        static abstract RescueMembersRole? DTOToEntity(RescueMembersRoleDTO? dto);
         static abstract RescueMission? DTOToEntity(RescueMissionDTO? dto);
         static abstract RescueMissionsStatus? DTOToEntity(RescueMissionsStatusDTO? dto);
         static abstract RescueRequest? DTOToEntity(RescueRequestDTO? dto);

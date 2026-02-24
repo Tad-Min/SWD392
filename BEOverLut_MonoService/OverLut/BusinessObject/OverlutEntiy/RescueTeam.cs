@@ -13,6 +13,8 @@ public partial class RescueTeam
 
     public DateTime CreatedAt { get; set; }
 
+    public bool IsActive { get; set; }
+
     public virtual ICollection<RescueTeamMember> RescueTeamMembers { get; set; } = new List<RescueTeamMember>();
 
     public virtual RescueTeamsStatus Status { get; set; } = null!;

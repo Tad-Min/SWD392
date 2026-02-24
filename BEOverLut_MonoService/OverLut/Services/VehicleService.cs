@@ -47,7 +47,7 @@ namespace Services
 
         public async Task<VehicleAssignmentDTO?> CreateAssignVehicle(VehicleAssignmentDTO dto)
         {
-            return MappingHandle.EntityToDTO(await _vehicleAssignmentRepository.AddVehicleAssignment(MappingHandle.DTOToEntity(dto)!)));
+            return MappingHandle.EntityToDTO(await _vehicleAssignmentRepository.AddVehicleAssignment(MappingHandle.DTOToEntity(dto)!));
         }
 
         public async Task<bool> ReleseAssignVehicle(VehicleAssignmentDTO dto)

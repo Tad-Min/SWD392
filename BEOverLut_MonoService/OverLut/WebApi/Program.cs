@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
@@ -15,6 +16,7 @@ using Repositories.Interface;
 using Scalar.AspNetCore;
 using Services;
 using Services.Interface;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Extensions;
 
 
@@ -93,10 +95,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddControllers();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
-builder.Services.AddOpenApi();
-
+// Learn more about configuring Swagger at https://aka.ms/aspnet/swashbuckle
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OverLut API", Version = "v1" });
@@ -109,18 +108,29 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         Scheme = "Bearer"
     });
-    c.AddSecurityRequirement(securityRequirement => new OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("Bearer", null),
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
             new List<string>()
         }
     });
     c.MapType<Geometry>(() => new OpenApiSchema
     {
-        Type = JsonSchemaType.Object,
+        Type = "object",
         Description = "GeoJSON format (Point, LineString, Polygon, etc.)",
-        Example = JsonNode.Parse("{\"type\": \"Point\", \"coordinates\": [106.7725, 10.9024]}")
+        Example = new OpenApiObject
+        {
+            { "type", new OpenApiString("Point") },
+            { "coordinates", new OpenApiArray { new OpenApiDouble(106.7725), new OpenApiDouble(10.9024) } }
+        }
     });
 });
 
@@ -129,7 +139,6 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.MapSwagger();
     app.MapScalarApiReference();
 }

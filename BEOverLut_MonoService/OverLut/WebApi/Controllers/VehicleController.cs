@@ -107,7 +107,7 @@ namespace WebApi.Controllers
                 if (existingAssignment == null)
                     return NotFound(new { message = $"Assignment with ID {id} not found" });
 
-                var result = await _vehicleService.
+                var result = await _vehicleService.ReleseAssignVehicle(existingAssignment);
                 if (!result)
                     return BadRequest(new { message = "Failed to release vehicle assignment" });
 
@@ -122,11 +122,11 @@ namespace WebApi.Controllers
 
         #region Vehicle
         [HttpGet("Vehicle")]
-        public async Task<IActionResult> GetAllVehicle([FromQuery] GetAllVehicleModel? model)
+        public async Task<IActionResult> GetAllVehicle( GetAllVehicleModel? model)
         {
             try
             {
-                var vehicles = await _vehicleService.GetAllVehicles(model?.status, model?.type, model?.available);
+                var vehicles = await _vehicleService.GetAllVehicle(model?.vehicleId, model?.vehicleCode, model?.vehicleType, model?.capacity, model?.statusId);
                 return Ok(vehicles);
             }
             catch (Exception ex)
@@ -161,7 +161,7 @@ namespace WebApi.Controllers
                     return BadRequest(new { message = "Vehicle data is required" });
 
                 var createdVehicle = await _vehicleService.CreateVehicle(dto);
-                return CreatedAtAction(nameof(GetVehicleById), new { id = createdVehicle.Id }, createdVehicle);
+                return CreatedAtAction(nameof(GetVehicleById), new { id = createdVehicle.VehicleId }, createdVehicle);
             }
             catch (Exception ex)
             {
@@ -178,7 +178,8 @@ namespace WebApi.Controllers
                 if (existingVehicle == null)
                     return NotFound(new { message = $"Vehicle with ID {id} not found" });
 
-                var result = await _vehicleService.UpdateVehicle(id, dto);
+                dto.VehicleId = id;
+                var result = await _vehicleService.UpdateVehicle(dto);
                 if (!result)
                     return BadRequest(new { message = "Failed to update vehicle" });
 

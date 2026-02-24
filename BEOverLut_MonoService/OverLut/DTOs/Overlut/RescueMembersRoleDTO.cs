@@ -1,8 +1,8 @@
 ﻿namespace DTOs.Overlut;
 
-public class RescueMembersRollDTO
+public class RescueMembersRoleDTO
 {
-    public int RescueMembersRollId { get; set; }
+    public int RescueMembersRoleId { get; set; }
 
     public string RollName { get; set; } = null!;
 

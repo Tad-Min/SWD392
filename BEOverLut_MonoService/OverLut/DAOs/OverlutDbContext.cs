@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -31,7 +30,7 @@ public partial class OverlutDbContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
-    public virtual DbSet<RescueMembersRoll> RescueMembersRolls { get; set; }
+    public virtual DbSet<RescueMembersRole> RescueMembersRoles { get; set; }
 
     public virtual DbSet<RescueMission> RescueMissions { get; set; }
 
@@ -120,7 +119,7 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0C548B5F7").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0B552B2EA").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(100);
@@ -181,11 +180,11 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E39E5FA7B68");
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E393622578C");
 
             entity.ToTable("RefreshToken");
 
-            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F8179C3F916A").IsUnique();
+            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F81753A2E03D").IsUnique();
 
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(255)
@@ -199,13 +198,13 @@ public partial class OverlutDbContext : DbContext
                 .HasConstraintName("FK__RefreshTo__UserI__2D27B809");
         });
 
-        modelBuilder.Entity<RescueMembersRoll>(entity =>
+        modelBuilder.Entity<RescueMembersRole>(entity =>
         {
-            entity.HasIndex(e => e.RollName, "UQ_RescueMembersRolls_RollName").IsUnique();
+            entity.HasIndex(e => e.RollName, "UQ_RescueMembersRoles_RollName").IsUnique();
 
-            entity.Property(e => e.RescueMembersRollId)
+            entity.Property(e => e.RescueMembersRoleId)
                 .ValueGeneratedNever()
-                .HasColumnName("RescueMembersRollID");
+                .HasColumnName("RescueMembersRoleID");
             entity.Property(e => e.RollName).HasMaxLength(100);
         });
 
@@ -243,9 +242,7 @@ public partial class OverlutDbContext : DbContext
 
             entity.HasIndex(e => e.StatusName, "UQ_RescueMissionsStatus_StatusName").IsUnique();
 
-            entity.Property(e => e.RescueMissionsStatusId)
-                .ValueGeneratedNever()
-                .HasColumnName("RescueMissionsStatusID");
+            entity.Property(e => e.RescueMissionsStatusId).HasColumnName("RescueMissionsStatusID");
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
@@ -301,17 +298,13 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("RescueRequestsStatus");
 
-            entity.Property(e => e.RescueRequestsStatusId)
-                .ValueGeneratedNever()
-                .HasColumnName("RescueRequestsStatusID");
+            entity.Property(e => e.RescueRequestsStatusId).HasColumnName("RescueRequestsStatusID");
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<RescueRequestsType>(entity =>
         {
-            entity.Property(e => e.RescueRequestsTypeId)
-                .ValueGeneratedNever()
-                .HasColumnName("RescueRequestsTypeID");
+            entity.Property(e => e.RescueRequestsTypeId).HasColumnName("RescueRequestsTypeID");
             entity.Property(e => e.TypeName).HasMaxLength(100);
         });
 
@@ -343,7 +336,7 @@ public partial class OverlutDbContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.RescueTeamMembers)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_RescueTeamMembers_RescueMembersRolls");
+                .HasConstraintName("FK_RescueTeamMembers_RescueMembersRoles");
 
             entity.HasOne(d => d.Team).WithMany(p => p.RescueTeamMembers)
                 .HasForeignKey(d => d.TeamId)
@@ -359,9 +352,7 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("RescueTeamsStatus");
 
-            entity.Property(e => e.RescueTeamsStatusId)
-                .ValueGeneratedNever()
-                .HasColumnName("RescueTeamsStatusID");
+            entity.Property(e => e.RescueTeamsStatusId).HasColumnName("RescueTeamsStatusID");
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
@@ -379,9 +370,7 @@ public partial class OverlutDbContext : DbContext
         {
             entity.HasKey(e => e.UrgencyLevelId).HasName("PK_UrgencyLevel");
 
-            entity.Property(e => e.UrgencyLevelId)
-                .ValueGeneratedNever()
-                .HasColumnName("UrgencyLevelID");
+            entity.Property(e => e.UrgencyLevelId).HasColumnName("UrgencyLevelID");
             entity.Property(e => e.UrgencyName).HasMaxLength(100);
         });
 
@@ -435,7 +424,9 @@ public partial class OverlutDbContext : DbContext
         {
             entity.HasKey(e => new { e.MissionId, e.VehicleId });
 
-            entity.Property(e => e.MissionId).HasColumnName("MissionID");
+            entity.Property(e => e.MissionId)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("MissionID");
             entity.Property(e => e.VehicleId).HasColumnName("VehicleID");
             entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
 
@@ -454,9 +445,7 @@ public partial class OverlutDbContext : DbContext
         {
             entity.ToTable("VehiclesStatus");
 
-            entity.Property(e => e.VehiclesStatusId)
-                .ValueGeneratedNever()
-                .HasColumnName("VehiclesStatusID");
+            entity.Property(e => e.VehiclesStatusId).HasColumnName("VehiclesStatusID");
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
@@ -464,9 +453,7 @@ public partial class OverlutDbContext : DbContext
         {
             entity.HasKey(e => e.VehicleTypeId);
 
-            entity.Property(e => e.VehicleTypeId)
-                .ValueGeneratedNever()
-                .HasColumnName("VehicleTypeID");
+            entity.Property(e => e.VehicleTypeId).HasColumnName("VehicleTypeID");
             entity.Property(e => e.TypeName).HasMaxLength(100);
         });
 

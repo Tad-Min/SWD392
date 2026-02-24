@@ -11,7 +11,7 @@ public partial class RescueTeamMember
 
     public int RoleId { get; set; }
 
-    public virtual RescueMembersRoll Role { get; set; } = null!;
+    public virtual RescueMembersRole Role { get; set; } = null!;
 
     public virtual RescueTeam Team { get; set; } = null!;
 

@@ -104,12 +104,12 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRollDTO? EntityToDTO(RescueMembersRoll? entity)
+        public static RescueMembersRoleDTO? EntityToDTO(RescueMembersRole? entity)
         {
             if (entity == null) return null;
-            return new RescueMembersRollDTO
+            return new RescueMembersRoleDTO
             {
-                RescueMembersRollId = entity.RescueMembersRollId,
+                RescueMembersRoleId = entity.RescueMembersRoleId,
                 RollName = entity.RollName
             };
         }
@@ -452,12 +452,12 @@ namespace DTOs
             };
         }
 
-        public static RescueMembersRoll? DTOToEntity(RescueMembersRollDTO? dto)
+        public static RescueMembersRole? DTOToEntity(RescueMembersRoleDTO? dto)
         {
             if (dto == null) return null;
-            return new RescueMembersRoll
+            return new RescueMembersRole
             {
-                RescueMembersRollId = dto.RescueMembersRollId,
+                RescueMembersRoleId = dto.RescueMembersRoleId,
                 RollName = dto.RollName
             };
         }
