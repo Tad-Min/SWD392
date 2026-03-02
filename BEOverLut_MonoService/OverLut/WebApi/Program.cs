@@ -75,13 +75,13 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-
+builder.Services.AddScoped<IVehicleAssignmentRepository, VehicleAssignmentRepository>();
 // Add Status Repositories
 builder.Services.AddScoped<IRescueMissionsStatusRepository, RescueMissionsStatusRepository>();
 builder.Services.AddScoped<IRescueRequestsStatusRepository, RescueRequestsStatusRepository>();
 builder.Services.AddScoped<IRescueTeamsStatusRepository, RescueTeamsStatusRepository>();
 builder.Services.AddScoped<IVehiclesStatusRepository, VehiclesStatusRepository>();
-
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 // Add Types Service and Repositories
 builder.Services.AddScoped<ITypesService, TypesService>();
 builder.Services.AddScoped<IRescueRequestsTypeRepository, RescueRequestsTypeRepository>();
