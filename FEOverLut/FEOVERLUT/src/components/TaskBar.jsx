@@ -10,7 +10,7 @@ function TaskBar() {
         <div className="flex items-center gap-3">
           {/* Blue circular icon with shield */}
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-          <svg 
+              <svg 
                   className="w-8 h-8 text-blue-600" 
                   fill="currentColor" 
                   viewBox="0 0 24 24"
