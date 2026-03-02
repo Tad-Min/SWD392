@@ -1,36 +1,85 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('canbo@cuuho.gov.vn');
     const [password, setPassword] = useState('');
 
+    // Background animation and theme state
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        // Track mouse movement for background effect
+        const handleMouseMove = (e) => {
+            const xOffset = (e.clientX / window.innerWidth - 0.5) * 40;
+            const yOffset = (e.clientY / window.innerHeight - 0.5) * 20;
+            setMousePos({ x: xOffset, y: yOffset });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
+    // Theme Variables
+    const theme = {
+        bg: isDarkMode ? 'bg-[#0A1128]' : 'bg-[#f8fafc]',
+        cardBg: isDarkMode ? 'bg-[#1E293B]' : 'bg-white',
+        border: isDarkMode ? 'border-slate-700/50' : 'border-slate-200',
+        text: isDarkMode ? 'text-white' : 'text-slate-800',
+        textMuted: isDarkMode ? 'text-slate-400' : 'text-slate-500',
+        inputBg: isDarkMode ? 'bg-[#0F172A]' : 'bg-slate-50',
+        inputBorder: isDarkMode ? 'border-slate-700/80' : 'border-slate-300',
+        inputText: isDarkMode ? 'text-slate-200' : 'text-slate-900',
+        separatorBg: isDarkMode ? 'bg-[#1E293B]' : 'bg-white',
+        svgFill: isDarkMode ? 'text-[#080d18]' : 'text-blue-100/50',
+        glowStart: isDarkMode ? 'from-blue-900/30' : 'from-blue-200/50',
+        glowEnd: isDarkMode ? 'to-[#0A1128]' : 'to-transparent',
+    };
+
     return (
-        <div className="min-h-screen bg-[#0A1128] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/30 via-[#0A1128] to-[#0A1128] flex items-center justify-center px-4 py-8 relative overflow-hidden">
-            {/* Ambient Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className={`min-h-screen ${theme.bg} bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${theme.glowStart} via-transparent ${theme.glowEnd} flex items-center justify-center px-4 py-8 relative overflow-hidden transition-colors duration-500`}>
+            {/* Ambient Background Glow and Wave Effects */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+                {/* Radial glow center */}
+                <div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] transition-transform duration-300 ease-out"
+                    style={{ transform: `translate(calc(-50% + ${mousePos.x * 2}px), calc(-50% + ${mousePos.y * 2}px))` }}
+                ></div>
+
+                {/* Wavy bottom SVG with mouse tracking parallax */}
+                <div
+                    className="absolute bottom-0 w-full transition-transform duration-300 ease-out"
+                    style={{ transform: `translate(${mousePos.x * -1}px, ${mousePos.y * -0.5}px) scale(1.05)` }}
+                >
+                    <svg className={`w-full ${theme.svgFill} fill-current transition-colors duration-500`} viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
+                        <path fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,197.3C960,171,1056,117,1152,106.7C1248,96,1344,128,1392,144L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    </svg>
+                </div>
+            </div>
 
             {/* Dark/Light Mode Toggle - Bottom Right */}
-            <button className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors flex items-center justify-center z-10 shadow-lg">
-                <svg
-                    className="w-5 h-5 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                </svg>
+            <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors flex items-center justify-center z-50 backdrop-blur-md"
+            >
+                {isDarkMode ? (
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                    </svg>
+                ) : (
+                    <svg className="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                    </svg>
+                )}
             </button>
 
             {/* Main Card */}
-            <div className="w-full max-w-[420px] bg-[#1E293B] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] border border-slate-700/50 p-8 relative z-10">
+            <div className={`w-full max-w-[420px] ${theme.cardBg} rounded-2xl ${isDarkMode ? 'shadow-[0_8px_30px_rgb(0,0,0,0.5)]' : 'shadow-xl'} border ${theme.border} p-8 relative z-10 transition-all duration-500`}>
                 {/* Logo Section */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="relative mb-4">
+                    <div onClick={() => navigate('/')} className="relative mb-4 cursor-pointer">
                         <div className="absolute inset-0 bg-cyan-400 blur-lg opacity-40 rounded-full"></div>
                         <div className="relative w-16 h-16 bg-[#0F172A] border border-slate-700 rounded-full flex items-center justify-center shadow-inner">
                             <svg
@@ -42,10 +91,10 @@ function Login() {
                             </svg>
                         </div>
                     </div>
-                    <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">
+                    <h1 className={`text-2xl font-bold ${theme.text} mb-2 tracking-wide text-center transition-colors duration-500`}>
                         OverLut
                     </h1>
-                    <p className="text-xs text-slate-400 text-center">
+                    <p className={`text-xs ${theme.textMuted} text-center transition-colors duration-500`}>
                         Hệ thống Điều phối Cứu trợ Lũ lụt
                     </p>
                 </div>
@@ -54,7 +103,7 @@ function Login() {
                 <div className="space-y-5">
                     {/* Email Field */}
                     <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-2">
+                        <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-2 transition-colors duration-500`}>
                             Email
                         </label>
                         <div className="relative">
@@ -77,7 +126,7 @@ function Login() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-[#0F172A] border border-slate-700/80 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                className={`w-full pl-10 pr-4 py-3 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
                                 placeholder="canbo@cuuho.gov.vn"
                             />
                         </div>
@@ -86,7 +135,7 @@ function Login() {
                     {/* Password Field */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-xs font-semibold text-slate-300">
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} transition-colors duration-500`}>
                                 Mật khẩu
                             </label>
                             <a href="#" className="text-xs font-semibold text-cyan-500 hover:text-cyan-400 transition-colors">
@@ -113,7 +162,7 @@ function Login() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-[#0F172A] border border-slate-700/80 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest"
+                                className={`w-full pl-10 pr-4 py-3 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest duration-500`}
                                 placeholder="********"
                             />
                         </div>
@@ -127,16 +176,16 @@ function Login() {
                     {/* Separator */}
                     <div className="relative pt-4 pb-2">
                         <div className="absolute inset-0 flex items-center pt-2">
-                            <div className="w-full border-t border-slate-700/80"></div>
+                            <div className={`w-full border-t ${theme.border} transition-colors duration-500`}></div>
                         </div>
                         <div className="relative flex justify-center text-[10px] font-semibold">
-                            <span className="px-3 bg-[#1E293B] text-slate-500 rounded-full tracking-wider border border-slate-700/80 py-0.5">HOẶC</span>
+                            <span className={`px-3 ${theme.separatorBg} ${theme.textMuted} rounded-full tracking-wider border ${theme.inputBorder} py-0.5 transition-colors duration-500`}>HOẶC</span>
                         </div>
                     </div>
 
                     {/* Registration Link */}
                     <div className="text-center pt-2">
-                        <span className="text-xs text-slate-400 font-medium">
+                        <span className={`text-xs ${theme.textMuted} font-medium transition-colors duration-500`}>
                             Chưa có tài khoản?{' '}
                         </span>
                         <a href="/Register" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
@@ -147,9 +196,9 @@ function Login() {
             </div>
 
             {/* Footer */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 w-full">
-                <p className="text-[10px] text-slate-500 font-medium text-center">
-                    © 2024 FloodGuard System. Bảo mật và an toàn.
+            <div className="fixed bottom-4 sm:bottom-6 left-0 transform z-10 w-full md:left-auto md:right-auto pointer-events-none">
+                <p className={`text-[10px] ${theme.textMuted} font-medium text-center transition-colors duration-500 pr-14 sm:pr-14`}>
+                    © 2026 OverLut System. Bảo mật và an toàn.
                 </p>
             </div>
         </div>
