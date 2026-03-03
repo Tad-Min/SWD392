@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import TaskBar from '../components/TaskBar.jsx';
 import { useBatteryStatus } from 'react-haiku';
+import '../css/index.css';
 
 function Citizens() {
     const { level, isCharging } = useBatteryStatus();
@@ -68,8 +69,16 @@ function Citizens() {
     const theme = {
         bg: isDarkMode ? 'bg-[#0f1525]' : 'bg-[#f0f4f8]',
         text: isDarkMode ? 'text-white' : 'text-slate-800',
-        cardBg: isDarkMode ? 'bg-[#1c2438]' : 'bg-white',
-        cardBorder: isDarkMode ? 'border-white/5' : 'border-slate-200',
+        cardBg: isDarkMode
+            ? 'bg-gradient-to-br from-[#1e253c]/80 to-[#1e253c]/10'
+            : 'bg-gradient-to-br from-white/80 to-white/10',
+        cardBorder: isDarkMode
+            ? 'border-t-white/20 border-l-white/20 border-b-transparent border-r-transparent'
+            : 'border-t-white/50 border-l-white/50 border-b-transparent border-r-transparent',
+        glassEffect: 'backdrop-blur-[4px] shadow-[0_20px_40px_rgba(0,0,0,0.2)]',
+        buttonGlass: isDarkMode
+            ? 'bg-gradient-to-br from-[#2f5ae6]/80 to-[#2f5ae6]/10 border-t-white/30 border-l-white/30 border-b-transparent border-r-transparent'
+            : 'bg-gradient-to-br from-[#254acc]/80 to-[#254acc]/10 border-t-white/50 border-l-white/50 border-b-transparent border-r-transparent',
         textMuted: isDarkMode ? 'text-[#94a3b8]' : 'text-slate-500',
         svgFill: isDarkMode ? 'text-[#080d18]' : 'text-blue-100',
     };
@@ -117,9 +126,11 @@ function Citizens() {
             </button>
 
             <div className="relative z-10 flex flex-col min-h-screen">
-                <TaskBar />
+                <div className="pt-4 px-4 sm:px-6">
+                    <TaskBar isDarkMode={isDarkMode} />
+                </div>
 
-                <div className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto w-full space-y-10">
+                <div className="flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-5xl mx-auto w-full space-y-10">
                     {/* Top Section - Question and SOS Button */}
                     <div className="flex flex-col items-center space-y-1.5 mt-2">
                         {/* Small water drop icon */}
@@ -175,7 +186,7 @@ function Citizens() {
                     {/* Information Cards Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Location Card */}
-                        <div className={`${theme.cardBg} border ${theme.cardBorder} rounded-2xl p-5 flex items-center gap-4 shadow-lg min-h-[92px] transition-colors duration-500`}>
+                        <div className={`${theme.cardBg} border ${theme.cardBorder} ${theme.glassEffect} rounded-2xl p-5 flex items-center gap-4 min-h-[92px] transition-all duration-500 relative overflow-hidden`}>
                             <div className="w-12 h-12 bg-[#fbbf24] rounded-full flex flex-shrink-0 items-center justify-center">
                                 <svg className="w-[22px] h-[22px] text-[#854d0e]" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
@@ -192,7 +203,7 @@ function Citizens() {
                         </div>
 
                         {/* Battery Card */}
-                        <div className={`${theme.cardBg} border ${theme.cardBorder} rounded-2xl p-5 flex items-center gap-4 shadow-lg min-h-[92px] transition-colors duration-500`}>
+                        <div className={`${theme.cardBg} border ${theme.cardBorder} ${theme.glassEffect} rounded-2xl p-5 flex items-center gap-4 min-h-[92px] transition-all duration-500 relative overflow-hidden`}>
                             <div className={`w-12 h-12 ${batteryPercentage <= 20 && !isCharging ? 'bg-red-500' : 'bg-[#10b981]'} rounded-full flex items-center justify-center flex-shrink-0 text-white transition-colors`}>
                                 <svg
                                     className="w-6 h-6"
@@ -207,7 +218,7 @@ function Citizens() {
                                 </svg>
                             </div>
                             <div className="flex flex-col justify-center">
-                                <p className={`text-[13px] ${theme.textMuted} font-medium mb-0.5 transition-colors`}>Pin điện thoại</p>
+                                <p className={`text-[13px] ${theme.textMuted} font-medium mb-0.5 transition-colors`}>Pin thiết bị</p>
                                 <p className={`text-[16px] font-bold ${theme.text} leading-tight mb-1 transition-colors`}>{batteryPercentage}%</p>
                                 <p className={`text-[13px] ${theme.textMuted} transition-colors`}>
                                     {isCharging ? "Đang sạc pin" : (batteryPercentage <= 20 ? "Pin yếu" : "Đang sử dụng pin")}
@@ -223,39 +234,42 @@ function Citizens() {
                         </h3>
                         <div className="flex flex-row flex-nowrap gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {/* Evacuation Button */}
-                            <button className="flex-1 min-w-[140px] bg-[#2f5ae6] hover:bg-[#254acc] rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 shadow-lg shadow-blue-900/40 transition-all active:scale-95 group min-h-[110px]">
-                                <div className="text-white group-hover:scale-110 transition-transform">
+                            <button className={`flex-1 min-w-[140px] ${theme.buttonGlass} ${theme.glassEffect} border shadow-lg rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 transition-all active:scale-95 group min-h-[110px] c-button c-button--gooey relative overflow-hidden isolate`}>
+                                <div className="text-white group-hover:scale-110 transition-transform relative z-10">
                                     <svg className="w-[30px] h-[30px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
                                 </div>
-                                <span className="text-[13px] text-white font-bold text-center">Cần sơ tán</span>
+                                <span className="text-[13px] text-white font-bold text-center relative z-10">Cần sơ tán</span>
+                                <div className="c-button__blobs"><div></div><div></div><div></div></div>
                             </button>
 
                             {/* Food Button */}
-                            <button className="flex-1 min-w-[140px] bg-[#2f5ae6] hover:bg-[#254acc] rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 shadow-lg shadow-blue-900/40 transition-all active:scale-95 group min-h-[110px]">
-                                <div className="text-white group-hover:scale-110 transition-transform">
+                            <button className={`flex-1 min-w-[140px] ${theme.buttonGlass} ${theme.glassEffect} border shadow-lg rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 transition-all active:scale-95 group min-h-[110px] c-button c-button--gooey relative overflow-hidden isolate`}>
+                                <div className="text-white group-hover:scale-110 transition-transform relative z-10">
                                     <svg className="w-[30px] h-[30px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                     </svg>
                                 </div>
-                                <span className="text-[13px] text-white font-bold text-center">Cần lương thực</span>
+                                <span className="text-[13px] text-white font-bold text-center relative z-10">Cần lương thực</span>
+                                <div className="c-button__blobs"><div></div><div></div><div></div></div>
                             </button>
 
                             {/* Medical Button */}
-                            <button className="flex-1 min-w-[140px] bg-[#2f5ae6] hover:bg-[#254acc] rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 shadow-lg shadow-blue-900/40 transition-all active:scale-95 group min-h-[110px]">
-                                <div className="text-white group-hover:scale-110 transition-transform">
+                            <button className={`flex-1 min-w-[140px] ${theme.buttonGlass} ${theme.glassEffect} border shadow-lg rounded-[18px] p-5 flex flex-col items-center justify-center gap-2.5 transition-all active:scale-95 group min-h-[110px] c-button c-button--gooey relative overflow-hidden isolate`}>
+                                <div className="text-white group-hover:scale-110 transition-transform relative z-10">
                                     <svg className="w-[30px] h-[30px]" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                     </svg>
                                 </div>
-                                <span className="text-[13px] text-white font-bold text-center">Cần y tế</span>
+                                <span className="text-[13px] text-white font-bold text-center relative z-10">Cần y tế</span>
+                                <div className="c-button__blobs"><div></div><div></div><div></div></div>
                             </button>
                         </div>
                     </div>
 
                     {/* Safety Guide Section */}
-                    <div className={`${theme.cardBg} rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-lg border ${theme.cardBorder} cursor-pointer hover:brightness-110 active:scale-[0.98] transition-all mt-2 mb-8`}>
+                    <div className={`${theme.cardBg} border ${theme.cardBorder} ${theme.glassEffect} rounded-2xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:brightness-110 active:scale-[0.98] transition-all mt-2 mb-8 relative overflow-hidden`}>
                         <div className="flex items-center gap-4">
                             <div className="w-[46px] h-[46px] bg-[#fef3c7] dark:bg-[#36211c] rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
                                 <svg
@@ -283,6 +297,18 @@ function Citizens() {
                             </svg>
                         </div>
                     </div>
+
+                    {/* Gooey Filter SVG */}
+                    <svg style={{ display: 'none' }} version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <filter id="goo">
+                                <feGaussianBlur result="blur" stdDeviation={10} in="SourceGraphic" />
+                                <feColorMatrix result="goo" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" mode="matrix" in="blur" />
+                                <feBlend in2="goo" in="SourceGraphic" />
+                            </filter>
+                        </defs>
+                    </svg>
+
                 </div>
             </div>
         </div>
