@@ -16,7 +16,8 @@ namespace WebApi.Models.AuthModel
         [Required(ErrorMessage = "Phone is require")]
         [RegularExpression(@"^0[34678]\d{8}", ErrorMessage = "Phone is not support in VietNam")]
         public String Phone { get; set; } = null!;
-
+        [Required(ErrorMessage = "UserName is require")]
+        public String UserName { get; set; } = null!;
         [Required(ErrorMessage = "Password is required.")]
         [MinLength(8, ErrorMessage = "Password must have at least 8 characters")]
         [MaxLength(100,ErrorMessage = "Passwords must be under 100 characters.")]

@@ -6,6 +6,7 @@ namespace WebApi.Models.AuthModel
     {
         [Required]
         public int UserId { get; set; }
+        public int RoleId { get; set; }
         [Required]
         public string UserName { get; set; } = string.Empty;
         [Required]

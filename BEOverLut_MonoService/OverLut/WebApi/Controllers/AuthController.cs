@@ -29,7 +29,7 @@ namespace WebApi.Controllers
                 {
                     return BadRequest("Email already exists!");
                 }
-                return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email,registerModel.Phone ,registerModel.Password)??null!));
+                return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email, registerModel.Phone, registerModel.UserName, registerModel.Password)??null!));
             }
             catch {
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -61,6 +61,7 @@ namespace WebApi.Controllers
                 return Ok(new ReturnLoginModel
                 {
                     UserId = user.UserId,
+                    RoleId = user.RoleId,
                     UserName = user.FullName??"",
                     Token = accessToken,
                     RefreshToken = refToken,
