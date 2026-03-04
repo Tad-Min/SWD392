@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using NetTopologySuite.Geometries;
 
 namespace BusinessObject.OverlutEntiy;
@@ -24,6 +25,7 @@ public partial class RescueRequest
 
     public int? PeopleCount { get; set; }
 
+    [NotMapped]
     public Geometry? Location { get; set; }
 
     public string? LocationText { get; set; }
