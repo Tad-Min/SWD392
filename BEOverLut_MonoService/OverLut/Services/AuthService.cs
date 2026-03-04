@@ -38,12 +38,13 @@ namespace Services
             var RToken = await iRefreshTokenRepository.GetRefreshTokenByUserIdAndToken(userId, token);
             return await iRefreshTokenRepository.RevokeToken(RToken!);
         }
-        public async Task<User?> RegisterAsync(string email, string password)
+        public async Task<User?> RegisterAsync(string email, string phone, string password)
         {
             return await iUserRepository.CreateUser(new User
             {
                 FullName = userSettings.UserNameDefault,
                 Email = email,
+                Phone = phone,
                 Password = password,
                 RoleId = userSettings.RoleIdDefault,
             });

@@ -29,7 +29,7 @@ namespace WebApi.Controllers
                 {
                     return BadRequest("Email already exists!");
                 }
-                return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email, registerModel.Password)??null!));
+                return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email,registerModel.Phone ,registerModel.Password)??null!));
             }
             catch {
                 return StatusCode(StatusCodes.Status500InternalServerError);

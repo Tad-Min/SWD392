@@ -13,6 +13,9 @@ namespace WebApi.Models.AuthModel
             get => _email;
             set => _email = value?.Trim().ToLower() ?? string.Empty;
         }
+        [Required(ErrorMessage = "Phone is require")]
+        [RegularExpression(@"^0[34678]\d{8}", ErrorMessage = "Phone is not support in VietNam")]
+        public String Phone { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required.")]
         [MinLength(8, ErrorMessage = "Password must have at least 8 characters")]
