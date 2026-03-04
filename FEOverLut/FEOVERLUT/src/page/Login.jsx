@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin } from '../features/auth/hook/useAuth';
+import { toast } from 'react-toastify';
 
 function Login() {
     const navigate = useNavigate();
@@ -17,8 +18,9 @@ function Login() {
         try {
             await login(email, password);
             navigate('/');
+            toast.success('Đăng nhập thành công');
         } catch (error) {
-            console.error('Login failed:', error);
+            toast.error(error);
         }
     };
 

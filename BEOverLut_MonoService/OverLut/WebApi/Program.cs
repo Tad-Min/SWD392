@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json.Nodes;
 using BusinessObject.OverlutEntiy;
 using DAOs;
@@ -21,6 +21,18 @@ using WebApi.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Cho phép Frontend gọi API
+              .AllowAnyHeader()                     // Cho phép mọi loại header
+              .AllowAnyMethod()                     // Cho phép mọi method (GET, POST, PUT, DELETE, v.v.)
+              .AllowCredentials();                  // Nếu có xài Token/Cookie
+    });
+});
+
 
 // Add services to the container.
 
@@ -162,6 +174,8 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "OverLut API v1");
     c.RoutePrefix = string.Empty;
 });
+
+app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 
