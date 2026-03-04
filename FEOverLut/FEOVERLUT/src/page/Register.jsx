@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useRegister } from '../features/auth/hook/useAuth';
 
 function Register() {
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const { register, isLoading, error } = useRegister();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await register(email, phone, password, confirmPassword);
+            navigate('/login');
+            toast.success('Đăng ký thành công');
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
 
     // Background animation and theme state
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -101,154 +116,188 @@ function Register() {
 
                 {/* Form Section */}
                 <div className="space-y-4">
-                    {/* Full Name Field */}
-                    <div>
-                        <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
-                            Họ và tên
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg
-                                    className="w-[18px] h-[18px] text-slate-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                    />
-                                </svg>
+                    <form onSubmit={handleSubmit}>
+                        {error && <p className="bg-red-500 text-white p-2 mt-2 rounded-lg text-sm">{error.message}</p>}
+                        {/* Full Name Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Họ và tên
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
+                                    placeholder="Nguyễn Văn A"
+                                />
                             </div>
-                            <input
-                                type="text"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
-                                placeholder="Nguyễn Văn A"
-                            />
                         </div>
-                    </div>
 
-                    {/* Phone Field */}
-                    <div>
-                        <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
-                            Số điện thoại
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg
-                                    className="w-[18px] h-[18px] text-slate-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                                    />
-                                </svg>
+                        {/* Phone Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Số điện thoại
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
+                                    placeholder="0912 345 678"
+                                />
                             </div>
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
-                                placeholder="0912 345 678"
-                            />
                         </div>
-                    </div>
 
-                    {/* Email Field */}
-                    <div>
-                        <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
-                            Email
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg
-                                    className="w-[18px] h-[18px] text-slate-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                    />
-                                </svg>
+                        {/* Email Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Email
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
+                                    placeholder="email@example.com"
+                                />
                             </div>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
-                                placeholder="email@example.com"
-                            />
                         </div>
-                    </div>
 
-                    {/* Password Field */}
-                    <div>
-                        <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
-                            Mật khẩu
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg
-                                    className="w-[18px] h-[18px] text-slate-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                    />
-                                </svg>
+                        {/* Password Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Mật khẩu
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest duration-500`}
+                                    placeholder="********"
+                                />
                             </div>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest duration-500`}
-                                placeholder="********"
-                            />
                         </div>
-                    </div>
 
-                    {/* Register Button */}
-                    <button className="w-full bg-[#3B82F6] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 mt-4">
-                        Đăng ký
-                    </button>
-
-                    {/* Separator */}
-                    <div className="relative pt-4 pb-2">
-                        <div className="absolute inset-0 flex items-center pt-2">
-                            <div className={`w-full border-t ${theme.border} transition-colors duration-500`}></div>
+                        {/* Confirm Password Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Xác nhận mật khẩu
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest duration-500`}
+                                    placeholder="********"
+                                />
+                            </div>
                         </div>
-                        <div className="relative flex justify-center text-[10px] font-semibold">
-                            <span className={`px-3 ${theme.separatorBg} ${theme.textMuted} rounded-full tracking-wider border ${theme.inputBorder} py-0.5 transition-colors duration-500`}>HOẶC</span>
-                        </div>
-                    </div>
 
-                    {/* Login Link */}
-                    <div className="text-center pt-2">
-                        <span className={`text-xs ${theme.textMuted} font-medium transition-colors duration-500`}>
-                            Đã có tài khoản?{' '}
-                        </span>
-                        <a href="/Login" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
-                            Đăng nhập
-                        </a>
-                    </div>
+                        {/* Register Button */}
+                        <button type='submit' disabled={isLoading} className="w-full bg-[#3B82F6] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 mt-4">
+                            {isLoading ? 'Đang xử lý...' : 'Đăng ký'}
+                        </button>
+
+                        {/* Separator */}
+                        <div className="relative pt-4 pb-2">
+                            <div className="absolute inset-0 flex items-center pt-2">
+                                <div className={`w-full border-t ${theme.border} transition-colors duration-500`}></div>
+                            </div>
+                            <div className="relative flex justify-center text-[10px] font-semibold">
+                                <span className={`px-3 ${theme.separatorBg} ${theme.textMuted} rounded-full tracking-wider border ${theme.inputBorder} py-0.5 transition-colors duration-500`}>HOẶC</span>
+                            </div>
+                        </div>
+
+                        {/* Login Link */}
+                        <div className="text-center pt-2">
+                            <span className={`text-xs ${theme.textMuted} font-medium transition-colors duration-500`}>
+                                Đã có tài khoản?{' '}
+                            </span>
+                            <a href="/Login" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
+                                Đăng nhập
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
 
