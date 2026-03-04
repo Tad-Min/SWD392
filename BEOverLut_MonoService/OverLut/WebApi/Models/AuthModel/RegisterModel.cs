@@ -14,7 +14,7 @@ namespace WebApi.Models.AuthModel
             set => _email = value?.Trim().ToLower() ?? string.Empty;
         }
         [Required(ErrorMessage = "Phone is require")]
-        [RegularExpression(@"^0[34678]\d{8}", ErrorMessage = "Phone is not support in VietNam")]
+        [RegularExpression(@"^0[346789]\d{8}", ErrorMessage = "Phone is not support in VietNam")]
         public String Phone { get; set; } = null!;
         [Required(ErrorMessage = "UserName is require")]
         public String UserName { get; set; } = null!;
