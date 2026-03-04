@@ -11,8 +11,8 @@ function App() {
       <ClickSpark sparkColor="#22d3ee" sparkSize={12} sparkRadius={20} sparkCount={10} duration={600}>
         <Router>
           <Routes>
-            <Route path="/" element={<Citizens />} />
-            <Route path="/Login" element={<Login />} />
+            <Route path="/Citizens" element={<Citizens />} />
+            <Route path="/" element={<Login />} />
             <Route path="/Register" element={<Register />} />
           </Routes>
         </Router>

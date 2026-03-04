@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useRegister } from '../features/auth/hook/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function Register() {
-    const [fullName, setFullName] = useState('');
+    const navigate = useNavigate();
+    const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,11 +16,11 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await register(email, phone, password, confirmPassword);
+            await register(email, phone, name, password, confirmPassword);
             navigate('/login');
             toast.success('Đăng ký thành công');
         } catch (error) {
-            toast.error(error.message);
+            toast.error(error);
         }
     };
 
@@ -117,7 +120,7 @@ function Register() {
                 {/* Form Section */}
                 <div className="space-y-4">
                     <form onSubmit={handleSubmit}>
-                        {error && <p className="bg-red-500 text-white p-2 mt-2 rounded-lg text-sm">{error.message}</p>}
+                        {error && <p className="bg-red-500 text-white p-2 mt-2 rounded-lg text-sm">{error}</p>}
                         {/* Full Name Field */}
                         <div>
                             <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
@@ -141,8 +144,8 @@ function Register() {
                                 </div>
                                 <input
                                     type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
                                     placeholder="Nguyễn Văn A"
                                 />
