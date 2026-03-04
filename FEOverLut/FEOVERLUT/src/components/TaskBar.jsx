@@ -85,7 +85,7 @@ function TaskBar({ isDarkMode = true }) {
 
           {/* Right side - User icon Button */}
           <div
-            onClick={() => navigate('/Login')}
+            onClick={() => navigate('/')}
             className={`w-12 h-12 rounded-full flex items-center justify-center ${btnBase} ${btnHover} !px-0 flex-shrink-0`}
             title="Đăng xuất / Đăng nhập"
           >

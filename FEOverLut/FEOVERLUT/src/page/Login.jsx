@@ -93,7 +93,7 @@ function Login() {
             <div className={`w-full max-w-[420px] ${theme.cardBg} rounded-2xl ${isDarkMode ? 'shadow-[0_8px_30px_rgb(0,0,0,0.5)]' : 'shadow-xl'} border ${theme.border} p-8 relative z-10 transition-all duration-500`}>
                 {/* Logo Section */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="relative mb-4 cursor-pointer">
+                    <div className="relative mb-4">
                         <div className="absolute inset-0 bg-cyan-400 blur-lg opacity-40 rounded-full"></div>
                         <div className="relative w-16 h-16 bg-[#0F172A] border border-slate-700 rounded-full flex items-center justify-center shadow-inner">
                             <svg

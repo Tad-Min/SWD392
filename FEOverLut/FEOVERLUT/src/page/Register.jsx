@@ -296,7 +296,7 @@ function Register() {
                             <span className={`text-xs ${theme.textMuted} font-medium transition-colors duration-500`}>
                                 Đã có tài khoản?{' '}
                             </span>
-                            <a href="/Login" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
+                            <a href="/" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
                                 Đăng nhập
                             </a>
                         </div>
