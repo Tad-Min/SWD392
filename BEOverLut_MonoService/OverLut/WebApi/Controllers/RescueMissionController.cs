@@ -33,7 +33,7 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("Get/{id}")]
+        [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetRescueMissionById(int id)
         {
             var result = await _rescueMissionService.GetRescueMissionByIdAsync(id);

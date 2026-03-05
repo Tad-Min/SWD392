@@ -37,7 +37,7 @@ namespace WebApi.Controllers
         {
             return Ok(await iRescueRequestService.GetAllRescueRequestsAsync(model?.rescueRequestId,model?.userReqId,model?.requestType,model?.urgencyLevel,model?.status,model?.description));
         }
-        [HttpGet("GetById{id}")]
+        [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetRescueRequestById(int id)
         {
             return Ok(await iRescueRequestService.GetRescueRequestByIdAsync(id));
