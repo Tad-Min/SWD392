@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
+// Role display names
+const ROLE_NAMES = {
+  1: 'Citizen',
+  2: 'Rescue Team',
+  3: 'Rescue Coordinator',
+  4: 'Manager',
+  5: 'Admin',
+};
 
 function TaskBar({ isDarkMode = true }) {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
+  const roleId = parseInt(localStorage.getItem('roleId')) || null;
+  const userName = localStorage.getItem('name') || 'Người dùng';
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  // Hide navbar on scroll down, show on scroll up
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Hide when scrolling down beyond 50px, show when scrolling up
       if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsVisible(false);
+        setIsDropdownOpen(false);
       } else if (currentScrollY < lastScrollY) {
         setIsVisible(true);
       }
-
       setLastScrollY(currentScrollY);
     };
 
@@ -24,47 +39,53 @@ function TaskBar({ isDarkMode = true }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Glassmorphism parameters: Highly transparent, frosted look
-  const barBg = isDarkMode
-    ? 'bg-white/5'
-    : 'bg-white/20';
-  const barBorder = isDarkMode
-    ? 'border border-white/10'
-    : 'border border-white/30';
-  const glassEffect = "backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.1)]";
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // Interactive element base styles
-  const btnBase = "flex items-center gap-3 px-4 py-2 rounded-full cursor-pointer transition-all duration-300";
-  // White glow on dark mode, Blue glow on light mode
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('roleId');
+    localStorage.removeItem('name');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    setIsDropdownOpen(false);
+    navigate('/');
+    toast.success('Đăng xuất thành công');
+  };
+
+  // Glassmorphism styles
+  const barBg = isDarkMode ? 'bg-white/5' : 'bg-white/20';
+  const barBorder = isDarkMode ? 'border border-white/10' : 'border border-white/30';
+  const glassEffect = 'backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.1)]';
+  const btnBase = 'flex items-center gap-3 px-4 py-2 rounded-full cursor-pointer transition-all duration-300';
   const btnHover = isDarkMode
-    ? "hover:bg-white/5 hover:shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-    : "hover:bg-blue-500/5 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]";
+    ? 'hover:bg-white/5 hover:shadow-[0_0_15px_rgba(255,255,255,0.4)]'
+    : 'hover:bg-blue-500/5 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]';
 
   return (
     <>
       <div className="h-[56px] w-full" aria-hidden="true"></div>
       <div className={`fixed top-4 left-4 right-4 sm:left-6 sm:right-6 mx-auto max-w-5xl ${barBg} border ${barBorder} ${glassEffect} rounded-full z-50 transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
         <div className="flex items-center justify-between px-2 py-2">
-          {/* Left side - Logo and Text Button */}
+          {/* Left side - Logo */}
           <div
             className={`${btnBase} ${btnHover}`}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/Citizens')}
           >
-            {/* Circular icon with water drop */}
             <div className="relative w-10 h-10 bg-[#1c2638] rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.15)] z-10 flex-shrink-0">
-              <svg
-                className="w-5 h-5 text-[#22d3ee]"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                {/* Main droplet shape */}
+              <svg className="w-5 h-5 text-[#22d3ee]" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2.69l5.66 5.66a8 8 0 11-11.32 0z" />
-                {/* Small cut-out arc to simulate reflection */}
                 <path d="M9.5 16a3.5 3.5 0 003.5 1.5" fill="none" stroke="#1c2638" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
             </div>
-
-            {/* Text content */}
             <div className="flex flex-col ml-2">
               <h1 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} leading-tight transition-colors`}>
                 Cứu Hộ Lũ Lụt
@@ -75,27 +96,90 @@ function TaskBar({ isDarkMode = true }) {
             </div>
           </div>
 
-          {/* Center Pill Buttons */}
-          {/* <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center px-4 hidden md:flex">
-          <div className="w-16 h-6 rounded-full bg-white/20 dark:bg-slate-500/30"></div>
-          <div className="w-16 h-6 rounded-full bg-white/20 dark:bg-slate-500/30"></div>
-          <div className="w-16 h-6 rounded-full bg-white/20 dark:bg-slate-500/30"></div>
-          <div className="w-16 h-6 rounded-full bg-white/20 dark:bg-slate-500/30"></div>
-        </div> */}
-
-          {/* Right side - User icon Button */}
-          <div
-            onClick={() => navigate('/')}
-            className={`w-12 h-12 rounded-full flex items-center justify-center ${btnBase} ${btnHover} !px-0 flex-shrink-0`}
-            title="Đăng xuất / Đăng nhập"
-          >
-            <svg
-              className={`w-[22px] h-[22px] ${isDarkMode ? 'text-gray-300' : 'text-slate-600'} transition-colors duration-500`}
-              fill="currentColor"
-              viewBox="0 0 24 24"
+          {/* Right side - User icon with Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <div
+              onClick={() => {
+                if (isLoggedIn) {
+                  setIsDropdownOpen(!isDropdownOpen);
+                } else {
+                  navigate('/');
+                }
+              }}
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${btnBase} ${btnHover} !px-0 flex-shrink-0 ${isDropdownOpen ? (isDarkMode ? 'bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'bg-blue-500/10') : ''}`}
+              title={isLoggedIn ? userName : 'Đăng nhập'}
             >
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
+              <svg
+                className={`w-[22px] h-[22px] ${isDarkMode ? 'text-gray-300' : 'text-slate-600'} transition-colors duration-500`}
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
+
+            {/* Dropdown Menu */}
+            <div
+              className={`absolute right-0 top-full mt-3 w-64 rounded-2xl overflow-hidden transition-all duration-300 origin-top-right ${isDropdownOpen
+                ? 'opacity-100 scale-100 translate-y-0'
+                : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                }`}
+              style={{
+                background: isDarkMode
+                  ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95))'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(241,245,249,0.95))',
+                backdropFilter: 'blur(20px)',
+                border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                boxShadow: isDarkMode
+                  ? '0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(6,182,212,0.08)'
+                  : '0 20px 60px rgba(0,0,0,0.15)',
+              }}
+            >
+              {/* User Info Header */}
+              <div className={`px-4 pt-4 pb-3 border-b ${isDarkMode ? 'border-white/10' : 'border-black/10'}`}>
+                <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} truncate`}>
+                  {userName}
+                </p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'} mt-0.5`}>
+                  {ROLE_NAMES[roleId] || 'Unknown Role'}
+                </p>
+              </div>
+
+              {/* Profile & Logout */}
+              <div className="py-1.5">
+                {/* Xem Profile */}
+                <button
+                  onClick={() => { setIsDropdownOpen(false); navigate('/profile'); }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200 group ${isDarkMode
+                    ? 'text-gray-300 hover:text-white'
+                    : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow duration-200">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-semibold">Xem Profile</span>
+                </button>
+
+                {/* Đăng xuất */}
+                <button
+                  onClick={handleLogout}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200 group ${isDarkMode
+                    ? 'text-gray-400 hover:text-red-400'
+                    : 'text-slate-500 hover:text-red-500'
+                    }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200 ${isDarkMode ? 'bg-white/5 group-hover:bg-red-500/10' : 'bg-black/5 group-hover:bg-red-500/10'}`}>
+                    <svg className="w-4 h-4 opacity-70 group-hover:opacity-100" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium">Đăng xuất</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

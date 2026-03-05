@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { loginApi, registerApi, logoutApi } from '../api/authApi';
+import { loginApi, registerApi } from '../api/authApi';
 
 export const useLogin = () => {
     const [isLoading, setLoading] = useState(false);
@@ -11,7 +11,7 @@ export const useLogin = () => {
         try {
             const response = await loginApi({ email, password });
             localStorage.setItem('userId', response.userId);
-            localStorage.setItem('role', response.role);
+            localStorage.setItem('roleId', response.roleId);
             localStorage.setItem('name', response.userName);
             localStorage.setItem('token', response.token);
             localStorage.setItem('refreshToken', response.refreshToken);
@@ -28,25 +28,6 @@ export const useLogin = () => {
         isLoading,
         error,
         login,
-    };
-};
-
-export const useLogout = () => {
-    const logout = async () => {
-        try {
-            await logoutApi();
-            localStorage.removeItem('userId');
-            localStorage.removeItem('name');
-            localStorage.removeItem('role');
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    };
-
-    return {
-        logout,
     };
 };
 

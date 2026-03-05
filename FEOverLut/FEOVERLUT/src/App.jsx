@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Citizens from './page/Citizens.jsx'
-import Login from './page/Login.jsx'
-import Register from './page/Register.jsx'
+import Citizens from './page/citizens/Citizens.jsx'
+import Login from './page/auth/Login.jsx'
+import Register from './page/auth/Register.jsx'
 import ClickSpark from './components/ClickSpark.jsx';
-
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 // Import Admin layout & pages
 import AdminLayout from './components/AdminLayout.jsx';
 import AdminDashboard from './page/admin/AdminDashboard.jsx';
@@ -15,7 +15,11 @@ import AdminReports from './page/admin/AdminReports.jsx';
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
 import InventoryManagement from './page/manager/InventoryManagement.jsx';
-
+// 1. Citizen
+// 2. RescueTeam
+// 3. RescueCoordinator
+// 4. Manager
+// 5. Admin
 function App() {
 
   return (
@@ -23,9 +27,12 @@ function App() {
       <ClickSpark sparkColor="#22d3ee" sparkSize={12} sparkRadius={20} sparkCount={10} duration={600}>
         <Router>
           <Routes>
-            <Route path="/Citizens" element={<Citizens />} />
+            {/* Auth Routes */}
             <Route path="/" element={<Login />} />
             <Route path="/Register" element={<Register />} />
+
+            {/* Citizen Routes */}
+            <Route path="/Citizens" element={<Citizens />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

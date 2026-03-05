@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import TaskBar from '../components/TaskBar.jsx';
+import TaskBar from '../../components/TaskBar.jsx';
 import { useBatteryStatus } from 'react-haiku';
-import '../css/index.css';
+import '../../css/index.css';
 
 function Citizens() {
     const { level, isCharging } = useBatteryStatus();

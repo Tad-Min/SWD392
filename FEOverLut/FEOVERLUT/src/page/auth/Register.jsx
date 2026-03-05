@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRegister } from '../features/auth/hook/useAuth';
+import { useRegister } from '../../features/auth/hook/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -17,7 +17,7 @@ function Register() {
         e.preventDefault();
         try {
             await register(email, phone, name, password, confirmPassword);
-            navigate('/login');
+            navigate('/');
             toast.success('Đăng ký thành công');
         } catch (error) {
             toast.error(error);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLogin } from '../features/auth/hook/useAuth';
+import { useLogin } from '../../features/auth/hook/useAuth';
 import { toast } from 'react-toastify';
 
 function Login() {
@@ -16,8 +16,16 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await login(email, password);
-            navigate('/Citizens');
+            const response = await login(email, password);
+            const roleId = response.roleId;
+            const roleHomeMap = {
+                1: '/Citizens',
+                2: '/rescue-team/tasks',
+                3: '/coordinator/dispatch',
+                4: '/manager',
+                5: '/admin',
+            };
+            navigate(roleHomeMap[roleId] || '/Citizens');
             toast.success('Đăng nhập thành công');
         } catch (error) {
             toast.error(error);
