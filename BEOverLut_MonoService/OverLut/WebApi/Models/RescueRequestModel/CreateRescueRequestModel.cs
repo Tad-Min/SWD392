@@ -10,8 +10,6 @@ namespace WebApi.Models.RescueRequestModel
         [Required]
         public int RequestType { get; set; }
         [Required]
-        public string Status { get; set; } = string.Empty;
-        [Required]
         public int PeopleCount { get; set; } = 1;
         [Required]
         public Geometry Currentlocation { get; set; } = null!;
