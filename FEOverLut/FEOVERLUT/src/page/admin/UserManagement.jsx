@@ -1,5 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { useUsers } from '../../features/users/hook/useUsers';
+
+// Helper to safe-array
+const toArr = (v) => {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') {
+        const inner = v.data ?? v.items ?? v.result ?? v.value ?? Object.values(v).find(Array.isArray);
+        if (Array.isArray(inner)) return inner;
+    }
+    return [];
+};
 
 // Role mappings based on typical 1: Admin, 2: Coordinator, 3: Rescuer, 4: Support
 const roleConfig = {
@@ -9,7 +20,8 @@ const roleConfig = {
     4: { label: 'Hỗ trợ', color: 'text-slate-500', bg: 'bg-slate-500/10', darkBg: 'dark:bg-slate-500/20' },
 };
 
-// Mock Data representing what would be returned from an API based on UserDTO + TeamName + LastLogin (derived/populated)
+// Fallback data if API returns an empty user array but we want to still show columns (Optional config)
+// The backend returns role/teams matching these values
 const initialMockUsers = [
     { UserId: 1, FullName: 'Nguyễn Văn A', Email: 'nguyenvana@cuuho.gov.vn', RoleId: 1, IsActive: true, TeamName: 'Đội Kỹ Thuật', LastLogin: '2 phút trước', Initials: 'NV' },
     { UserId: 2, FullName: 'Trần Thị B', Email: 'tranthib@cuuho.gov.vn', RoleId: 2, IsActive: true, TeamName: 'Đội Ứng Cứu', LastLogin: '1 giờ trước', Initials: 'TB' },
@@ -25,24 +37,33 @@ const UserManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const { getUsers } = useUsers();
+
+    const fetchAllUsers = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const res = await getUsers();
+            setUsers(toArr(res));
+        } catch {
+            // error handled by hook
+        } finally {
+            setIsLoading(false);
+        }
+    }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
+
     useEffect(() => {
-        // Simulate API Fetch
-        const fetchUsers = async () => {
-            setIsLoading(true);
-            setTimeout(() => {
-                setUsers(initialMockUsers);
-                setIsLoading(false);
-            }, 800);
-        };
-        fetchUsers();
-    }, []);
+        fetchAllUsers();
+    }, [fetchAllUsers]);
 
     // Filter Logic
-    const filteredUsers = users.filter(user =>
-        user.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.Email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `#U00${user.UserId}`.includes(searchTerm)
-    );
+    const filteredUsers = users.filter(user => {
+        const fullname = user.fullName ?? user.fullname ?? user.FullName ?? '';
+        const email = user.email ?? user.Email ?? '';
+        const idStr = String(user.userId ?? user.userid ?? user.UserId ?? user.id ?? '');
+        return fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            idStr.includes(searchTerm);
+    });
 
     return (
         <div className="space-y-6 animate-fade-in-up">
@@ -113,55 +134,63 @@ const UserManagement = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredUsers.map((user) => (
-                                    <tr key={user.UserId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                        <td className={`px-6 py-4 text-sm font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                            #U00{user.UserId}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                {user.Avatar ? (
-                                                    <img src={user.Avatar} alt={user.FullName} className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
-                                                ) : (
-                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                                                        ${user.UserId % 2 === 0 ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'}`}>
-                                                        {user.Initials}
+                                filteredUsers.map((user) => {
+                                    const userId = user.userId ?? user.userid ?? user.UserId ?? user.id;
+                                    const fullname = user.fullName ?? user.fullname ?? user.FullName ?? 'Không tên';
+                                    const email = user.email ?? user.Email ?? 'Không email';
+                                    const roleId = user.roleId ?? user.roleid ?? user.RoleId ?? 0;
+                                    const isActive = user.isActive ?? user.isactive ?? user.IsActive ?? true;
+                                    const initials = fullname.substring(0, 2).toUpperCase();
+                                    return (
+                                        <tr key={userId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
+                                            <td className={`px-6 py-4 text-sm font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                #U{String(userId).padStart(3, '0')}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    {user.Avatar ? (
+                                                        <img src={user.Avatar} alt={fullname} className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                                                    ) : (
+                                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0
+                                                        ${userId % 2 === 0 ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'}`}>
+                                                            {initials}
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col">
+                                                        <span className={`text-sm font-semibold ${theme.text}`}>{fullname}</span>
+                                                        <span className={`text-[12px] ${theme.textMuted}`}>{email}</span>
                                                     </div>
-                                                )}
-                                                <div className="flex flex-col">
-                                                    <span className={`text-sm font-semibold ${theme.text}`}>{user.FullName}</span>
-                                                    <span className={`text-[12px] ${theme.textMuted}`}>{user.Email}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold ${roleConfig[user.RoleId]?.bg} ${roleConfig[user.RoleId]?.darkBg} ${roleConfig[user.RoleId]?.color}`}>
-                                                {roleConfig[user.RoleId]?.label}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-2 h-2 rounded-full ${user.IsActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-400 dark:bg-slate-500'}`}></div>
-                                                <span className={`text-[13px] font-medium ${user.IsActive ? 'text-emerald-600 dark:text-emerald-400' : theme.textMuted}`}>
-                                                    {user.IsActive ? 'Đang hoạt động' : (user.RoleId === 3 && !user.IsActive && user.UserId !== 4 ? 'Ngoại tuyến' : 'Đã khóa')}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold ${roleConfig[roleId]?.bg || 'bg-slate-500/10'} ${roleConfig[roleId]?.darkBg || 'dark:bg-slate-500/20'} ${roleConfig[roleId]?.color || 'text-slate-500'}`}>
+                                                    {roleConfig[roleId]?.label || 'Chưa phân quyền'}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td className={`px-6 py-4 text-sm font-medium ${theme.text}`}>
-                                            {user.TeamName}
-                                        </td>
-                                        <td className={`px-6 py-4 text-[13px] ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                            {user.LastLogin}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className={`p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'} focus:opacity-100`}>
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-400 dark:bg-slate-500'}`}></div>
+                                                    <span className={`text-[13px] font-medium ${isActive ? 'text-emerald-600 dark:text-emerald-400' : theme.textMuted}`}>
+                                                        {isActive ? 'Đang hoạt động' : 'Đã khóa'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className={`px-6 py-4 text-sm font-medium ${theme.text}`}>
+                                                {user.TeamName ?? user.teamName ?? '—'}
+                                            </td>
+                                            <td className={`px-6 py-4 text-[13px] ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                                {user.LastLogin ?? '—'}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button className={`p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'} focus:opacity-100`}>
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
                             )}
                         </tbody>
                     </table>

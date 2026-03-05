@@ -15,11 +15,7 @@ import AdminReports from './page/admin/AdminReports.jsx';
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
 import InventoryManagement from './page/manager/InventoryManagement.jsx';
-// 1. Citizen
-// 2. RescueTeam
-// 3. RescueCoordinator
-// 4. Manager
-// 5. Admin
+
 function App() {
 
   return (
@@ -48,6 +44,7 @@ function App() {
               <Route index element={<ManagerDashboard />} />
               <Route path="dashboard" element={<ManagerDashboard />} />
               <Route path="inventory" element={<InventoryManagement />} />
+              <Route path="distribution" element={<DistributionTracking />} />
             </Route>
           </Routes>
         </Router>
