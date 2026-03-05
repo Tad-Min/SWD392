@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>Bản Đồ Việt Nam - Cứu Hộ</title>
+  <meta name="description"
+    content="Bản đồ Việt Nam đầy đủ đường đi, tên đường, Biển Đông, Hoàng Sa, Trường Sa. Tối ưu cho ứng dụng cứu hộ và cứu nạn.">
+  <meta name="keywords" content="Bản đồ Việt Nam, cứu hộ, đường đi, Hoàng Sa, Trường Sa, Biển Đông, rescue map">
+  <meta name="author" content="Vietnam Rescue Map">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Bản Đồ Việt Nam - Cứu Hộ">
+  <meta property="og:description" content="Bản đồ Việt Nam đầy đủ đường đi, tên đường. Tích hợp cho ứng dụng cứu hộ.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="vi_VN">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/map.css">
+</head>
+
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Đang tải bản đồ Việt Nam...</div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main App -->
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon">🗺️</div>
+          <div>
+            <h1>Bản Đồ Việt Nam</h1>
+            <div class="subtitle">Rescue Map API</div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="search-input" placeholder="Tìm đường, địa chỉ, tỉnh..."
+            autocomplete="off">
+          <div id="search-results" class="search-results"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Province Selector -->
+        <div class="province-section">
+          <h3>Tỉnh / Thành phố</h3>
+          <select id="province-select" class="province-select"></select>
+        </div>
+
+        <!-- Sovereignty Quick Nav -->
+        <div class="sovereignty-section">
+          <h3>Chủ quyền Việt Nam</h3>
+          <div class="sovereignty-btns">
+            <button id="btn-hoangsa" class="sovereignty-btn">
+              <span class="flag">🇻🇳</span>
+              Quần đảo Hoàng Sa
+            </button>
+            <button id="btn-truongsa" class="sovereignty-btn">
+              <span class="flag">🇻🇳</span>
+              Quần đảo Trường Sa
+            </button>
+          </div>
+        </div>
+
+        <!-- Routing Panel -->
+        <div class="routing-section">
+          <h3>🧭 Tìm đường đi</h3>
+          <button id="btn-toggle-routing" class="routing-toggle-btn">Mở tìm đường</button>
+          <div id="routing-panel" class="routing-panel">
+            <!-- Start Point -->
+            <div class="route-input-group">
+              <label>Điểm xuất phát</label>
+              <div class="route-input-row">
+                <div class="route-input-wrapper">
+                  <span class="route-dot start-dot"></span>
+                  <input type="text" id="route-start" class="route-input"
+                    placeholder="Nhập địa chỉ hoặc chọn trên bản đồ" autocomplete="off">
+                  <div id="route-start-results" class="search-results"></div>
+                </div>
+              </div>
+              <div class="route-actions-row">
+                <button id="btn-use-my-location" class="route-action-btn" title="Dùng vị trí GPS">📍 Vị trí của
+                  tôi</button>
+                <button id="btn-pick-start" class="route-action-btn" title="Chọn trên bản đồ">🖱️ Chọn trên bản
+                  đồ</button>
+              </div>
+            </div>
+
+            <!-- Swap -->
+            <div class="route-swap-row">
+              <button id="btn-swap-route" class="route-swap-btn" title="Đổi chiều">⇅</button>
+              <div class="route-connector"></div>
+            </div>
+
+            <!-- End Point -->
+            <div class="route-input-group">
+              <label>Điểm đến</label>
+              <div class="route-input-row">
+                <div class="route-input-wrapper">
+                  <span class="route-dot end-dot"></span>
+                  <input type="text" id="route-end" class="route-input" placeholder="Nhập địa chỉ đích đến"
+                    autocomplete="off">
+                  <div id="route-end-results" class="search-results"></div>
+                </div>
+              </div>
+              <div class="route-actions-row">
+                <button id="btn-pick-end" class="route-action-btn" title="Chọn trên bản đồ">🖱️ Chọn trên bản
+                  đồ</button>
+              </div>
+            </div>
+
+            <!-- Route Buttons -->
+            <div class="route-buttons">
+              <button id="btn-find-route" class="route-find-btn">🔍 Tìm đường</button>
+              <button id="btn-clear-route" class="route-clear-btn">✕ Xóa</button>
+            </div>
+
+            <!-- Navigation Bar -->
+            <div id="nav-bar" class="nav-bar" style="display:none">
+              <button id="btn-start-nav" class="nav-start-btn" onclick="window.__routing?.startNavigation()">
+                ▶ Bắt đầu dẫn đường
+              </button>
+              <button id="btn-stop-nav" class="nav-stop-btn" style="display:none"
+                onclick="window.__routing?.stopNavigation()">
+                ⏹ Dừng dẫn đường
+              </button>
+            </div>
+            <div id="nav-status" class="nav-status" style="display:none"></div>
+
+            <!-- Route Info -->
+            <div id="route-info" class="route-info" style="display:none"></div>
+
+            <!-- Turn-by-turn Steps -->
+            <div id="route-steps" class="route-steps" style="display:none"></div>
+          </div>
+        </div>
+
+        <!-- Layer Toggle -->
+        <div class="layer-section">
+          <h3>Kiểu bản đồ</h3>
+          <div class="layer-options">
+            <button class="layer-btn active" data-layer="roads">Đường</button>
+            <button class="layer-btn" data-layer="light">Sáng</button>
+            <button class="layer-btn" data-layer="dark">Tối</button>
+            <button class="layer-btn" data-layer="satellite">Vệ tinh</button>
+          </div>
+        </div>
+
+        <!-- Map Info -->
+        <div class="info-panel">
+          <h4>📍 Thông tin bản đồ</h4>
+          <div class="info-item">
+            <span class="label">Vĩ độ</span>
+            <span class="value" id="info-lat">16.0000°</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Kinh độ</span>
+            <span class="value" id="info-lng">107.0000°</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Thu phóng</span>
+            <span class="value" id="info-zoom">6</span>
+          </div>
+        </div>
+
+        <!-- Integration Info -->
+        <div class="info-panel">
+          <h4>🔗 Tích hợp API</h4>
+          <div class="info-item">
+            <span class="label">Tile Provider</span>
+            <span class="value">CartoDB / OSM</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Geocoding</span>
+            <span class="value">Nominatim</span>
+          </div>
+          <div class="info-item">
+            <span class="label">API Key</span>
+            <span class="value" style="color: var(--accent);">Không cần</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        Dữ liệu bản đồ từ <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>
+        <br>Bản đồ cứu hộ Việt Nam &copy; 2024
+      </div>
+    </aside>
+
+    <!-- Map Container -->
+    <div id="map-container">
+      <!-- Toggle Sidebar -->
+      <button id="toggle-sidebar" class="map-control-btn" title="Ẩn/Hiện thanh bên">☰</button>
+
+      <!-- Map -->
+      <div id="map"></div>
+
+      <!-- Floating Controls -->
+      <div class="map-controls">
+        <button id="btn-zoom-in" class="map-control-btn" title="Phóng to">+</button>
+        <button id="btn-zoom-out" class="map-control-btn" title="Thu nhỏ">−</button>
+        <button id="btn-location" class="map-control-btn" title="Vị trí của tôi">📍</button>
+        <button id="btn-route-float" class="map-control-btn" title="Tìm đường"
+          onclick="document.getElementById('btn-toggle-routing').click()">🧭</button>
+        <button id="btn-reset" class="map-control-btn" title="Về Việt Nam">🇻🇳</button>
+        <button id="btn-fullscreen" class="map-control-btn" title="Toàn màn hình">⛶</button>
+      </div>
+
+      <!-- Coordinates Display -->
+      <div id="coords-display" class="coords-display">16.00000° N, 107.00000° E | Zoom: 6</div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- App JS (order matters!) -->
+  <script src="js/provinces.js"></script>
+  <script src="js/sovereignty.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/controls.js"></script>
+  <script src="js/routing.js"></script>
+  <script src="js/map.js"></script>
+</body>
+
+</html>
