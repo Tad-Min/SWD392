@@ -56,6 +56,7 @@ export const useCreateRescueRequest = () => {
             return response.data;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }

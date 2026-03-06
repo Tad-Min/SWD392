@@ -18,7 +18,7 @@ function Citizens() {
     const [showSOSModal, setShowSOSModal] = useState(false);
     const [sosDescription, setSosDescription] = useState('');
     const [sosPeopleCount, setSosPeopleCount] = useState(1);
-    const [sosRequestType, setSosRequestType] = useState(0);
+    const [sosRequestType, setSosRequestType] = useState(1);
     const [sosStatus, setSosStatus] = useState(null); // 'success' | 'error' | null
     const [sosMessage, setSosMessage] = useState('');
     const coordsRef = useRef(null); // store latest coords { latitude, longitude }
@@ -92,7 +92,7 @@ function Citizens() {
     const handleSOSClick = () => {
         setSosDescription('');
         setSosPeopleCount(1);
-        setSosRequestType(0);
+        setSosRequestType(1);
         setShowSOSModal(true);
     };
 
@@ -109,10 +109,14 @@ function Citizens() {
                         type: 'Point',
                         coordinates: [coords.longitude, coords.latitude],
                     }
-                    : null,
+                    : {
+                        type: 'Point',
+                        coordinates: [106.7725, 10.9024],
+                    },
                 locationText: location,
             };
 
+            console.log('SOS Payload:', JSON.stringify(payload, null, 2));
             await createRescueRequest(payload);
 
             setSosStatus('success');
@@ -300,9 +304,9 @@ function Citizens() {
                                         onChange={(e) => setSosRequestType(parseInt(e.target.value))}
                                         className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`}
                                     >
-                                        <option value={0}>Cần sơ tán</option>
-                                        <option value={1}>Cần lương thực</option>
-                                        <option value={2}>Cần y tế</option>
+                                        <option value={1}>Rescue - Cứu hộ</option>
+                                        <option value={2}>Relief - Cứu trợ</option>
+                                        <option value={3}>Both - Cả hai</option>
                                     </select>
                                 </div>
 
