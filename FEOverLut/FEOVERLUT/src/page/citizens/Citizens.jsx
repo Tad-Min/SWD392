@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import TaskBar from '../../components/TaskBar.jsx';
 import { useBatteryStatus } from 'react-haiku';
+import { useCreateRescueRequest } from '../../features/Rescue/hook/useRescueRequest.js';
 import '../../css/index.css';
 
 function Citizens() {
@@ -11,6 +12,16 @@ function Citizens() {
     const [location, setLocation] = useState('Đang lấy vị trí...');
     const [riskLevel, setRiskLevel] = useState('Đang cập nhật');
     const [riskColor, setRiskColor] = useState('gray');
+
+    // SOS / Rescue Request state
+    const { loading: sosLoading, error: sosError, createRescueRequest } = useCreateRescueRequest();
+    const [showSOSModal, setShowSOSModal] = useState(false);
+    const [sosDescription, setSosDescription] = useState('');
+    const [sosPeopleCount, setSosPeopleCount] = useState(1);
+    const [sosRequestType, setSosRequestType] = useState(1);
+    const [sosStatus, setSosStatus] = useState(null); // 'success' | 'error' | null
+    const [sosMessage, setSosMessage] = useState('');
+    const coordsRef = useRef(null); // store latest coords { latitude, longitude }
 
     // Background animation and theme state
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -32,6 +43,7 @@ function Citizens() {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const { latitude, longitude } = position.coords;
+                    coordsRef.current = { latitude, longitude };
                     try {
                         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
                         const data = await response.json();
@@ -64,6 +76,58 @@ function Citizens() {
         }
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
+
+    // Auto-hide SOS toast after 4 seconds
+    useEffect(() => {
+        if (sosStatus) {
+            const timer = setTimeout(() => {
+                setSosStatus(null);
+                setSosMessage('');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [sosStatus]);
+
+    // Handle SOS button click – open confirmation modal
+    const handleSOSClick = () => {
+        setSosDescription('');
+        setSosPeopleCount(1);
+        setSosRequestType(1);
+        setShowSOSModal(true);
+    };
+
+    // Submit rescue request
+    const handleSOSConfirm = async () => {
+        try {
+            const coords = coordsRef.current;
+            const payload = {
+                description: sosDescription || 'Yêu cầu cứu hộ khẩn cấp',
+                requestType: sosRequestType,
+                peopleCount: sosPeopleCount,
+                currentLocation: coords
+                    ? {
+                        type: 'Point',
+                        coordinates: [coords.longitude, coords.latitude],
+                    }
+                    : {
+                        type: 'Point',
+                        coordinates: [106.7725, 10.9024],
+                    },
+                locationText: location,
+            };
+
+            console.log('SOS Payload:', JSON.stringify(payload, null, 2));
+            await createRescueRequest(payload);
+
+            setSosStatus('success');
+            setSosMessage('Yêu cầu cứu hộ đã được gửi thành công!');
+            setShowSOSModal(false);
+        } catch (err) {
+            console.error('SOS request failed:', err);
+            setSosStatus('error');
+            setSosMessage(sosError?.message || 'Gửi yêu cầu thất bại. Vui lòng thử lại.');
+        }
+    };
 
     // Theme Variables
     const theme = {
@@ -169,19 +233,133 @@ function Citizens() {
                             <div className="absolute w-[220px] h-[220px] bg-[#ef4444]/30 rounded-full flex items-center justify-center -z-10 shadow-[0_0_50px_rgba(239,68,68,0.5)] animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite] group-hover:scale-90 transition-transform duration-500 ease-in-out"></div>
 
                             {/* Inner SOS Button */}
-                            <button className="relative w-40 h-40 bg-[#ef4444] rounded-full flex flex-col items-center justify-center shadow-[0_0_50px_rgba(239,68,68,0.6)] hover:bg-red-500 active:scale-95 transition-all outline-none border-[3px] border-[#fb7185]/40 z-10 cursor-pointer">
-                                <svg
-                                    className="w-10 h-10 text-white/90 mb-1"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-                                </svg>
+                            <button
+                                onClick={handleSOSClick}
+                                disabled={sosLoading}
+                                className="relative w-40 h-40 bg-[#ef4444] rounded-full flex flex-col items-center justify-center shadow-[0_0_50px_rgba(239,68,68,0.6)] hover:bg-red-500 active:scale-95 transition-all outline-none border-[3px] border-[#fb7185]/40 z-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {sosLoading ? (
+                                    <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    <svg
+                                        className="w-10 h-10 text-white/90 mb-1"
+                                        fill="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                                    </svg>
+                                )}
                                 <span className="text-[38px] font-extrabold text-white tracking-widest leading-none drop-shadow-md">SOS</span>
                                 <span className="text-[11px] font-bold text-white/90 mt-1.5 uppercase tracking-wide">YÊU CẦU CỨU HỘ</span>
                             </button>
                         </div>
                     </div>
+
+                    {/* SOS Confirmation Modal */}
+                    {showSOSModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+                            <div className={`w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl border ${isDarkMode ? 'bg-[#1e253c] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+                                {/* Header */}
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold">Xác nhận yêu cầu cứu hộ</h3>
+                                        <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Vui lòng cung cấp thông tin bên dưới</p>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <div>
+                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Mô tả tình huống</label>
+                                    <textarea
+                                        value={sosDescription}
+                                        onChange={(e) => setSosDescription(e.target.value)}
+                                        placeholder="Ví dụ: Nước ngập cao, cần di tản gấp..."
+                                        rows={3}
+                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none resize-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white placeholder-slate-500 border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 placeholder-slate-400 border border-slate-200 focus:border-blue-500'}`}
+                                    />
+                                </div>
+
+                                {/* People Count */}
+                                <div>
+                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Số người cần hỗ trợ</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={sosPeopleCount}
+                                        onChange={(e) => setSosPeopleCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`}
+                                    />
+                                </div>
+
+                                {/* Request Type */}
+                                <div>
+                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Loại hỗ trợ</label>
+                                    <select
+                                        value={sosRequestType}
+                                        onChange={(e) => setSosRequestType(parseInt(e.target.value))}
+                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`}
+                                    >
+                                        <option value={1}>Rescue - Cứu hộ</option>
+                                        <option value={2}>Relief - Cứu trợ</option>
+                                        <option value={3}>Both - Cả hai</option>
+                                    </select>
+                                </div>
+
+                                {/* Location preview */}
+                                <div className={`text-xs px-3 py-2 rounded-lg ${isDarkMode ? 'bg-[#151b2e] text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                                    📍 Vị trí: <span className="font-medium">{location}</span>
+                                </div>
+
+                                {/* Buttons */}
+                                <div className="flex gap-3 pt-1">
+                                    <button
+                                        onClick={() => setShowSOSModal(false)}
+                                        className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-colors ${isDarkMode ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                                    >
+                                        Hủy bỏ
+                                    </button>
+                                    <button
+                                        onClick={handleSOSConfirm}
+                                        disabled={sosLoading}
+                                        className="flex-1 py-3 rounded-xl font-semibold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {sosLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Đang gửi...
+                                            </>
+                                        ) : (
+                                            'Gửi yêu cầu SOS'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SOS Toast Notification */}
+                    {sosStatus && (
+                        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold transition-all animate-[slideDown_0.3s_ease-out] ${sosStatus === 'success'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
+                            }`}>
+                            {sosStatus === 'success' ? (
+                                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                            )}
+                            {sosMessage}
+                        </div>
+                    )}
 
                     {/* Information Cards Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

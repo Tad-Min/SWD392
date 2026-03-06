@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { getRescueRequestApi, getRescueRequestByIdApi, createRescueRequestApi, updateRescueRequestApi } from "../api/rescueRequestApi";
 
 export const useRescueRequest = () => {
@@ -55,6 +56,7 @@ export const useCreateRescueRequest = () => {
             return response.data;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
