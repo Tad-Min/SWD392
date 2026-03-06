@@ -25,8 +25,7 @@ public partial class RescueRequest
 
     public int? PeopleCount { get; set; }
 
-    [NotMapped]
-    public Geometry? Location { get; set; }
+    public Point? Location { get; set; }
 
     public string? LocationText { get; set; }
 
