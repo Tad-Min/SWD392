@@ -1,0 +1,89 @@
+import { getRescueRequestApi, getRescueRequestByIdApi, createRescueRequestApi, updateRescueRequestApi } from "../api/rescueRequestApi";
+
+export const useRescueRequest = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueRequest = async () => {
+        try {
+            setLoading(true);
+            const response = await getRescueRequestApi();
+            return response.data;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueRequest
+    }
+}
+
+export const useRescueRequestById = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueRequestById = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getRescueRequestByIdApi(id);
+            return response.data;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueRequestById
+    }
+}
+
+export const useCreateRescueRequest = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const createRescueRequest = async (data) => {
+        try {
+            setLoading(true);
+            const response = await createRescueRequestApi(data);
+            return response.data;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        createRescueRequest
+    }
+}
+
+export const useUpdateRescueRequest = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const updateRescueRequest = async (id, data) => {
+        try {
+            setLoading(true);
+            const response = await updateRescueRequestApi(id, data);
+            return response.data;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        updateRescueRequest
+    }
+}
