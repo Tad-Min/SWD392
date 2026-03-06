@@ -148,7 +148,7 @@ builder.Services.AddSwaggerGen(c =>
             new List<string>()
         }
     });
-    c.MapType<Geometry>(() => new OpenApiSchema
+    c.MapType<Point>(() => new OpenApiSchema
     {
         Type = "object",
         Description = "GeoJSON format (Point, LineString, Polygon, etc.)",
