@@ -79,7 +79,8 @@ public partial class OverlutDbContext : DbContext
                 .Build();
 
             var connectionString = configuration.GetConnectionString("overlutdb");
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(connectionString,
+                sqlOptions => sqlOptions.UseNetTopologySuite());
         }
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -255,6 +256,8 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(50)
                 .HasColumnName("IPAddress");
+            entity.Property(e => e.Location)
+                .HasColumnType("geography");
             entity.Property(e => e.LocationText).HasMaxLength(500);
             entity.Property(e => e.PeopleCount).HasDefaultValue(1);
             entity.Property(e => e.UserReqId).HasColumnName("UserReqID");

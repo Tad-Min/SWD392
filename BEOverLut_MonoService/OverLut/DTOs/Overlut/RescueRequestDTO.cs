@@ -22,7 +22,7 @@ public class RescueRequestDTO
 
     public int? PeopleCount { get; set; }
 
-    public Geometry? Location { get; set; }
+    public Point? Location { get; set; }
 
     public string? LocationText { get; set; }
 

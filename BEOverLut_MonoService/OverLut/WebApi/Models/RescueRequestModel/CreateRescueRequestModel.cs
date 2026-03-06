@@ -12,7 +12,7 @@ namespace WebApi.Models.RescueRequestModel
         [Required]
         public int PeopleCount { get; set; } = 1;
         [Required]
-        public Geometry Currentlocation { get; set; } = null!;
+        public Point Currentlocation { get; set; } = null!;
         public String? LocationText { get; set; }
     }
 }

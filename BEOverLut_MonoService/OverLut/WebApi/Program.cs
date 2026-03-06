@@ -40,6 +40,7 @@ builder.Services.AddDbContext<OverlutDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection:overlutdb"),
         sqlOptions => sqlOptions.UseNetTopologySuite()
+
     ));
 builder.Services.AddDbContext<OverlutDbStorageContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection:overlutstoragedb")));
