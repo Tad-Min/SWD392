@@ -1,4 +1,5 @@
 import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi } from "../api/rescueTeamApi";
+import { useState } from "react";
 
 export const useRescueTeam = () => {
     const [loading, setLoading] = useState(false);
