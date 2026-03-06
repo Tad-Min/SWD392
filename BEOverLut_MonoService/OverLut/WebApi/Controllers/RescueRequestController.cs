@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interface;
+using Services;
 using Services.Interface;
 using WebApi.Models.RescueRequestModel;
 
@@ -35,28 +36,62 @@ namespace WebApi.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllRescueRequest(GetAllRescueRequestModel? model)
         {
-            return Ok(await iRescueRequestService.GetAllRescueRequestsAsync(model?.rescueRequestId,model?.userReqId,model?.requestType,model?.urgencyLevel,model?.status,model?.description));
+            try
+            {
+                var rescueRequest = await iRescueRequestService.GetAllRescueRequestsAsync(model?.rescueRequestId, model?.userReqId, model?.requestType, model?.urgencyLevel, model?.status, model?.description);
+                return Ok(rescueRequest);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescuerequest", error = ex.Message });
+            }
         }
         [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetRescueRequestById(int id)
         {
-            return Ok(await iRescueRequestService.GetRescueRequestByIdAsync(id));
+            try
+            {
+                var rescueRequest = await iRescueRequestService.GetRescueRequestByIdAsync(id);
+                if (rescueRequest == null)
+                    return NotFound(new { message = $"RescueRequest with ID {id} not found" });
+                return Ok(rescueRequest);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescuerequest", error = ex.Message });
+            }
         }
 
         [HttpPost("Add")]
         public async Task<IActionResult> AddRescueRequest(CreateRescueRequestModel model)
         {
-            RescueRequestDTO? recq = null;
-
-            if (User.Identity != null && User.Identity.IsAuthenticated)
+            try
             {
-                string? userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (model == null)
+                    return BadRequest(new { message = "RescueRequest data is required" });
+                RescueRequestDTO? recq = null;
 
-                if (int.TryParse(userIdString, out int userId))
+                if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    string? userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                    if (int.TryParse(userIdString, out int userId))
+                    {
+                        recq = await iRescueRequestService.AddRescueRequestAsync(new RescueRequestDTO
+                        {
+                            UserReqId = userId,
+                            Description = model.Description,
+                            Location = model.Currentlocation,
+                            LocationText = model.LocationText,
+                            Ipaddress = GetClientIp(HttpContext),
+                            UserAgent = GetUserAgent(HttpContext),
+                        });
+                    }
+                }
+                else
                 {
                     recq = await iRescueRequestService.AddRescueRequestAsync(new RescueRequestDTO
                     {
-                        UserReqId = userId,
                         Description = model.Description,
                         Location = model.Currentlocation,
                         LocationText = model.LocationText,
@@ -64,51 +99,55 @@ namespace WebApi.Controllers
                         UserAgent = GetUserAgent(HttpContext),
                     });
                 }
+                if (recq == null)
+                    return BadRequest(new { message = "Failed to create RescueRequest" });
+                return CreatedAtAction(nameof(GetRescueRequestById), new { id = recq.RescueRequestId }, recq);
             }
-            else
+            catch (Exception ex)
             {
-                recq = await iRescueRequestService.AddRescueRequestAsync(new RescueRequestDTO
-                {
-                    Description = model.Description,
-                    Location = model.Currentlocation,
-                    LocationText = model.LocationText,
-                    Ipaddress = GetClientIp(HttpContext),
-                    UserAgent = GetUserAgent(HttpContext),
-                });
-            }
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error add rescuerequest", error = ex.Message });
 
-            return Ok(recq);
+            }
+            
         }
-        [HttpPut("Update")]
+        [HttpPut("Update/{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateRescueRequest(UpdateRescueRequestModel model)
+        public async Task<IActionResult> UpdateRescueRequest(int id, UpdateRescueRequestModel model)
         {
-
-            
-            if (model == null) return BadRequest(ModelState);
-            var rescue = MappingHandle.EntityToDTO(await iRescueRequestService.GetRescueRequestByIdAsync(model.RescueRequestId));
-            if (rescue == null) return BadRequest("Not found rescue request");
-            
-            var logCheck = await iLogService.AddRescueRequestLogAsync(new RescueRequestLog
+            try
             {
-                RescueRequestId = model.RescueRequestId,
-                ChangedByUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
-                OldRescueRequests = JsonSerializer.Serialize(rescue),
-            }) ?? throw new Exception("Can't write log");
+                var existingRescueRequest = await iRescueRequestService.GetRescueRequestByIdAsync(id);
+                if (existingRescueRequest == null)
+                    return NotFound(new { message = $"RescueRequest with ID {id} not found" });
+                var logCheck = await iLogService.AddRescueRequestLogAsync(new RescueRequestLog
+                {
+                    RescueRequestId = id,
+                    ChangedByUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
+                    OldRescueRequests = JsonSerializer.Serialize(MappingHandle.EntityToDTO(existingRescueRequest)),
+                }) ?? throw new Exception("Can't write log");
+                existingRescueRequest.RequestType = model.RequestType;
+                existingRescueRequest.UrgencyLevel = model.UrgencyLevel;
+                existingRescueRequest.Status = model.Status;
+                existingRescueRequest.PeopleCount = model.PeopleCount;
+                existingRescueRequest.LocationText = model.LocationText;
+
+                var result = await iRescueRequestService.UpdateRescueRequestAsync(existingRescueRequest);
+                if (!result)
+                    return BadRequest(new { message = "Failed to update warehouse" });
+                return Ok("RescueRequest updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error updating rescuerequest", error = ex.Message });
+            }
             
-            rescue.LocationText = model.LocationText;
-            rescue.PeopleCount = model.PeopleCount;
-            rescue.Status = model.Status;
-            rescue.UrgencyLevel = model.UrgencyLevel;
-            rescue.RequestType = model.RequestType;
-            return Ok(await iRescueRequestService.UpdateRescueRequestAsync(rescue));
         }
-        [HttpPatch("UpdateLocation")]
-        public async Task<IActionResult> UpdateLocation(UpdateLocationModel model)
+        [HttpPatch("UpdateLocation/{id}")]
+        public async Task<IActionResult> UpdateLocation(int id, UpdateLocationModel model)
         {
-            if (model == null) return BadRequest(ModelState);
-            var rescue = MappingHandle.EntityToDTO(await iRescueRequestService.GetRescueRequestByIdAsync(model.RescueRequestId));
-            if (rescue == null) return BadRequest("Not found rescue request");
+            var existingRescueRequest = await iRescueRequestService.GetRescueRequestByIdAsync(id);
+            if (existingRescueRequest == null)
+                return NotFound(new { message = $"RescueRequest with ID {id} not found" });
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 string? userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -119,7 +158,7 @@ namespace WebApi.Controllers
                     {
                         ChangedByUserId = userId,
                         RescueRequestId = model.RescueRequestId,
-                        OldRescueRequests = JsonSerializer.Serialize(rescue),
+                        OldRescueRequests = JsonSerializer.Serialize(MappingHandle.EntityToDTO(existingRescueRequest)),
                     }) ?? throw new Exception("Can't Create log");
                 }
             }
@@ -128,13 +167,15 @@ namespace WebApi.Controllers
                 await iLogService.AddRescueRequestLogAsync(new RescueRequestLog
                 {
                     RescueRequestId = model.RescueRequestId,
-                    OldRescueRequests = JsonSerializer.Serialize(rescue),
+                    OldRescueRequests = JsonSerializer.Serialize(MappingHandle.EntityToDTO(existingRescueRequest)),
                 });
             }
-            rescue.Location = model.CurrentLocation;
-            return Ok(await iRescueRequestService.UpdateRescueRequestAsync(rescue));
+            existingRescueRequest.Location = model.CurrentLocation;
+            var result = await iRescueRequestService.UpdateRescueRequestAsync(existingRescueRequest);
+            if (!result)
+                return BadRequest(new { message = "Failed to update location" });
+            return Ok("RescueRequest updated successfully");
         }
-
         private string GetUserAgent(HttpContext context)
         {
             return context.Request.Headers["User-Agent"].FirstOrDefault() ?? string.Empty;

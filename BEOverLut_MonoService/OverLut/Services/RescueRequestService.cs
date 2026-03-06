@@ -64,9 +64,9 @@ namespace Services
             return iRescueRequestRepository.GetRescueRequestByIdAsync(id);
         }
 
-        public async Task<bool> UpdateRescueRequestAsync(RescueRequestDTO model)
+        public async Task<bool> UpdateRescueRequestAsync(RescueRequest model)
         {
-            return await iRescueRequestRepository.UpdateRescueRequest(MappingHandle.DTOToEntity(model)!);
+            return await iRescueRequestRepository.UpdateRescueRequest(model);
         }
     }
 }
