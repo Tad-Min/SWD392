@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     // Role không được phép → chuyển về trang chủ của role đó
-    if (!allowedRoles.includes(role)) {
+    if (allowedRoles && !allowedRoles.includes(role)) {
         const homePath = ROLE_HOME[role] || '/';
         return <Navigate to={homePath} replace />;
     }

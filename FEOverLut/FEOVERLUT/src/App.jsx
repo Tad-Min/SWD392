@@ -4,6 +4,7 @@ import Login from './page/auth/Login.jsx'
 import Register from './page/auth/Register.jsx'
 import ClickSpark from './components/ClickSpark.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+
 // Import Admin layout & pages
 import AdminLayout from './components/AdminLayout.jsx';
 import AdminDashboard from './page/admin/AdminDashboard.jsx';
@@ -15,6 +16,7 @@ import AdminReports from './page/admin/AdminReports.jsx';
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
 import InventoryManagement from './page/manager/InventoryManagement.jsx';
+import DistributionTracking from './page/manager/DistributionTracking.jsx';
 
 function App() {
 
@@ -28,23 +30,23 @@ function App() {
             <Route path="/Register" element={<Register />} />
 
             {/* Citizen Routes */}
-            <Route path="/Citizens" element={<Citizens />} />
+            <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="settings" element={<SystemConfig />} />
-              <Route path="reports" element={<AdminReports />} />
+              <Route path="dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute><SystemConfig /></ProtectedRoute>} />
+              <Route path="reports" element={<ProtectedRoute><AdminReports /></ProtectedRoute>} />
             </Route>
 
             {/* Manager Routes */}
-            <Route path="/manager" element={<ManagerLayout />}>
+            <Route path="/manager" element={<ProtectedRoute><ManagerLayout /></ProtectedRoute>}>
               <Route index element={<ManagerDashboard />} />
-              <Route path="dashboard" element={<ManagerDashboard />} />
-              <Route path="inventory" element={<InventoryManagement />} />
-              <Route path="distribution" element={<DistributionTracking />} />
+              <Route path="dashboard" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
+              <Route path="inventory" element={<ProtectedRoute><InventoryManagement /></ProtectedRoute>} />
+              <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
             </Route>
           </Routes>
         </Router>
