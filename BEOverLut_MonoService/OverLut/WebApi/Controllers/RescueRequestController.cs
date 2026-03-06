@@ -81,6 +81,7 @@ namespace WebApi.Controllers
                         {
                             UserReqId = userId,
                             Description = model.Description,
+                            RequestType = model.RequestType,
                             Location = model.Currentlocation,
                             LocationText = model.LocationText,
                             Ipaddress = GetClientIp(HttpContext),
@@ -94,6 +95,7 @@ namespace WebApi.Controllers
                     {
                         Description = model.Description,
                         Location = model.Currentlocation,
+                        RequestType = model.RequestType,
                         LocationText = model.LocationText,
                         Ipaddress = GetClientIp(HttpContext),
                         UserAgent = GetUserAgent(HttpContext),
