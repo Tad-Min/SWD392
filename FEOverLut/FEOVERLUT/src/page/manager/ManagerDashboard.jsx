@@ -1,294 +1,318 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useMissions } from '../../features/missions/hook/useMissions';
+import { useInventory } from '../../features/inventory/hook/useInventory';
 import {
-    LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, Legend
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+    ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 
-// --- MOCK DATA FOR CHARTS ---
-const performanceData = [
-    { name: 'T2', missions: 4, rescued: 12 },
-    { name: 'T3', missions: 7, rescued: 25 },
-    { name: 'T4', missions: 5, rescued: 18 },
-    { name: 'T5', missions: 10, rescued: 40 },
-    { name: 'T6', missions: 8, rescued: 30 },
-    { name: 'T7', missions: 12, rescued: 55 },
-    { name: 'CN', missions: 6, rescued: 20 },
+// Helper: ensure value is always an array
+const toArr = (v) => {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') {
+        // common patterns: { data: [...] } / { items: [...] } / { result: [...] }
+        const inner = v.data ?? v.items ?? v.result ?? v.value ?? Object.values(v).find(Array.isArray);
+        if (Array.isArray(inner)) return inner;
+    }
+    return [];
+};
+
+// ── Hourly request data ───────────────────────────────────────────
+const hourlyData = [
+    { h: '6h', req: 12 }, { h: '8h', req: 28 }, { h: '10h', req: 45 },
+    { h: '12h', req: 38 }, { h: '14h', req: 55 }, { h: '16h', req: 42 },
 ];
 
-const resourceUtilization = [
-    { name: 'Đội Trực Thăng', active: 100, standby: 0 },
-    { name: 'Đội Ca Nô 1', active: 80, standby: 20 },
-    { name: 'Đội Y Tế', active: 65, standby: 35 },
-    { name: 'Đội Cứu Hộ Bộ', active: 90, standby: 10 },
-    { name: 'Đội Tiếp Tế', active: 40, standby: 60 },
-];
+// Status colour map (StatusId from BE)
+const STATUS_MAP = {
+    1: { label: 'Hoàn thành', color: '#22c55e' },
+    2: { label: 'Đang xử lý', color: '#3b82f6' },
+    3: { label: 'Chờ xử lý', color: '#eab308' },
+    4: { label: 'Đã hủy', color: '#ef4444' },
+};
 
-// --- MOCK DATA FOR RECENT MISSIONS (Mapped to RescueMissionDTO & RescueTeamDTO) ---
-const recentMissions = [
-    { MissionId: 101, RescueRequestId: 501, TeamName: 'Đội Ca Nô 1', AssignedAt: '10:30 AM, Hôm nay', StatusId: 2, StatusName: 'Đang triển khai' },
-    { MissionId: 102, RescueRequestId: 502, TeamName: 'Đội Trực Thăng', AssignedAt: '09:15 AM, Hôm nay', StatusId: 3, StatusName: 'Hoàn thành' },
-    { MissionId: 103, RescueRequestId: 505, TeamName: 'Đội Y Tế', AssignedAt: '08:45 AM, Hôm nay', StatusId: 3, StatusName: 'Hoàn thành' },
-    { MissionId: 104, RescueRequestId: 510, TeamName: 'Đội Cứu Hộ Bộ', AssignedAt: '07:00 AM, Hôm nay', StatusId: 2, StatusName: 'Đang triển khai' },
-    { MissionId: 105, RescueRequestId: 512, TeamName: 'Đội Tiếp Tế', AssignedAt: 'Hôm qua', StatusId: 1, StatusName: 'Đã hủy' },
-];
+const TEAM_STATUS = {
+    1: { label: 'Đang hoạt động', cls: 'text-emerald-500 bg-emerald-500/10' },
+    2: { label: 'Sẵn sàng', cls: 'text-blue-500 bg-blue-500/10' },
+    3: { label: 'Ngoại tuyến', cls: 'text-slate-400 bg-slate-400/10' },
+};
 
 const ManagerDashboard = () => {
     const { isDarkMode, theme } = useOutletContext();
-    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
+
+    // ── Data states ──────────────────────────────────────────────────
+    const [missions, setMissions] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [teams, setTeams] = useState([]);
+    const [stocks, setStocks] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const { getRescueMissions, getRescueRequests, getRescueTeams } = useMissions();
+    const { getWarehouseStock } = useInventory();
 
     useEffect(() => {
-        // Giả lập load data
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
-    }, []);
+        const fetchAll = async () => {
+            setLoading(true);
+            const [mRes, rRes, tRes, sRes] = await Promise.allSettled([
+                getRescueMissions(),
+                getRescueRequests(),
+                getRescueTeams(),
+                getWarehouseStock(),
+            ]);
+            if (mRes.status === 'fulfilled') setMissions(toArr(mRes.value));
+            if (rRes.status === 'fulfilled') setRequests(toArr(rRes.value));
+            if (tRes.status === 'fulfilled') setTeams(toArr(tRes.value));
+            if (sRes.status === 'fulfilled') setStocks(toArr(sRes.value));
+            setLoading(false);
+        };
+        fetchAll();
+    }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
 
-    const getStatusStyle = (statusId) => {
-        switch (statusId) {
-            case 2: return 'text-blue-500 bg-blue-500/10 dark:bg-blue-500/20'; // Đang triển khai
-            case 3: return 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20'; // Hoàn thành
-            case 1: return 'text-red-500 bg-red-500/10 dark:bg-red-500/20'; // Hủy
-            default: return 'text-slate-500 bg-slate-500/10 dark:bg-slate-500/20';
-        }
-    };
+    // ── Computed KPIs ──────────────────────────────────────────────
+    const missionsDone = missions.filter(m => m.statusId === 1).length;
+    const missionsActive = missions.filter(m => m.statusId === 2).length;
+    const requestsPending = requests.filter(r => r.status === 3 || r.statusId === 3).length;
+    const teamsActive = teams.filter(t => t.statusId === 1).length;
 
-    if (isLoading) {
+    // Pie chart data
+    const pieData = Object.entries(STATUS_MAP).map(([id, info]) => ({
+        name: info.label,
+        value: missions.filter(m => m.statusId === Number(id)).length,
+        color: info.color,
+    })).filter(d => d.value > 0);
+
+    // ── Loading skeleton ────────────────────────────────────────────
+    if (loading) {
         return (
             <div className="h-full flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <svg className="w-10 h-10 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <div className="flex flex-col items-center gap-3">
+                    <svg className="w-9 h-9 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <p className={`text-sm ${theme.textMuted} font-medium tracking-wide animate-pulse`}>Đang tải trung tâm chỉ huy...</p>
+                    <p className={`text-sm ${theme.textMuted} animate-pulse`}>Đang tải dữ liệu hệ thống...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-fade-in-up pb-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
+        <div className="space-y-5 pb-8 animate-mgr-in">
+            {/* ── HEADER ─────────────────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h2 className={`text-2xl font-bold ${theme.text}`}>Trung Tâm Chỉ Huy Tổng Hợp (Dashboard)</h2>
-                    <p className={`text-sm ${theme.textMuted} mt-1`}>Cái nhìn toàn cảnh về tình hình cứu trợ, lực lượng và tiến độ các nhiệm vụ trong thời gian thực.</p>
+                    <h2 className={`text-2xl font-bold ${theme.text}`}>Quản Lý</h2>
+                    <p className={`text-sm ${theme.textMuted} mt-0.5`}>Giám sát và quản lý hoạt động cứu hộ</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button className={`p-2 rounded-xl border ${theme.border} ${theme.cardBg} ${theme.textMuted} hover:text-blue-500 transition-colors shadow-sm`}>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </button>
-                    <div className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.cardBg} ${theme.text} shadow-sm flex items-center gap-2`}>
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        Trực tuyến
-                    </div>
+                <div className={`flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full border ${theme.border} ${theme.cardBg}`}>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className={theme.text}>Hệ thống hoạt động</span>
                 </div>
             </div>
 
-            {/* KPI Cards Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                {/* Yêu cầu cứu hộ */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm relative overflow-hidden group`}>
-                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all duration-500"></div>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-red-500/10 rounded-xl">
-                            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        </div>
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded-lg">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                            12%
-                        </span>
-                    </div>
-                    <div>
-                        <h4 className={`text-3xl font-bold ${theme.text}`}>1,284</h4>
-                        <p className={`text-sm font-medium ${theme.textMuted} mt-1`}>Yêu cầu cứu hộ mới</p>
+            {/* ── KPI CARDS ──────────────────────────────────────── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Người được cứu hôm nay */}
+                <div className={`rounded-2xl p-5 bg-blue-600 text-white shadow-lg shadow-blue-600/30 relative overflow-hidden`}>
+                    <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full" />
+                    <svg className="w-7 h-7 mb-3 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <p className="text-3xl font-extrabold">{missionsDone}</p>
+                    <p className="text-sm text-blue-100 mt-1">Người được cứu hôm nay</p>
+                    <div className="absolute top-4 right-4 opacity-70">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
                     </div>
                 </div>
 
-                {/* Nhiệm vụ đang triển khai */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm relative overflow-hidden group`}>
-                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-blue-500/10 rounded-xl">
-                            <svg className="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                {/* Nhiệm vụ hoàn thành */}
+                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm group`}>
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                            5%
-                        </span>
+                        <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12%</span>
                     </div>
-                    <div>
-                        <h4 className={`text-3xl font-bold ${theme.text}`}>342</h4>
-                        <p className={`text-sm font-medium ${theme.textMuted} mt-1`}>Nhiệm vụ đang diễn ra</p>
-                    </div>
+                    <p className={`text-3xl font-extrabold ${theme.text}`}>{missions.length}</p>
+                    <p className={`text-sm ${theme.textMuted} mt-1`}>Nhiệm vụ hoàn thành</p>
                 </div>
 
-                {/* Người được cứu */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm relative overflow-hidden group`}>
-                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-emerald-500/10 rounded-xl">
-                            <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                {/* Yêu cầu chờ xử lý */}
+                <div className={`${theme.cardBg} ${theme.glassEffect} border ${isDarkMode ? 'border-amber-500/30' : 'border-amber-300'} rounded-2xl p-5 shadow-sm`}>
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                            24%
-                        </span>
+                        <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 010 18z" /></svg>
                     </div>
-                    <div>
-                        <h4 className={`text-3xl font-bold ${theme.text}`}>8,920</h4>
-                        <p className={`text-sm font-medium ${theme.textMuted} mt-1`}>Người đã được sơ tán</p>
-                    </div>
+                    <p className={`text-3xl font-extrabold ${theme.text}`}>{requestsPending || requests.length}</p>
+                    <p className={`text-sm ${theme.textMuted} mt-1`}>Yêu cầu chờ xử lý</p>
                 </div>
 
-                {/* Vật tư đã phân bổ */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm relative overflow-hidden group`}>
-                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all duration-500"></div>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-orange-500/10 rounded-xl">
-                            <svg className="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                {/* Đội đang cứu hộ */}
+                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm`}>
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded-lg">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-                            2%
-                        </span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full text-blue-500 bg-blue-500/10`}>HOẠT ĐỘNG</span>
                     </div>
-                    <div>
-                        <h4 className={`text-3xl font-bold ${theme.text}`}>15K<span className="text-xl">kg</span></h4>
-                        <p className={`text-sm font-medium ${theme.textMuted} mt-1`}>Vật tư đã chuyển phát</p>
-                    </div>
+                    <p className={`text-3xl font-extrabold ${theme.text}`}>{teamsActive}/{teams.length}</p>
+                    <p className={`text-sm ${theme.textMuted} mt-1`}>Đội đang cứu hộ</p>
                 </div>
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            {/* ── CHARTS ROW ─────────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-                {/* Main Trend Chart - 2/3 width */}
-                <div className={`lg:col-span-2 ${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm`}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className={`font-bold text-lg ${theme.text}`}>Xu hướng Cứu Hộ Tuần Qua</h3>
-                            <p className={`text-[13px] ${theme.textMuted} mt-0.5`}>Tương quan giữa số nhiệm vụ triển khai và người được cứu.</p>
-                        </div>
-                    </div>
-                    <div className="h-[300px] w-full">
+                {/* Line chart - yêu cầu theo giờ */}
+                <div className={`lg:col-span-1 ${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm`}>
+                    <h3 className={`font-bold ${theme.text} mb-1 flex items-center gap-2`}>
+                        <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        Yêu cầu theo giờ
+                    </h3>
+                    <p className={`text-xs ${theme.textMuted} mb-4`}>Tổng: {requests.length} yêu cầu hôm nay</p>
+                    <div className="h-[200px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <AreaChart data={hourlyData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                                 <defs>
-                                    <linearGradient id="colorRescued" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorMissions" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                    <linearGradient id="mgrReq" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#E2E8F0'} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 12 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 12 }} />
+                                <XAxis dataKey="h" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 11 }} dy={8} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 11 }} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: isDarkMode ? '#1E293B' : '#fff', borderRadius: '12px', border: `1px solid ${isDarkMode ? '#334155' : '#E2E8F0'}` }}
-                                    itemStyle={{ color: isDarkMode ? '#E2E8F0' : '#0F172A', fontSize: '13px', fontWeight: 600 }}
+                                    contentStyle={{ background: isDarkMode ? '#1E293B' : '#fff', borderRadius: 10, border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`, fontSize: 12 }}
                                 />
-                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-                                <Area type="monotone" dataKey="rescued" name="Người được cứu (x10)" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorRescued)" />
-                                <Area type="monotone" dataKey="missions" name="Nhiệm vụ (x10)" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorMissions)" />
+                                <Area type="monotone" dataKey="req" name="Yêu cầu" stroke="#3b82f6" strokeWidth={2.5} fill="url(#mgrReq)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Resource Chart - 1/3 width */}
+                {/* Donut - Phân bổ trạng thái */}
+                <div className={`lg:col-span-1 ${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm`}>
+                    <h3 className={`font-bold ${theme.text} mb-4`}>Phân bổ trạng thái</h3>
+                    {pieData.length > 0 ? (
+                        <div className="h-[220px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
+                                        {pieData.map((entry, idx) => (
+                                            <Cell key={idx} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                                    <Tooltip contentStyle={{ background: isDarkMode ? '#1E293B' : '#fff', borderRadius: 10, border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`, fontSize: 12 }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <div className="h-[220px] flex flex-col items-center justify-center gap-2">
+                            <div className="w-20 h-20 rounded-full border-8 border-dashed border-slate-300 dark:border-slate-600" />
+                            <p className={`text-sm ${theme.textMuted}`}>Chưa có dữ liệu</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Nguồn lực cứu trợ (WareHouse Stock) */}
                 <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm flex flex-col`}>
-                    <div className="mb-6">
-                        <h3 className={`font-bold text-lg ${theme.text}`}>Trạng Thái Lực Lượng</h3>
-                        <p className={`text-[13px] ${theme.textMuted} mt-0.5`}>Tỷ lệ phần trăm đội đang tham gia cứu trợ trực tiếp.</p>
+                    <h3 className={`font-bold ${theme.text} mb-4 flex items-center gap-2`}>
+                        <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                        Nguồn lực cứu trợ
+                    </h3>
+                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[220px] pr-1">
+                        {stocks.length === 0 ? (
+                            <p className={`text-sm ${theme.textMuted} text-center py-8`}>Không có dữ liệu tồn kho.</p>
+                        ) : stocks.slice(0, 6).map((s, i) => {
+                            const qty = s.quantity ?? s.totalQuantity ?? 0;
+                            const cap = s.capacity ?? 100;
+                            const pct = Math.min(Math.round((qty / cap) * 100), 100);
+                            const lowStock = pct < 30;
+                            return (
+                                <div key={i}>
+                                    <div className="flex justify-between text-[13px] font-medium mb-1">
+                                        <span className={theme.text}>{s.productName ?? s.product?.productName ?? `SP #${s.productId}`}</span>
+                                        <span className={theme.textMuted}>{qty.toLocaleString()}/{cap.toLocaleString()} {s.unit ?? 'đơn vị'}</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-200 dark:bg-slate-700/60 rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all ${lowStock ? 'bg-amber-400' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                                    </div>
+                                    {lowStock && <p className="text-[11px] text-amber-400 mt-0.5 flex items-center gap-1">⚠ Sắp hết</p>}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="flex-1 min-h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={resourceUtilization} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={isDarkMode ? '#334155' : '#E2E8F0'} />
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#E2E8F0' : '#1E293B', fontSize: 12, fontWeight: 500 }} width={100} />
-                                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: isDarkMode ? '#1E293B' : '#fff', borderRadius: '12px', border: `1px solid ${isDarkMode ? '#334155' : '#E2E8F0'}` }} />
-                                <Bar dataKey="active" name="Đang nhiệm vụ (%)" stackId="a" fill="#3B82F6" radius={[0, 0, 0, 0]} barSize={20} />
-                                <Bar dataKey="standby" name="Sẵn sàng (%)" stackId="a" fill={isDarkMode ? '#334155' : '#E2E8F0'} radius={[0, 4, 4, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                    <button
+                        onClick={() => navigate('/manager/inventory')}
+                        className="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all active:scale-95 shadow-md shadow-blue-600/30"
+                    >
+                        Quản lý kho
+                    </button>
                 </div>
             </div>
 
-            {/* Bottom Row - Recent Missions Table */}
-            <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl shadow-sm overflow-hidden`}>
-                <div className={`p-5 lg:p-6 border-b ${theme.border} flex items-center justify-between`}>
-                    <div>
-                        <h3 className={`font-bold text-lg ${theme.text}`}>Các Nhiệm Vụ Gần Đây</h3>
-                        <p className={`text-[13px] ${theme.textMuted} mt-0.5`}>Cập nhật theo thời gian thực (Real-time tracking).</p>
+            {/* ── BOTTOM ROW ─────────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {/* Teams List */}
+                <div className={`lg:col-span-2 ${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm`}>
+                    <h3 className={`font-bold ${theme.text} mb-4`}>Đội Cứu Hộ</h3>
+                    <div className="space-y-3">
+                        {teams.length === 0 ? (
+                            <p className={`text-sm ${theme.textMuted} py-4 text-center`}>Không có dữ liệu đội cứu hộ.</p>
+                        ) : teams.slice(0, 5).map((t) => {
+                            const st = TEAM_STATUS[t.statusId] ?? { label: 'Không xác định', cls: 'text-slate-400 bg-slate-400/10' };
+                            const done = missions.filter(m => m.teamId === t.teamId && m.statusId === 1).length;
+                            return (
+                                <div key={t.teamId} className={`flex items-center gap-4 px-4 py-3.5 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/30 hover:bg-slate-800/50' : 'bg-slate-50 hover:bg-white'} transition-colors`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${st.cls}`}>
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-[14px] font-semibold truncate ${theme.text}`}>{t.teamName ?? `Đội #${t.teamId}`}</p>
+                                        <p className={`text-[12px] ${theme.textMuted} truncate`}>{t.description ?? 'Không có mô tả'}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1 shrink-0">
+                                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
+                                        <span className={`text-[11px] ${theme.textMuted}`}>{done} hoàn thành</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <button className="text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors">Xem tất cả</button>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>ID Nhiệm Vụ</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Từ Yêu Cầu</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Lực Lượng Tham Gia (Team)</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Thời gian Điều động</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Trạng Thái</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider text-right`}>Báo cáo</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50 whitespace-nowrap">
-                            {recentMissions.map((mission) => (
-                                <tr key={mission.MissionId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                    <td className={`px-6 py-4 text-sm font-bold ${theme.text}`}>
-                                        #MSN-{mission.MissionId}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`text-[13px] font-medium px-2.5 py-1 rounded-lg ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                                            REQ-{mission.RescueRequestId}
-                                        </span>
-                                    </td>
-                                    <td className={`px-6 py-4 text-sm font-semibold ${theme.text}`}>
-                                        {mission.TeamName}
-                                    </td>
-                                    <td className={`px-6 py-4 text-[13px] ${theme.textMuted}`}>
-                                        {mission.AssignedAt}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusStyle(mission.StatusId)}`}>
-                                            {mission.StatusId === 2 && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>}
-                                            {mission.StatusId === 3 && <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                            {mission.StatusName}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'} transition-colors inline-block`}>
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+
+                {/* Quick Actions */}
+                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm flex flex-col`}>
+                    <h3 className={`font-bold ${theme.text} mb-4`}>Hành động nhanh</h3>
+                    <div className="flex flex-col gap-3 flex-1">
+                        {[
+                            { label: 'Gọi đội cứu hộ', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', route: '/manager/dashboard' },
+                            { label: 'Cập nhật bản đồ', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z', route: '/manager/dashboard' },
+                            { label: 'Xem báo cáo', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', route: '/manager/dashboard' },
+                        ].map((a, i) => (
+                            <button
+                                key={i}
+                                onClick={() => navigate(a.route)}
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border ${theme.border} text-sm font-semibold ${isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'} transition-colors ${theme.text} text-left w-full`}
+                            >
+                                <svg className="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={a.icon} /></svg>
+                                {a.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
                 __html: `
-            @keyframes fadeInUp {
-                from {opacity: 0; transform: translateY(10px); }
-            to {opacity: 1; transform: translateY(0); }
-                }
-            .animate-fade-in-up {
-                animation: fadeInUp 0.4s ease-out forwards;
-                }
-            `}} />
+                @keyframes mgrIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+                .animate-mgr-in { animation: mgrIn 0.4s ease-out forwards; }
+            ` }} />
         </div>
     );
 };
