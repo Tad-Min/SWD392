@@ -1,5 +1,23 @@
 import { useState } from 'react';
-import { loginApi, registerApi } from '../api/authApi';
+import { loginApi, registerApi, logoutApi } from '../api/authApi';
+
+export const useLogout = () => {
+    const [isLoading, setLoading] = useState(false);
+
+    const logout = async () => {
+        setLoading(true);
+        try {
+            await logoutApi();
+        } catch (error) {
+            console.error("Logout error", error);
+        } finally {
+            localStorage.clear();
+            setLoading(false);
+        }
+    };
+
+    return { logout, isLoading };
+};
 
 export const useLogin = () => {
     const [isLoading, setLoading] = useState(false);

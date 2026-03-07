@@ -3,6 +3,9 @@ import { useOutletContext } from 'react-router-dom';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useMissions } from '../../features/missions/hook/useMissions';
 import { useUsers } from '../../features/users/hook/useUsers';
 import { useInventory } from '../../features/inventory/hook/useInventory';
@@ -22,7 +25,7 @@ const dropdownArrow = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2
 const MISSION_STATUS = { 0: 'Chờ xử lý', 1: 'Đang thực hiện', 2: 'Hoàn thành', 3: 'Hủy bỏ' };
 const REQUEST_URGENCY = { 1: 'Thấp', 2: 'Trung bình', 3: 'Cao', 4: 'Khẩn cấp' };
 
-const AdminReports = () => {
+const ManagerReports = () => {
     const { isDarkMode, theme } = useOutletContext();
 
     // ── API data ───────────────────────────────────────────────────
@@ -38,6 +41,123 @@ const AdminReports = () => {
     const [selectedType, setSelectedType] = useState('mission');
     const [dateRange, setDateRange] = useState('month');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [exportFormat, setExportFormat] = useState('pdf');
+
+    const formatDataForExport = () => {
+        let title = '';
+        let headers = [];
+        let rows = [];
+
+        if (selectedType === 'mission') {
+            title = 'Bao_Cao_Nhiem_Vu';
+            headers = ['ID', 'Ten Nhiem Vu', 'Trang Thai', 'Uu Tien', 'Ngay Tao'];
+            rows = missions.map(m => [
+                m.missionId ?? m.id,
+                `"${m.missionName ?? 'N/A'}"`,
+                MISSION_STATUS[m.statusId ?? m.statusid ?? m.status] || 'Khac',
+                m.priority ?? 'N/A',
+                new Date(m.createdAt || Date.now()).toLocaleDateString()
+            ]);
+        } else if (selectedType === 'inventory') {
+            title = 'Bao_Cao_Kho_Hang';
+            headers = ['ID', 'Ten San Pham', 'Tong Ton', 'Don Vi'];
+            rows = products.map(p => {
+                const stock = stocks.find(s => s.productId === (p.productId ?? p.id));
+                return [
+                    p.productId ?? p.id,
+                    `"${p.productName ?? 'N/A'}"`,
+                    stock?.quantity ?? 0,
+                    p.unit ?? 'Cai'
+                ];
+            });
+        } else if (selectedType === 'personnel') {
+            title = 'Bao_Cao_Nhan_Su';
+            headers = ['ID', 'Ho Ten', 'Email', 'So Dien Thoai', 'Trang Thai'];
+            rows = users.map(u => [
+                u.userId ?? u.id,
+                `"${u.fullName ?? u.userName ?? 'N/A'}"`,
+                `"${u.email ?? 'N/A'}"`,
+                `"${u.phone ?? 'N/A'}"`,
+                u.isActive ? 'Hoat Dong' : 'Khoa'
+            ]);
+        } else if (selectedType === 'request') {
+            title = 'Bao_Cao_Yeu_Cau_SOS';
+            headers = ['ID', 'Vi Tri', 'Muc Do', 'Nguoi Nhan', 'Ngay Yeu Cau'];
+            rows = requests.map(r => [
+                r.requestId ?? r.id,
+                `"${r.location ?? 'N/A'}"`,
+                REQUEST_URGENCY[r.urgencyLevelId ?? r.urgencyLevel ?? r.urgencylevel] || 'Khac',
+                r.assignedTo ?? 'Chua phan cong',
+                new Date(r.createdAt || Date.now()).toLocaleDateString()
+            ]);
+        }
+
+        return { title, headers, rows };
+    };
+
+    const handleGenerateReport = () => {
+        setIsGenerating(true);
+        setTimeout(() => {
+            const { title, headers, rows } = formatDataForExport();
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            if (exportFormat === 'excel') {
+                // 1. Xuất Excel thực sự với XLSX
+                const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "ReportData");
+                XLSX.writeFile(workbook, `${title}_${dateStr}.xlsx`);
+                alert(`Đã xuất báo cáo "${title}" thành công. File Excel (.xlsx) đã được tải về.`);
+
+            } else if (exportFormat === 'pdf') {
+                // 2. Xuất PDF thực sự với jsPDF
+                const doc = new jsPDF();
+                const displayTitle = title.replace(/_/g, ' ');
+                doc.setFontSize(16);
+                doc.text(`Bao Cao: ${displayTitle}`, 14, 15);
+                autoTable(doc, {
+                    head: [headers],
+                    body: rows,
+                    startY: 20,
+                    theme: 'grid',
+                    styles: { font: 'helvetica', fontSize: 10 }
+                });
+                doc.save(`${title}_${dateStr}.pdf`);
+                alert(`Đã xuất báo cáo "${title}" thành công. File PDF (.pdf) đã được tải về.`);
+
+            } else if (exportFormat === 'word') {
+                // 3. Xuất Word bằng cách xây dựng file mã MSWord HTML (.doc)
+                const displayTitle = title.replace(/_/g, ' ');
+                const htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><meta charset='utf-8'><title>${displayTitle}</title></head>
+                    <body>
+                        <h2 style="text-align: center; color: #3b82f6; font-family: sans-serif;">${displayTitle} - ${dateStr}</h2>
+                        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 13px;">
+                            <thead style="background-color: #f1f5f9;">
+                                <tr>${headers.map(h => `<th style="padding: 8px;">${h}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody>
+                                ${rows.map(r => `<tr>${r.map(c => `<td style="padding: 8px;">${c}</td>`).join('')}</tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
+                const blob = new Blob([htmlContent], { type: 'application/msword;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${title}_${dateStr}.doc`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                alert(`Đã xuất báo cáo "${title}" thành công. File Word (.doc) đã được tải về để chỉnh sửa.`);
+            }
+
+            setIsGenerating(false);
+        }, 1500);
+    };
 
     const { getRescueMissions, getRescueRequests } = useMissions();
     const { getUsers } = useUsers();
@@ -314,12 +434,15 @@ const AdminReports = () => {
                             </div>
                             <div>
                                 <label className={`block text-[13px] font-semibold ${theme.text} mb-2`}>Định dạng file</label>
-                                <select className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-cyan-500 outline-none appearance-none font-semibold ${theme.text}`}
+                                <select
+                                    value={exportFormat}
+                                    onChange={(e) => setExportFormat(e.target.value)}
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-cyan-500 outline-none appearance-none font-semibold ${theme.text}`}
                                     style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
                                 >
-                                    <option>PDF Document (.pdf) - Chuẩn báo cáo</option>
-                                    <option>Excel Spreadsheet (.xlsx) - Data thô</option>
-                                    <option>Word Document (.docx) - Để chỉnh sửa</option>
+                                    <option value="pdf">PDF Document (.pdf) - Chuẩn báo cáo</option>
+                                    <option value="excel">Excel Spreadsheet (.xlsx) - Data thô</option>
+                                    <option value="word">Word Document (.docx) - Để chỉnh sửa</option>
                                 </select>
                             </div>
                         </div>
@@ -327,7 +450,9 @@ const AdminReports = () => {
                             <button className={`px-5 py-2.5 rounded-xl font-semibold text-sm border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
                                 Đặt lại
                             </button>
-                            <button onClick={() => { setIsGenerating(true); setTimeout(() => setIsGenerating(false), 2500); }} disabled={isGenerating}
+                            <button
+                                onClick={handleGenerateReport}
+                                disabled={isGenerating}
                                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white transition-all
                                     ${isGenerating ? 'bg-cyan-600/50 cursor-not-allowed' : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/30 active:scale-95'}`}
                             >
@@ -348,7 +473,7 @@ const AdminReports = () => {
                     </div>
                     <div className="flex-1 overflow-y-auto max-h-[460px] p-2">
                         {[
-                            { id: 1, title: 'Báo cáo tổng kết tuần 12 - Nhiệm vụ cứu hộ', by: 'Admin User', date: 'Hôm nay 10:30', fmt: 'PDF', size: '2.4 MB' },
+                            { id: 1, title: 'Báo cáo tổng kết tuần 12 - Nhiệm vụ cứu hộ', by: 'Manager User', date: 'Hôm nay 10:30', fmt: 'PDF', size: '2.4 MB' },
                             { id: 2, title: 'Bảng kê chi tiết xuất kho vật tư y tế tháng 3', by: 'Hệ thống tự động', date: 'Hôm nay 08:00', fmt: 'Excel', size: '1.1 MB' },
                             { id: 3, title: 'Báo cáo thiệt hại thiết bị không người lái', by: 'Nguyễn Văn A', date: 'Hôm qua', fmt: 'PDF', size: '850 KB' },
                             { id: 4, title: 'Đánh giá năng lực đội cứu hộ bộ số 2', by: 'Trần Thị B', date: '21/03/2026', fmt: 'Docx', size: '3.5 MB' },
@@ -364,7 +489,11 @@ const AdminReports = () => {
                                     </div>
                                     <span className="mt-2 inline-block text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200 dark:bg-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded">{report.size}</span>
                                 </div>
-                                <button className={`opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-blue-400`}>
+                                <button
+                                    onClick={() => handleGenerateReport()}
+                                    className={`opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-blue-400`}
+                                    title="Tải lại file định dạng này"
+                                >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                 </button>
                             </div>
@@ -382,4 +511,4 @@ const AdminReports = () => {
     );
 };
 
-export default AdminReports;
+export default ManagerReports;

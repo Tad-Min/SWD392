@@ -20,3 +20,9 @@ export const deleteUserApi = async (id) => {
     const response = await api.delete(`User/${id}`);
     return response.data;
 };
+
+export const createUserApi = async (data) => {
+    // data: { email, phone, userName, password }
+    const response = await api.post("Auth/Register", data);
+    return response.data;
+};

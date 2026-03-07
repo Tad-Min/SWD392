@@ -82,6 +82,44 @@ const TransactionHistory = () => {
     const importsCount = mappedTransactions.filter(t => t.txType === 1).length;
     const exportsCount = mappedTransactions.filter(t => t.txType === 2).length;
 
+    const handleExportCSV = () => {
+        if (filtered.length === 0) {
+            alert('Không có dữ liệu để xuất!');
+            return;
+        }
+
+        // Header for CSV
+        const headers = ['ID Giao Dich', 'Thoi Gian', 'Loai Giao Dich', 'Ten Vat Tu', 'Diem Kho', 'So Luong', 'Don Vi', 'Nguoi Tao'];
+
+        // Add UTF-8 BOM so Excel opens Vietnamese correctly
+        let csvContent = "\uFEFF" + headers.join(',') + '\n';
+
+        filtered.forEach(tx => {
+            const typeInfo = getTxTypeName(tx.txType);
+            const isAdd = tx.txType === 1;
+            const row = [
+                `TX-${String(tx.txId).padStart(4, '0')}`,
+                tx.createdAt ? new Date(tx.createdAt).toLocaleString('vi-VN').replace(/,/g, '') : '',
+                typeInfo.label,
+                `"${tx.productName}"`,
+                `"${tx.warehouseName}"`,
+                `${isAdd ? '+' : '-'}${tx.quantity}`,
+                tx.unit,
+                tx.createdByUserId
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `LichSuGiaoDich_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-6 animate-wh-in">
             {/* ── HEADER ─────────────────────────────────────────── */}
@@ -98,7 +136,10 @@ const TransactionHistory = () => {
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     </button>
-                    <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
+                    <button
+                        onClick={handleExportCSV}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors active:scale-95`}
+                    >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Xuất báo cáo
                     </button>
