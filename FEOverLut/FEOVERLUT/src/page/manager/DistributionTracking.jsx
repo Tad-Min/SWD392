@@ -31,7 +31,7 @@ const DistributionTracking = () => {
     const [warehouses, setWarehouses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // ── Filters ───────────────────────────────────────────────────
+    // ── Filter ─────────────────────────────────────────────────────
     const [filterDate, setFilterDate] = useState('');
     const [filterType, setFilterType] = useState('');
     const [filterWarehouse, setFilterWarehouse] = useState('');
@@ -47,6 +47,10 @@ const DistributionTracking = () => {
     const [form, setForm] = useState({
         warehouseId: '', productId: '', txType: '2', quantity: '', missionId: '', note: ''
     });
+
+    // ── Chi tiết giao dịch ────────────────────────────────────────
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedTx, setSelectedTx] = useState(null);
 
     const { getTransactions, createTransaction } = useTransaction();
     const { getProducts, getWarehouses } = useInventory();
@@ -69,7 +73,7 @@ const DistributionTracking = () => {
         if (wRes.status === 'fulfilled') setWarehouses(toArr(wRes.value));
         setIsLoading(false);
         setPage(1);
-    }, [filterDate, filterType, filterWarehouse]); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterDate, filterType, filterWarehouse, getTransactions, getProducts, getWarehouses]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -113,6 +117,11 @@ const DistributionTracking = () => {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleViewDetail = (tx) => {
+        setSelectedTx(tx);
+        setIsDetailOpen(true);
     };
 
     return (
@@ -169,12 +178,12 @@ const DistributionTracking = () => {
                 </div>
 
                 {/* Type */}
-                <select value={filterType} onChange={e => setFilterType(e.target.value)}
-                    className={`px-4 py-2.5 rounded-xl text-sm transition-all w-full sm:w-44 border ${theme.inputBorder} ${theme.inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm cursor-pointer appearance-none bg-no-repeat`}
-                    style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                >
-                    <option value="">Tất cả loại</option>
-                    {Object.entries(TX_TYPE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`pl-10 pr-10 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} ${theme.text} text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer transition-all shadow-sm hover:shadow-md`} style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25rem' }}>
+                    <option value="">Tất cả loại Giao dịch</option>
+                    <option value="1">Nhập kho</option>
+                    <option value="2">Xuất kho</option>
+                    <option value="3">Phân bổ</option>
+                    <option value="4">Điều chỉnh</option>
                 </select>
 
                 {/* Warehouse */}
@@ -253,7 +262,9 @@ const DistributionTracking = () => {
                                             {createdAt ? new Date(createdAt).toLocaleDateString('vi-VN') : '—'}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button className={`p-1.5 rounded-lg opacity-40 group-hover:opacity-100 transition-all ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'}`}>
+                                            <button
+                                                onClick={() => handleViewDetail(tx)}
+                                                className={`p-1.5 rounded-lg opacity-40 group-hover:opacity-100 transition-all ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'}`}>
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             </button>
                                         </td>
@@ -351,6 +362,88 @@ const DistributionTracking = () => {
                                 className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !form.warehouseId || !form.productId || !form.quantity ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}>
                                 {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
                                 Xác nhận
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
+            {isDetailOpen && selectedTx && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                        <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
+                            <div>
+                                <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>
+                                <p className={`text-xs ${theme.textMuted} mt-1`}>Mã tham chiếu: #TX-{String(selectedTx.txId ?? selectedTx.txid).padStart(4, '0')}</p>
+                            </div>
+                            <button onClick={() => setIsDetailOpen(false)} className={`p-2 rounded-xl ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'} transition-colors`}>
+                                <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-1">
+                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Loại giao dịch</p>
+                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.cls}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.dot}`} />
+                                        {TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.label}
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Thời gian</p>
+                                    <p className={`text-sm font-semibold ${theme.text}`}>
+                                        {selectedTx.createdAt ? new Date(selectedTx.createdAt).toLocaleString('vi-VN') : '—'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className={`p-5 rounded-2xl border ${theme.border} ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-4`}>
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Sản phẩm vật tư</p>
+                                        <p className={`text-base font-bold ${theme.text}`}>{getProductName(selectedTx.productId ?? selectedTx.productid)}</p>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Số lượng</p>
+                                        <p className={`text-xl font-black ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                            {(selectedTx.quantity ?? 0).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className={`pt-4 border-t ${theme.border} space-y-1`}>
+                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Địa điểm kho</p>
+                                    <p className={`text-sm font-semibold ${theme.text}`}>{getWarehouseName(selectedTx.warehouseId ?? selectedTx.warehouseid)}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-1">
+                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Nhiệm vụ liên kết</p>
+                                    <p className={`text-sm font-bold ${selectedTx.missionId ? 'text-blue-500' : theme.textMuted}`}>
+                                        {selectedTx.missionId ? `#Mission-${selectedTx.missionId}` : 'Giao dịch lẻ'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Người thực hiện</p>
+                                    <p className={`text-sm font-semibold ${theme.text}`}>UID: {selectedTx.createdByUserId ?? 'Manager'}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Ghi chú chi tiết</p>
+                                <div className={`p-4 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800' : 'bg-white'} text-sm ${theme.text} italic shadow-inner`}>
+                                    {selectedTx.note || "Không có ghi chú thêm cho giao dịch này."}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={`px-8 py-6 border-t ${theme.border} bg-black/5 dark:bg-white/5`}>
+                            <button
+                                onClick={() => setIsDetailOpen(false)}
+                                className={`w-full py-3 rounded-xl text-sm font-bold bg-slate-200 dark:bg-slate-700 ${theme.text} hover:opacity-80 transition-all uppercase tracking-widest`}>
+                                Đóng Cửa Sổ
                             </button>
                         </div>
                     </div>
