@@ -40,7 +40,7 @@ const WarehouseConfig = () => {
         warehouseId: null,
         warehouseName: '',
         address: '',
-        locationText: '',
+        gpsText: '10.762622, 106.660172',
         isActive: true
     });
 
@@ -74,22 +74,26 @@ const WarehouseConfig = () => {
         if (!form.warehouseName.trim()) return;
         setSubmitting(true);
         try {
-            // Parse locationText (lat, lng) to GeoJSON Point
-            let locationObj = { type: 'Point', coordinates: [106.660172, 10.762622] }; // Default HCM
-            if (form.locationText && form.locationText.includes(',')) {
-                const parts = form.locationText.split(',').map(s => parseFloat(s.trim()));
+            // Parse gpsText (lat, lng) to GeoJSON Point coordinates [lng, lat]
+            let coordinates = [106.660172, 10.762622];
+            if (form.gpsText && form.gpsText.includes(',')) {
+                const parts = form.gpsText.split(',').map(s => parseFloat(s.trim()));
                 if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
                     // GeoJSON coordinates are [longitude, latitude]
-                    locationObj.coordinates = [parts[1], parts[0]];
+                    coordinates = [parts[1], parts[0]];
                 }
             }
 
             const payload = {
+                warehouseId: form.warehouseId || 0,
                 warehouseName: form.warehouseName,
                 address: form.address,
-                locationText: form.locationText,
+                locationText: form.address, // Team leader: "Location text là cái địa chỉ bên trên á"
                 isActive: form.isActive,
-                location: locationObj
+                location: {
+                    type: "Point",
+                    coordinates: coordinates
+                }
             };
 
             if (modalMode === 'edit' && form.warehouseId) {
@@ -99,7 +103,13 @@ const WarehouseConfig = () => {
             }
 
             setIsModalOpen(false);
-            setForm({ warehouseId: null, warehouseName: '', address: '', locationText: '', isActive: true });
+            setForm({
+                warehouseId: null,
+                warehouseName: '',
+                address: '',
+                gpsText: '10.762622, 106.660172',
+                isActive: true
+            });
             fetchAll();
         } catch (error) {
             alert('Lưu thông tin kho thất bại. Vui lòng kiểm tra lại!');
@@ -120,17 +130,25 @@ const WarehouseConfig = () => {
     };
 
     const openCreate = () => {
-        setForm({ warehouseId: null, warehouseName: '', address: '', locationText: '', isActive: true });
+        setForm({
+            warehouseId: null,
+            warehouseName: '',
+            address: '',
+            gpsText: '10.762622, 106.660172',
+            isActive: true
+        });
         setModalMode('create');
         setIsModalOpen(true);
     };
 
     const openEdit = (item) => {
+        const itemLat = item.location?.coordinates?.[1] ?? 10.762622;
+        const itemLng = item.location?.coordinates?.[0] ?? 106.660172;
         setForm({
             warehouseId: item.warehouseId ?? item.id,
             warehouseName: item.warehouseName || '',
             address: item.address || '',
-            locationText: item.locationText || '',
+            gpsText: `${itemLat}, ${itemLng}`,
             isActive: item.isActive ?? true
         });
         setModalMode('edit');
@@ -277,7 +295,11 @@ const WarehouseConfig = () => {
                                             {item.address || '—'}
                                         </td>
                                         <td className={`px-6 py-4 text-sm ${theme.textMuted} font-mono text-[12px]`}>
-                                            {item.locationText || '—'}
+                                            {item.location?.coordinates ? (
+                                                <span>
+                                                    {item.location.coordinates[1].toFixed(6)}, {item.location.coordinates[0].toFixed(6)}
+                                                </span>
+                                            ) : (item.address || '—')}
                                         </td>
                                         <td className="px-6 py-4">
                                             {item.isActive ? (
@@ -350,13 +372,13 @@ const WarehouseConfig = () => {
                             </div>
 
                             <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tọa độ GPS (Tùy chọn)</label>
+                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tọa độ GPS</label>
                                 <input type="text" placeholder="Ví dụ: 10.762622, 106.660172"
-                                    value={form.locationText}
-                                    onChange={e => setForm(p => ({ ...p, locationText: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
+                                    value={form.gpsText}
+                                    onChange={e => setForm(p => ({ ...p, gpsText: e.target.value }))}
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none font-mono`}
                                 />
-                                <p className={`text-[11px] mt-1 ${theme.textMuted}`}>Chuỗi định dạng POINT (lng lat) hoặc chuỗi hỗ trợ mapping.</p>
+                                <p className={`text-[11px] mt-1 ${theme.textMuted}`}>Chuỗi định dạng: vĩ độ, kinh độ (latitude, longitude).</p>
                             </div>
 
                             <div className="flex items-center gap-3 pt-2">

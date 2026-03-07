@@ -24,6 +24,9 @@ import WarehouseConfig from './page/manager/WarehouseConfig.jsx';
 import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
 
+// Import RescueCoordinator
+import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
+
 function App() {
 
   return (
@@ -37,6 +40,9 @@ function App() {
 
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
+            {/* RescueCoordinator Routes */}
+            <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
+
 
             {/* Test Routes */}
             <Route path="/testsocket" element={<TestSocket />} />
