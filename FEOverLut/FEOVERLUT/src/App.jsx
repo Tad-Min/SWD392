@@ -16,6 +16,8 @@ import AdminReports from './page/admin/AdminReports.jsx';
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
 import InventoryManagement from './page/manager/InventoryManagement.jsx';
+import WarehouseConfig from './page/manager/WarehouseConfig.jsx';
+import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
 
 function App() {
@@ -46,6 +48,8 @@ function App() {
               <Route index element={<ManagerDashboard />} />
               <Route path="dashboard" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
               <Route path="inventory" element={<ProtectedRoute><InventoryManagement /></ProtectedRoute>} />
+              <Route path="warehouses" element={<ProtectedRoute><WarehouseConfig /></ProtectedRoute>} />
+              <Route path="transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
             </Route>
           </Routes>

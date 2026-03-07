@@ -104,9 +104,9 @@ const AdminLayout = () => {
                     ))}
                 </div>
 
-                {/* User Profile Snippet (Bottom Sidebar) */}
-                <div className={`p-4 border-t ${theme.border}`}>
-                    <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} cursor-pointer ${theme.navHover} p-2 rounded-xl transition-colors`}>
+                {/* User Profile & Logout */}
+                <div className={`mt-auto p-4 border-t ${theme.border} flex-shrink-0 flex flex-col gap-2`}>
+                    <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} p-2 rounded-xl transition-colors`}>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold flex-shrink-0 uppercase shadow-lg shadow-cyan-500/20">
                             A
                         </div>
@@ -117,6 +117,22 @@ const AdminLayout = () => {
                             </div>
                         )}
                     </div>
+
+                    <button
+                        onClick={() => {
+                            localStorage.clear();
+                            navigate('/');
+                        }}
+                        className={`
+                            flex items-center ${isSidebarOpen ? 'gap-3 px-3' : 'justify-center'} py-2.5 rounded-xl transition-all duration-200
+                            text-red-500 hover:bg-red-500/10 font-semibold text-sm
+                        `}
+                    >
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        {isSidebarOpen && <span>Đăng xuất</span>}
+                    </button>
                 </div>
             </aside>
 
