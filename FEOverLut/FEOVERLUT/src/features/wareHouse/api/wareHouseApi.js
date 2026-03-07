@@ -20,8 +20,12 @@ export const deleteWareHouseApi = (id) => {
     return api.delete(`WareHouse/${id}`);
 }
 
-export const getWareHouseStockApi = () => {
-    return api.get("WareHouse/Stock");
+export const getWareHouseStockApi = (warehouseId, productId) => {
+    let query = '';
+    if (warehouseId) query += `warehouseId=${warehouseId}&`;
+    if (productId) query += `productId=${productId}&`;
+    if (query) query = `?${query.slice(0, -1)}`;
+    return api.get(`WareHouse/Stock${query}`);
 }
 
 export const createWareHouseStockApi = (data) => {

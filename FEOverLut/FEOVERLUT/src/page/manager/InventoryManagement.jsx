@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useInventory } from '../../features/inventory/hook/useInventory';
+import { useTransaction } from '../../features/transactions/hook/useTransaction';
 
 const toArr = (v) => {
     if (Array.isArray(v)) return v;
@@ -16,16 +17,20 @@ const dropdownArrow = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2
 const InventoryManagement = () => {
     const { isDarkMode, theme } = useOutletContext();
 
+    const {
+        getProducts, createProduct, updateProduct, deleteProduct,
+        getCategories, createCategory, updateCategory, deleteCategory,
+        getWarehouses, getWarehouseStock, createWarehouseStock, updateWarehouseStock
+    } = useInventory();
+
+    const { createTransaction } = useTransaction();
+
     // ── Data ───────────────────────────────────────────────────────
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [stocks, setStocks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    // Inventory hook
-    const { getProducts, getCategories, getWarehouses, getWarehouseStock, createProduct, createWarehouseStock } = useInventory();
-
     // ── Filter ─────────────────────────────────────────────────────
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -33,13 +38,20 @@ const InventoryManagement = () => {
 
     // ── Modal state ────────────────────────────────────────────────
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState('import'); // 'import' | 'product'
+    const [modalMode, setModalMode] = useState('import'); // 'import' | 'edit_product' | 'categories'
     const [submitting, setSubmitting] = useState(false);
 
-    // Import modal form
+    // Import / Edit modal form
     const [importForm, setImportForm] = useState({
-        productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: ''
+        productId: null, productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: ''
     });
+
+    // Category modal form state
+    const [catForm, setCatForm] = useState({ categoryId: null, categoryName: '', description: '' });
+    const [isCatEditing, setIsCatEditing] = useState(false);
+
+    // Delete confirm
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
     // ── Fetch ──────────────────────────────────────────────────────
     const fetchAll = useCallback(async () => {
@@ -55,20 +67,20 @@ const InventoryManagement = () => {
         if (wRes.status === 'fulfilled') setWarehouses(toArr(wRes.value));
         if (sRes.status === 'fulfilled') setStocks(toArr(sRes.value));
         setIsLoading(false);
-    }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getProducts, getCategories, getWarehouses, getWarehouseStock]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
     // ── Computed ───────────────────────────────────────────────────
     // Merge products + stock for table
     const inventory = products.map(p => {
-        const stockEntries = stocks.filter(s => s.productId === p.productId);
-        const totalQty = stockEntries.reduce((sum, s) => sum + (s.quantity ?? 0), 0);
-        const cat = categories.find(c => c.categoryId === p.categoryId);
+        const stockEntries = stocks.filter(s => (s.productId ?? s.productid) === (p.productId ?? p.id));
+        const totalQty = stockEntries.reduce((sum, s) => sum + (s.currentQuantity ?? s.currentquantity ?? 0), 0);
+        const cat = categories.find(c => (c.categoryId ?? c.id) === (p.categoryId ?? p.id));
         return { ...p, totalQty, categoryName: cat?.categoryName ?? cat?.name ?? '—' };
     });
 
-    const totalItems = stocks.reduce((acc, s) => acc + (s.quantity ?? 0), 0);
+    const totalItems = stocks.reduce((acc, s) => acc + (s.currentQuantity ?? s.currentquantity ?? 0), 0);
     const lowStockItems = stocks.filter(s => (s.quantity ?? 0) < 50).length;
     const activeWh = warehouses.filter(w => w.isActive !== false).length;
 
@@ -78,33 +90,152 @@ const InventoryManagement = () => {
         return matchSearch && matchCat;
     });
 
-    // ── Submit Import form ─────────────────────────────────────────
+    // ── Submit Import / Edit form ──────────────────────────────────
     const handleImportSubmit = async () => {
-        if (!importForm.productName.trim() || !importForm.quantity) return;
+        if (!importForm.productName.trim()) return;
         setSubmitting(true);
         try {
-            // 1. Create product if new
-            const newProd = await createProduct({
-                productName: importForm.productName,
-                categoryId: importForm.categoryId ? parseInt(importForm.categoryId) : null,
-                unit: importForm.unit || 'Đơn vị',
-            });
+            let targetId = importForm.productId;
 
-            // 2. Add stock entry
-            if (importForm.warehouseId && newProd?.productId) {
-                await createWarehouseStock({
-                    warehouseId: parseInt(importForm.warehouseId),
-                    productId: newProd.productId,
-                    quantity: parseInt(importForm.quantity),
+            // 1. Update existing product OR Find/Create new product
+            if (modalMode === 'edit_product' && targetId) {
+                await updateProduct(targetId, {
+                    productName: importForm.productName.trim(),
+                    categoryId: importForm.categoryId ? parseInt(importForm.categoryId) : null,
+                    unit: importForm.unit || 'Đơn vị',
                 });
+            } else {
+                // If we don't have an ID but the name matches an existing product
+                if (!targetId) {
+                    const existing = products.find(p => p.productName.toLowerCase() === importForm.productName.trim().toLowerCase());
+                    if (existing) targetId = existing.productId ?? existing.id;
+                }
+
+                // Create product only if it still doesn't exist
+                if (!targetId) {
+                    const newProd = await createProduct({
+                        productName: importForm.productName.trim(),
+                        categoryId: importForm.categoryId ? parseInt(importForm.categoryId) : null,
+                        unit: importForm.unit || 'Đơn vị',
+                    });
+                    targetId = newProd?.productId ?? newProd?.id;
+                }
             }
+
+            // 2. Add / Update stock entry (Always process if warehouse and quantity > 0)
+            if (importForm.warehouseId && importForm.quantity !== 0 && targetId) {
+                const qty = parseFloat(importForm.quantity);
+
+                // Check if stock already exists
+                const existingStock = stocks.find(s =>
+                    (s.warehouseId ?? s.warehouseid) === parseInt(importForm.warehouseId) &&
+                    (s.productId ?? s.productid) === parseInt(targetId)
+                );
+
+                const stockPayload = {
+                    WarehouseId: parseInt(importForm.warehouseId),
+                    ProductId: parseInt(targetId),
+                    CurrentQuantity: 0
+                };
+
+                if (existingStock) {
+                    stockPayload.CurrentQuantity = (existingStock.currentQuantity ?? existingStock.currentquantity ?? 0) + qty;
+                    await updateWarehouseStock(stockPayload);
+                } else {
+                    stockPayload.CurrentQuantity = qty;
+                    await createWarehouseStock(stockPayload);
+                }
+
+                // 3. Create Transaction record
+                try {
+                    const txPayload = {
+                        WarehouseId: parseInt(importForm.warehouseId),
+                        ProductId: parseInt(targetId),
+                        TxType: modalMode === 'edit_product' ? 4 : 1, // 4 = Adjust if from Edit, 1 = Import
+                        Quantity: Math.abs(qty),
+                        Note: importForm.note || (modalMode === 'edit_product' ? 'Điều chỉnh lúc sửa vật tư' : 'Nhập kho từ Quản lý kho'),
+                        MissionId: importForm.missionId ? parseInt(importForm.missionId) : null
+                    };
+                    await createTransaction(txPayload);
+                } catch (txErr) {
+                    console.error("TX log fail (ignored):", txErr);
+                }
+            }
+
             setIsModalOpen(false);
-            setImportForm({ productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: '' });
+            setImportForm({ productId: null, productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: '' });
             fetchAll();
-        } catch {
-            alert('Nhập hàng thất bại. Vui lòng thử lại.');
+        } catch (error) {
+            console.error(error);
+            let msg = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!";
+            if (typeof error.response?.data === 'string') msg = error.response.data;
+            else if (error.response?.data?.message) msg = error.response.data.message;
+            alert(`Lỗi: ${msg}`);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const openEditProduct = (item) => {
+        setImportForm({
+            productId: item.productId,
+            productName: item.productName || '',
+            categoryId: item.categoryId || '',
+            unit: item.unit || '',
+            quantity: 0, // Not updating stock here
+            warehouseId: '',
+            note: ''
+        });
+        setModalMode('edit_product');
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteProduct = async (id) => {
+        try {
+            await deleteProduct(id);
+            setDeleteConfirmId(null);
+            fetchAll();
+        } catch (e) {
+            console.error("Fail to delete product", e);
+            let msg = "Lỗi không xác định hoặc vật tư này đã có dữ liệu ràng buộc (Tồn kho/Giao dịch) nên không thể xoá.";
+            if (typeof e.response?.data === 'string') msg = e.response.data;
+            else if (e.response?.data?.message) msg = e.response.data.message;
+            alert(`Xoá thất bại: ${msg}`);
+        }
+    };
+
+    // ── Manage Categories ──────────────────────────────────────────
+    const handleCatSubmit = async () => {
+        if (!catForm.categoryName.trim()) return;
+        setSubmitting(true);
+        try {
+            const catName = catForm.categoryName.trim(); // Extract trimmed name
+            if (isCatEditing && catForm.categoryId) {
+                await updateCategory(catForm.categoryId, catName); // Pass raw string
+            } else {
+                await createCategory(catName); // Pass raw string
+            }
+            // Refresh categories directly instead of full fetch for speed
+            const freshCats = await getCategories(); // Renamed cRes to freshCats
+            setCategories(toArr(freshCats));
+            setIsModalOpen(false); // Changed from setIsCatModalOpen(false)
+            setCatForm({ categoryId: null, categoryName: '', description: '' });
+            setIsCatEditing(false); // Keep this line as it was
+        } catch (error) { // Added error parameter
+            console.error(error); // Log error
+            alert('Lỗi khi lưu danh mục. Vui lòng thử tên khác hoặc kiểm tra lại!'); // Updated alert message
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleCatDelete = async (id) => {
+        try {
+            await deleteCategory(id);
+            const cRes = await getCategories();
+            setCategories(toArr(cRes));
+        } catch (e) {
+            alert('Xoá thất bại. Vui lòng kiểm tra sản phẩm đang dùng danh mục này.');
         }
     };
 
@@ -140,12 +271,23 @@ const InventoryManagement = () => {
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     </button>
+                    <button
+                        onClick={() => { setModalMode('categories'); setIsModalOpen(true); }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}
+                    >
+                        <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                        Danh mục
+                    </button>
                     <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Xuất file
                     </button>
                     <button
-                        onClick={() => { setModalMode('import'); setIsModalOpen(true); }}
+                        onClick={() => {
+                            setImportForm({ productId: null, productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: '' });
+                            setModalMode('import');
+                            setIsModalOpen(true);
+                        }}
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/30 active:scale-95"
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
@@ -215,21 +357,21 @@ const InventoryManagement = () => {
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                {['ID', 'Tên Vật Phẩm', 'Danh Mục', 'Tổng SL', 'Đơn vị', 'Trạng thái', 'Thao tác'].map(h => (
-                                    <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider ${h === 'Thao tác' ? 'text-center' : ''}`}>{h}</th>
+                                {['ID', 'Tên Vật Phẩm', 'Danh Mục', 'Số lượng tồn kho', 'Trạng thái', 'Thao tác'].map(h => (
+                                    <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider whitespace-nowrap ${h === 'Thao tác' ? 'text-center' : ''}`}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
                             {isLoading ? (
-                                <tr><td colSpan="7" className="px-6 py-14 text-center">
+                                <tr><td colSpan="6" className="px-6 py-14 text-center">
                                     <div className="flex flex-col items-center gap-3">
                                         <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                                         <span className={`text-sm ${theme.textMuted}`}>Đang tải kho hàng từ backend...</span>
                                     </div>
                                 </td></tr>
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan="7" className="px-6 py-14 text-center">
+                                <tr><td colSpan="6" className="px-6 py-14 text-center">
                                     <div className="flex flex-col items-center gap-2">
                                         <svg className={`w-12 h-12 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                                         <span className={`text-sm ${theme.textMuted}`}>{searchTerm ? 'Không tìm thấy kết quả.' : 'Kho hàng chưa có dữ liệu.'}</span>
@@ -252,20 +394,31 @@ const InventoryManagement = () => {
                                             </div>
                                         </td>
                                         <td className={`px-6 py-4 text-sm ${theme.text}`}>{item.categoryName}</td>
-                                        <td className={`px-6 py-4 text-[15px] font-bold ${theme.text}`}>{item.totalQty.toLocaleString()}</td>
-                                        <td className={`px-6 py-4 text-sm ${theme.textMuted}`}>{item.unit ?? '—'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className={`text-[15px] font-bold ${theme.text}`}>{item.totalQty.toLocaleString()}</span>
+                                                <span className={`text-[11px] font-medium ${theme.textMuted} tracking-wide uppercase`}>{item.unit || 'Đơn vị'}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${st.cls}`}>{st.label}</span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <button className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`}>
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
-                                                <button className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`}>
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
-                                            </div>
+                                            {deleteConfirmId === item.productId ? (
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <button onClick={() => handleDeleteProduct(item.productId)} className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold rounded flex shrink-0">Xóa</button>
+                                                    <button onClick={() => setDeleteConfirmId(null)} className={`px-2.5 py-1 rounded text-[11px] font-bold border ${theme.border} ${theme.textMuted} hover:bg-black/5 flex shrink-0`}>Hủy</button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openEditProduct(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`}>
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    </button>
+                                                    <button onClick={() => setDeleteConfirmId(item.productId)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`}>
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -281,87 +434,183 @@ const InventoryManagement = () => {
                     <div className={`w-full max-w-[460px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
-                            <h3 className={`text-lg font-bold ${theme.text}`}>Nhập Hàng Mới</h3>
-                            <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
+                            <h3 className={`text-lg font-bold ${theme.text}`}>
+                                {modalMode === 'categories' ? 'Quản lý Danh mục' : modalMode === 'edit_product' ? 'Cập nhật Sản phẩm' : 'Nhập Hàng Mới'}
+                            </h3>
+                            <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`} aria-label="Close modal">
                                 <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                             </button>
                         </div>
 
-                        {/* Body */}
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tên vật phẩm <span className="text-red-400">*</span></label>
-                                <input type="text" placeholder="Ví dụ: Mì tôm Hảo Hảo"
-                                    value={importForm.productName}
-                                    onChange={e => setImportForm(p => ({ ...p, productName: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
-                                    autoFocus
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Loại hàng</label>
-                                    <select value={importForm.categoryId}
-                                        onChange={e => setImportForm(p => ({ ...p, categoryId: e.target.value }))}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
-                                    >
-                                        <option value="">-- Chọn --</option>
-                                        {categories.map(c => <option key={c.categoryId ?? c.id} value={c.categoryId ?? c.id}>{c.categoryName ?? c.name}</option>)}
-                                    </select>
+                        {/* Body for Categories */}
+                        {modalMode === 'categories' && (
+                            <div className="p-6">
+                                <div className="space-y-4 mb-6">
+                                    <div className="flex flex-col gap-2">
+                                        <label htmlFor="catNameInput" className={`text-[13px] font-semibold ${theme.text}`}>Tên danh mục mới</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                id="catNameInput"
+                                                name="categoryName"
+                                                type="text"
+                                                placeholder="Tên danh mục..."
+                                                value={catForm.categoryName}
+                                                onChange={e => setCatForm(p => ({ ...p, categoryName: e.target.value }))}
+                                                className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none`}
+                                            />
+                                            <button onClick={handleCatSubmit} disabled={!catForm.categoryName.trim() || submitting}
+                                                className={`px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all ${submitting || !catForm.categoryName.trim() ? 'bg-purple-600/50' : 'bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-500/30'}`}>
+                                                {isCatEditing ? 'Lưu' : 'Thêm'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {isCatEditing && (
+                                        <button onClick={() => { setIsCatEditing(false); setCatForm({ categoryId: null, categoryName: '', description: '' }); }}
+                                            className="text-xs text-blue-500 hover:underline">Hủy chỉnh sửa</button>
+                                    )}
                                 </div>
+                                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                                    {categories.length === 0 && <p className={`text-sm text-center ${theme.textMuted}`}>Chưa có danh mục nào.</p>}
+                                    {categories.map(cat => (
+                                        <div key={cat.categoryId ?? cat.id} className={`flex items-center justify-between p-3 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                                            <span className={`text-[14px] font-semibold ${theme.text}`}>{cat.categoryName ?? cat.name}</span>
+                                            <div className="flex gap-1">
+                                                <button onClick={() => { setIsCatEditing(true); setCatForm({ categoryId: cat.categoryId ?? cat.id, categoryName: cat.categoryName ?? cat.name, description: cat.description ?? '' }); }} className={`p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10`} aria-label="Edit category">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                                <button onClick={() => handleCatDelete(cat.categoryId ?? cat.id)} className={`p-1.5 rounded-lg text-red-500 hover:bg-red-500/10`} aria-label="Delete category">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Body for Import & Edit */}
+                        {modalMode !== 'categories' && (
+                            <div className="p-6 space-y-4">
                                 <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Số lượng <span className="text-red-400">*</span></label>
-                                    <div className="relative">
-                                        <input type="number" min="0"
-                                            value={importForm.quantity}
-                                            onChange={e => setImportForm(p => ({ ...p, quantity: e.target.value }))}
-                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl pl-4 pr-16 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
-                                        />
-                                        <input type="text" placeholder="Đơn vị"
-                                            value={importForm.unit}
-                                            onChange={e => setImportForm(p => ({ ...p, unit: e.target.value }))}
-                                            className={`absolute right-2 top-1/2 -translate-y-1/2 w-14 text-[11px] text-center border ${theme.inputBorder} ${theme.inputBg} rounded-lg px-1 py-0.5 outline-none`}
-                                        />
+                                    <label htmlFor="productSelect" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tên vật phẩm <span className="text-red-400">*</span></label>
+                                    <input
+                                        id="productSelect"
+                                        name="productName"
+                                        type="text"
+                                        list="product-list"
+                                        placeholder="Chọn hoặc nhập tên vật phẩm mới..."
+                                        value={importForm.productName}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            const existing = products.find(p => p.productName === val);
+                                            if (existing) {
+                                                setImportForm(p => ({ ...p, productName: val, categoryId: existing.categoryId || '', unit: existing.unit || '' }));
+                                            } else {
+                                                setImportForm(p => ({ ...p, productName: val }));
+                                            }
+                                        }}
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
+                                        autoFocus
+                                    />
+                                    <datalist id="product-list">
+                                        {products.map(p => <option key={p.productId} value={p.productName} />)}
+                                    </datalist>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="catSelect" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Loại hàng</label>
+                                        <select
+                                            id="catSelect"
+                                            name="categoryId"
+                                            value={importForm.categoryId}
+                                            onChange={e => setImportForm(p => ({ ...p, categoryId: e.target.value }))}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer`}
+                                        >
+                                            <option value="">-- Chọn --</option>
+                                            {categories.map(c => <option key={c.categoryId ?? c.id} value={c.categoryId ?? c.id}>{c.categoryName ?? c.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="qtyInput" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>{modalMode === 'edit_product' ? 'Điều chỉnh SL' : 'Số lượng'} {modalMode !== 'edit_product' && <span className="text-red-400">*</span>}</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                id="qtyInput"
+                                                name="quantity"
+                                                type="number"
+                                                value={importForm.quantity}
+                                                onChange={e => setImportForm(p => ({ ...p, quantity: e.target.value }))}
+                                                className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
+                                                placeholder="0"
+                                            />
+                                            {modalMode === 'edit_product' ? (
+                                                <div className={`w-14 items-center justify-center flex text-[11px] font-bold ${theme.textMuted} bg-black/5 dark:bg-white/5 rounded-xl border ${theme.border}`}>
+                                                    {importForm.unit || 'ĐV'}
+                                                </div>
+                                            ) : (
+                                                <div className="w-16">
+                                                    <label htmlFor="unitInput" className="sr-only">Đơn vị</label>
+                                                    <input
+                                                        id="unitInput"
+                                                        name="unit"
+                                                        type="text"
+                                                        placeholder="Vd: Thùng"
+                                                        value={importForm.unit}
+                                                        onChange={e => setImportForm(p => ({ ...p, unit: e.target.value }))}
+                                                        className={`w-full h-full text-[11px] text-center border ${theme.inputBorder} ${theme.inputBg} rounded-xl focus:ring-1 focus:ring-blue-500 outline-none`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Vị trí kho</label>
-                                <select value={importForm.warehouseId}
-                                    onChange={e => setImportForm(p => ({ ...p, warehouseId: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
+                                <div>
+                                    <label htmlFor="whSelect" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>{modalMode === 'edit_product' ? 'Kho điều chỉnh' : 'Chọn Kho Lưu Trữ'}</label>
+                                    <select
+                                        id="whSelect"
+                                        name="warehouseId"
+                                        value={importForm.warehouseId}
+                                        onChange={e => setImportForm(p => ({ ...p, warehouseId: e.target.value }))}
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer`}
+                                    >
+                                        <option value="">-- Chọn kho hiện có --</option>
+                                        {warehouses.map(w => <option key={w.warehouseId ?? w.id} value={w.warehouseId ?? w.id}>{w.warehouseName ?? w.name}</option>)}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="noteInput" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Ghi chú (Tùy chọn)</label>
+                                    <textarea
+                                        id="noteInput"
+                                        name="note"
+                                        rows={3}
+                                        placeholder={modalMode === 'edit_product' ? "Mô tả lý do điều chỉnh..." : "Thông tin thêm về lô hàng nhập..."}
+                                        value={importForm.note}
+                                        onChange={e => setImportForm(p => ({ ...p, note: e.target.value }))}
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none`}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Footer (Chỉ cho Form Import/Edit) */}
+                        {modalMode !== 'categories' && (
+                            <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
+                                <button onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>
+                                    Hủy bỏ
+                                </button>
+                                <button
+                                    id="submitImportBtn"
+                                    onClick={handleImportSubmit}
+                                    disabled={submitting || !importForm.productName.trim()}
+                                    className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !importForm.productName.trim() ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}
                                 >
-                                    <option value="">-- Chọn kho --</option>
-                                    {warehouses.map(w => <option key={w.warehouseId ?? w.id} value={w.warehouseId ?? w.id}>{w.warehouseName ?? w.name}</option>)}
-                                </select>
+                                    {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                                    {modalMode === 'edit_product' ? 'Lưu sản phẩm' : 'Xác nhận nhập'}
+                                </button>
                             </div>
-
-                            <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Ghi chú (Tùy chọn)</label>
-                                <textarea rows={3} placeholder="Thông tin thêm về lô hàng..."
-                                    value={importForm.note}
-                                    onChange={e => setImportForm(p => ({ ...p, note: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none`}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
-                            <button onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>
-                                Hủy bỏ
-                            </button>
-                            <button
-                                onClick={handleImportSubmit}
-                                disabled={submitting || !importForm.productName.trim()}
-                                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !importForm.productName.trim() ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}
-                            >
-                                {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
-                                Xác nhận nhập
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}

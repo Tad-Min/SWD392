@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { getTransactionsApi, createTransactionApi } from '../api/transactionApi';
 
 export const useTransaction = () => {
     const [isLoading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const getTransactions = async (params) => {
+    const getTransactions = useCallback(async (params) => {
         setLoading(true);
         setError(null);
         try {
@@ -17,9 +17,9 @@ export const useTransaction = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const createTransaction = async (data) => {
+    const createTransaction = useCallback(async (data) => {
         setLoading(true);
         setError(null);
         try {
@@ -31,7 +31,7 @@ export const useTransaction = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     return {
         isLoading,

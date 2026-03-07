@@ -35,6 +35,8 @@ const ManagerLayout = () => {
     const navItems = [
         { path: '/manager/dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', label: 'Tổng quan' },
         { path: '/manager/inventory', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', label: 'Quản lý kho' },
+        { path: '/manager/warehouses', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', label: 'Điểm kho' },
+        { path: '/manager/transactions', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', label: 'Lịch sử kho' },
         { path: '/manager/distribution', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4', label: 'Phân phối' },
     ];
 
@@ -100,9 +102,9 @@ const ManagerLayout = () => {
                     ))}
                 </div>
 
-                {/* User Profile Snippet (Bottom Sidebar) */}
-                <div className={`p-4 border-t ${theme.border} flex-shrink-0`}>
-                    <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} cursor-pointer ${theme.navHover} p-2 rounded-xl transition-colors`}>
+                {/* User Profile & Logout */}
+                <div className={`mt-auto p-4 border-t ${theme.border} flex-shrink-0 flex flex-col gap-2`}>
+                    <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} p-2 rounded-xl transition-colors`}>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold flex-shrink-0 uppercase shadow-lg shadow-emerald-500/20">
                             M
                         </div>
@@ -113,6 +115,22 @@ const ManagerLayout = () => {
                             </div>
                         )}
                     </div>
+
+                    <button
+                        onClick={() => {
+                            localStorage.clear();
+                            navigate('/');
+                        }}
+                        className={`
+                            flex items-center ${isSidebarOpen ? 'gap-3 px-3' : 'justify-center'} py-2.5 rounded-xl transition-all duration-200
+                            text-red-500 hover:bg-red-500/10 font-semibold text-sm
+                        `}
+                    >
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        {isSidebarOpen && <span>Đăng xuất</span>}
+                    </button>
                 </div>
             </aside>
 
