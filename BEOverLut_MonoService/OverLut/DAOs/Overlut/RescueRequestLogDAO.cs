@@ -40,4 +40,20 @@ public class RescueRequestLogDAO
             return null;
         }
     }
+
+    public static async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogs()
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.RescueRequestLogs
+                .OrderByDescending(x => x.ChangedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueRequestLogDAO-GetAllRescueRequestLogs: {ex.Message}");
+            return null;
+        }
+    }
 }

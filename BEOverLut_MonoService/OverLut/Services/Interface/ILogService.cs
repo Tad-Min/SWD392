@@ -10,7 +10,9 @@ namespace Services.Interface
     {
         Task<RescueRequestLog?> AddRescueRequestLogAsync(RescueRequestLog rescueRequestLog);
         Task<MissionLog?> AddRescueMissionLogAsync(MissionLog missionLog);
+        Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogsAsync();
         Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogsByIdAsync(int id);
+        Task<IEnumerable<MissionLog>?> GetAllMissionLogsAsync();
         Task<IEnumerable<MissionLog>?> GetAllMissionLogsByIdAsync(int id);
     }
 }

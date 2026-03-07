@@ -1,7 +1,9 @@
 ﻿using BusinessObject.OverlutEntiy;
+using DTOs.Overlut;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
+using WebApi.Models.RescueTeamModel;
 
 namespace WebApi.Controllers
 {
@@ -48,6 +50,39 @@ namespace WebApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team", error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRescueTeam([FromBody] CreateRescueTeamModel model)
+        {
+            try
+            {
+                if (model == null)
+                    return BadRequest(new { message = "Rescue team data is required" });
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new { message = "Invalid data", errors = ModelState });
+
+                var rescueTeam = new RescueTeam
+                {
+                    TeamName = model.TeamName,
+                    StatusId = 1,
+                    IsActive = true
+                };
+
+                var createdTeam = await _rescueTeamService.CreateRescueTeamAsync(rescueTeam);
+                if (createdTeam == null)
+                    return BadRequest(new { message = "Failed to create rescue team" });
+
+                return CreatedAtAction(nameof(GetRescueTeamById),
+                    new { id = createdTeam.TeamId },
+                    new { message = "Rescue team created successfully", data = createdTeam });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Error creating rescue team", error = ex.Message });
             }
         }
 

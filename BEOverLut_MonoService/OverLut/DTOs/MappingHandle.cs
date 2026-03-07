@@ -316,7 +316,6 @@ namespace DTOs
                 WarehouseId = entity.WarehouseId,
                 WarehouseName = entity.WarehouseName,
                 Location = entity.Location,
-                LocationText = entity.LocationText,
                 Address = entity.Address,
                 IsActive = entity.IsActive
             };
@@ -664,7 +663,6 @@ namespace DTOs
                 WarehouseId = dto.WarehouseId,
                 WarehouseName = dto.WarehouseName,
                 Location = dto.Location,
-                LocationText = dto.LocationText,
                 Address = dto.Address,
                 IsActive = dto.IsActive
             };
