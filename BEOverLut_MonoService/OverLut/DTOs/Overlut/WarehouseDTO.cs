@@ -8,7 +8,7 @@ public class WarehouseDTO
 
     public string WarehouseName { get; set; } = null!;
 
-    public Geometry Location { get; set; } = null!;
+    public Point Location { get; set; } = null!;
 
     public string? LocationText { get; set; }
 

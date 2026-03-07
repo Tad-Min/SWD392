@@ -468,6 +468,8 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
+            entity.Property(e => e.Location)
+                .HasColumnType("geography");
             entity.Property(e => e.LocationText).HasMaxLength(500);
             entity.Property(e => e.WarehouseName).HasMaxLength(200);
         });

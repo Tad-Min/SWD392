@@ -11,8 +11,7 @@ public partial class Warehouse
 
     public string WarehouseName { get; set; } = null!;
 
-    [NotMapped]
-    public Geometry Location { get; set; } = null!;
+    public Point Location { get; set; } = null!;
 
     public string? LocationText { get; set; }
 
