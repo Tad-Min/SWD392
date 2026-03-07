@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 const ROLE_HOME = {
     1: '/Citizens',
     2: '/rescue-team/tasks',
-    3: '/coordinator/dispatch',
+    3: '/RescueCoordinator',
     4: '/manager',
     5: '/admin',
 };
