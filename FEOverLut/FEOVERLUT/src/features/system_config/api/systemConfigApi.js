@@ -46,6 +46,85 @@ export const deleteRescueRequestTypeApi = async (id) => {
     return response.data;
 };
 
+// Status - Vehicles
+export const getVehicleStatusApi = async (params) => {
+    const response = await api.get("Status/Vehicles", { params });
+    return response.data;
+};
+
+export const createVehicleStatusApi = async (data) => {
+    const response = await api.post("Status/Vehicles", data);
+    return response.data;
+};
+
+export const updateVehicleStatusApi = async (data) => {
+    const response = await api.put("Status/Vehicles", data);
+    return response.data;
+};
+
+export const deleteVehicleStatusApi = async (id) => {
+    const response = await api.delete(`Status/Vehicles/${id}`);
+    return response.data;
+};
+
+// Status - RescueTeams
+export const getRescueTeamStatusApi = async (params) => {
+    const response = await api.get("Status/RescueTeams", { params });
+    return response.data;
+};
+
+export const createRescueTeamStatusApi = async (data) => {
+    const response = await api.post("Status/RescueTeams", data);
+    return response.data;
+};
+
+export const updateRescueTeamStatusApi = async (data) => {
+    const response = await api.put("Status/RescueTeams", data);
+    return response.data;
+};
+
+export const deleteRescueTeamStatusApi = async (id) => {
+    const response = await api.delete(`Status/RescueTeams/${id}`);
+    return response.data;
+};
+
+// Status - RescueRequests
+export const getRescueRequestStatusApi = async (params) => {
+    const response = await api.get("Status/RescueRequests", { params });
+    return response.data;
+};
+
+export const createRescueRequestStatusApi = async (data) => {
+    const response = await api.post("Status/RescueRequests", data);
+    return response.data;
+};
+
+export const updateRescueRequestStatusApi = async (data) => {
+    const response = await api.put("Status/RescueRequests", data);
+    return response.data;
+};
+
+export const deleteRescueRequestStatusApi = async (id) => {
+    const response = await api.delete(`Status/RescueRequests/${id}`);
+    return response.data;
+};
+
+// Status - RescueMissions
+export const getRescueMissionStatusApi = async (params) => {
+    const response = await api.get("Status/RescueMissions", { params });
+    return response.data;
+};
+
+export const createRescueMissionStatusApi = async (data) => {
+    const response = await api.post("Status/RescueMissions", data);
+    return response.data;
+};
+
+export const updateRescueMissionStatusApi = async (data) => {
+    const response = await api.put("Status/RescueMissions", data);
+    return response.data;
+};
+
 export const getRescueRequestTypeByIdApi = async (id) => {
     const response = await api.get(`Types/RescueRequests/${id}`);
     return response.data;

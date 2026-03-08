@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useSystemConfig } from '../../features/system_config/hook/useSystemConfig';
+import GenericConfigTab from '../../features/system_config/components/GenericConfigTab';
 
 const SystemConfig = () => {
     const { isDarkMode, theme } = useOutletContext();
@@ -14,97 +15,18 @@ const SystemConfig = () => {
         { id: 4, name: 'Low', desc: 'Không có đe dọa trực tiếp', priorityLabel: 'Thấp', priorityValue: 25, colorCode: '#10B981', priorityColor: 'bg-emerald-500' },
     ];
 
-    // ── Vehicle Types State ─────────────────────────────────────────────
-    const [vehicleTypes, setVehicleTypes] = useState([]);
-    const [vtLoading, setVtLoading] = useState(false);
-    const [vtError, setVtError] = useState(null);
-    const [vtSearch, setVtSearch] = useState('');
-    const [isVtModalOpen, setIsVtModalOpen] = useState(false);
-    const [editingVt, setEditingVt] = useState(null); // null = create mode
-    const [vtForm, setVtForm] = useState({ vehiclesTypeName: '' });
-    const [vtSubmitting, setVtSubmitting] = useState(false);
-    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-
-    const { getVehicleTypes, createVehicleType, updateVehicleType, deleteVehicleType } = useSystemConfig();
-
-    const fetchVehicleTypes = async () => {
-        setVtLoading(true);
-        setVtError(null);
-        try {
-            const params = vtSearch ? { typeName: vtSearch } : {};
-            const res = await getVehicleTypes(params);
-            setVehicleTypes(res);
-        } catch {
-            setVtError('Không thể tải danh sách loại phương tiện.');
-        } finally {
-            setVtLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeTab === 'vehicle') {
-            fetchVehicleTypes();
-        }
-    }, [activeTab]);
-
-    // Search debounce
-    useEffect(() => {
-        if (activeTab !== 'vehicle') return;
-        const t = setTimeout(() => fetchVehicleTypes(), 400);
-        return () => clearTimeout(t);
-    }, [vtSearch]);
-
-    const openCreate = () => {
-        setEditingVt(null);
-        setVtForm({ vehiclesTypeName: '' });
-        setIsVtModalOpen(true);
-    };
-
-    const openEdit = (vt) => {
-        setEditingVt(vt);
-        setVtForm({ vehiclesTypeName: vt.vehiclesTypeName ?? vt.typeName ?? '' });
-        setIsVtModalOpen(true);
-    };
-
-    const handleVtSubmit = async () => {
-        if (!vtForm.vehiclesTypeName.trim()) return;
-        setVtSubmitting(true);
-        try {
-            if (editingVt) {
-                await updateVehicleType({
-                    vehiclesTypeId: editingVt.vehiclesTypeId ?? editingVt.id,
-                    vehiclesTypeName: vtForm.vehiclesTypeName,
-                });
-            } else {
-                await createVehicleType({
-                    vehiclesTypeName: vtForm.vehiclesTypeName,
-                });
-            }
-            setIsVtModalOpen(false);
-            fetchVehicleTypes();
-        } catch {
-            alert('Lỗi khi lưu. Vui lòng thử lại.');
-        } finally {
-            setVtSubmitting(false);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await deleteVehicleType(id);
-            setDeleteConfirmId(null);
-            fetchVehicleTypes();
-        } catch {
-            alert('Xóa thất bại.');
-        }
-    };
+    // ── Hooks ─────────────────────────────────────────────────────────
+    const systemConfigHooks = useSystemConfig();
 
     // ── Sub-menus ───────────────────────────────────────────────────────
     const subMenus = [
-        { id: 'general', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', label: 'Cài đặt chung' },
         { id: 'emergency', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', label: 'Mức độ khẩn cấp' },
+        { id: 'request_type', icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'Loại sự cố (SOS)' },
         { id: 'vehicle', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4', label: 'Loại phương tiện' },
-        { id: 'api', icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', label: 'API Integration' },
+        { id: 'status_vehicle', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Tình trạng xe' },
+        { id: 'status_team', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', label: 'Tình trạng đội cứu hộ' },
+        { id: 'status_request', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', label: 'Trạng thái yêu cầu' },
+        { id: 'status_mission', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Trạng thái nhiệm vụ' },
     ];
 
     // ── Icon colours cycling ────────────────────────────────────────────
@@ -216,205 +138,111 @@ const SystemConfig = () => {
                     </>
                 )}
 
+                {/* ── REQUEST TYPES TAB (SOS) ──────────────────────────────────── */}
+                {activeTab === 'request_type' && (
+                    <GenericConfigTab
+                        title="Đặc Thù Loại Sự Cố (SOS)"
+                        subtitle="Quản lý danh mục các loại yêu cầu cứu hộ từ người dân."
+                        itemName="loại sự cố"
+                        nameHeader="Tên Loại Sự Cố"
+                        searchPlaceholder="Tìm theo tên sự cố..."
+                        fetchApi={systemConfigHooks.getRescueRequestTypes}
+                        createApi={systemConfigHooks.createRescueRequestType}
+                        updateApi={systemConfigHooks.updateRescueRequestType}
+                        deleteApi={systemConfigHooks.deleteRescueRequestType}
+                        idField="rescueRequestTypeId"
+                        nameField="rescueRequestTypeName"
+                    />
+                )}
+
                 {/* ── VEHICLE TYPES TAB ──────────────────────────────────── */}
                 {activeTab === 'vehicle' && (
-                    <>
-                        {/* Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
-                                <h2 className={`text-2xl font-bold ${theme.text}`}>Loại Phương Tiện Cứu Hộ</h2>
-                                <p className={`text-sm ${theme.textMuted} mt-1`}>Quản lý danh mục loại phương tiện dùng trong các nhiệm vụ.</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => fetchVehicleTypes()}
-                                    className={`p-2.5 rounded-xl border ${theme.border} ${theme.textMuted} hover:text-blue-500 transition-colors`}
-                                    title="Làm mới"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                </button>
-                                <button
-                                    onClick={openCreate}
-                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/30 active:scale-95 whitespace-nowrap"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                                    Thêm loại mới
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Search */}
-                        <div className="relative w-full sm:w-72 mb-5">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Tìm theo tên loại..."
-                                value={vtSearch}
-                                onChange={e => setVtSearch(e.target.value)}
-                                className={`pl-10 pr-4 py-2.5 rounded-xl text-sm w-full border ${theme.inputBorder} ${theme.inputBg} focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
-                            />
-                        </div>
-
-                        {/* Error */}
-                        {vtError && (
-                            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
-                                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                {vtError}
-                            </div>
-                        )}
-
-                        {/* Table */}
-                        <div className={`w-full border ${theme.border} rounded-xl overflow-hidden flex-1`}>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>ID</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Biểu tượng</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Tên Loại Phương Tiện</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider text-right`}>Thao Tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
-                                        {vtLoading ? (
-                                            <tr>
-                                                <td colSpan="4" className="px-6 py-12 text-center">
-                                                    <div className="flex flex-col items-center gap-3">
-                                                        <svg className="w-7 h-7 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                        <span className={`text-sm ${theme.textMuted}`}>Đang tải từ backend...</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : vehicleTypes.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="4" className="px-6 py-12 text-center">
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <svg className={`w-10 h-10 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                                                        <span className={`text-sm ${theme.textMuted}`}>Chưa có loại phương tiện nào.</span>
-                                                        <button onClick={openCreate} className="mt-2 text-sm font-semibold text-blue-500 hover:text-blue-400">+ Thêm loại mới</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : vehicleTypes.map((vt, idx) => {
-                                            const id = vt.vehiclesTypeId ?? vt.id;
-                                            const name = vt.vehiclesTypeName ?? vt.typeName ?? vt.name ?? '—';
-                                            const colorClass = iconColors[idx % iconColors.length];
-                                            return (
-                                                <tr key={id} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                                    <td className={`px-6 py-4 text-sm font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                        #{String(id).padStart(3, '0')}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${colorClass}`}>
-                                                            {name.charAt(0).toUpperCase()}
-                                                        </div>
-                                                    </td>
-                                                    <td className={`px-6 py-4 text-[15px] font-semibold ${theme.text}`}>{name}</td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        {deleteConfirmId === id ? (
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <span className={`text-xs ${theme.textMuted}`}>Xác nhận xóa?</span>
-                                                                <button onClick={() => handleDelete(id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors">Xóa</button>
-                                                                <button onClick={() => setDeleteConfirmId(null)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${theme.border} ${theme.textMuted} hover:bg-black/5`}>Hủy</button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                                <button onClick={() => openEdit(vt)} className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500 transition-colors`}>
-                                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                                </button>
-                                                                <button onClick={() => setDeleteConfirmId(id)} className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500 transition-colors`}>
-                                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Count */}
-                        {!vtLoading && vehicleTypes.length > 0 && (
-                            <p className={`mt-3 text-xs ${theme.textMuted}`}>Hiển thị {vehicleTypes.length} loại phương tiện</p>
-                        )}
-                    </>
+                    <GenericConfigTab
+                        title="Loại Phương Tiện Cứu Hộ"
+                        subtitle="Quản lý danh mục loại phương tiện dùng trong các nhiệm vụ."
+                        itemName="loại phương tiện"
+                        nameHeader="Tên Loại Phương Tiện"
+                        searchPlaceholder="Tìm theo tên loại..."
+                        fetchApi={systemConfigHooks.getVehicleTypes}
+                        createApi={systemConfigHooks.createVehicleType}
+                        updateApi={systemConfigHooks.updateVehicleType}
+                        deleteApi={systemConfigHooks.deleteVehicleType}
+                        idField="vehiclesTypeId"
+                        nameField="vehiclesTypeName"
+                    />
                 )}
 
-                {/* ── OTHER TABS PLACEHOLDER ─────────────────────────────── */}
-                {(activeTab === 'general' || activeTab === 'api') && (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16">
-                        <div className={`w-16 h-16 rounded-2xl ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-100'} flex items-center justify-center`}>
-                            <svg className={`w-8 h-8 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                        </div>
-                        <div className="text-center">
-                            <p className={`font-semibold ${theme.text}`}>Chức năng đang phát triển</p>
-                            <p className={`text-sm ${theme.textMuted} mt-1`}>Module này chưa hoàn thiện tính năng.</p>
-                        </div>
-                    </div>
+                {/* ── STATUS - VEHICLE ──────────────────────────────────── */}
+                {activeTab === 'status_vehicle' && (
+                    <GenericConfigTab
+                        title="Tình Trạng Phương Tiện"
+                        subtitle="Quản lý danh sách các trạng thái của phương tiện."
+                        itemName="trạng thái xe"
+                        nameHeader="Tên Trạng Thái"
+                        searchPlaceholder="Tìm kiếm trạng thái..."
+                        fetchApi={systemConfigHooks.getVehicleStatus}
+                        createApi={systemConfigHooks.createVehicleStatus}
+                        updateApi={systemConfigHooks.updateVehicleStatus}
+                        deleteApi={systemConfigHooks.deleteVehicleStatus}
+                        idField="statusId"
+                        nameField="statusName"
+                    />
                 )}
+
+                {/* ── STATUS - RESCUE TEAM ──────────────────────────────── */}
+                {activeTab === 'status_team' && (
+                    <GenericConfigTab
+                        title="Tình Trạng Đội Cứu Hộ"
+                        subtitle="Quản lý danh sách trạng thái của đội cứu hộ."
+                        itemName="trạng thái đội"
+                        nameHeader="Tên Trạng Thái"
+                        searchPlaceholder="Tìm kiếm trạng thái..."
+                        fetchApi={systemConfigHooks.getRescueTeamStatus}
+                        createApi={systemConfigHooks.createRescueTeamStatus}
+                        updateApi={systemConfigHooks.updateRescueTeamStatus}
+                        deleteApi={systemConfigHooks.deleteRescueTeamStatus}
+                        idField="rescueTeamStatusId"
+                        nameField="rescueTeamStatusName"
+                    />
+                )}
+
+                {/* ── STATUS - RESCUE REQUEST ───────────────────────────── */}
+                {activeTab === 'status_request' && (
+                    <GenericConfigTab
+                        title="Trạng Thái Yêu Cầu Cứu Hộ"
+                        subtitle="Quản lý các bước trạng thái xử lý yêu cầu."
+                        itemName="trạng thái yêu cầu"
+                        nameHeader="Tên Trạng Thái"
+                        searchPlaceholder="Tìm kiếm trạng thái..."
+                        fetchApi={systemConfigHooks.getRescueRequestStatus}
+                        createApi={systemConfigHooks.createRescueRequestStatus}
+                        updateApi={systemConfigHooks.updateRescueRequestStatus}
+                        deleteApi={systemConfigHooks.deleteRescueRequestStatus}
+                        idField="rescueRequestStatusId"
+                        nameField="rescueRequestStatusName"
+                    />
+                )}
+
+                {/* ── STATUS - RESCUE MISSION ───────────────────────────── */}
+                {activeTab === 'status_mission' && (
+                    <GenericConfigTab
+                        title="Trạng Thái Nhiệm Vụ"
+                        subtitle="Quản lý tiến độ và trạng thái nhiệm vụ."
+                        itemName="trạng thái nhiệm vụ"
+                        nameHeader="Tên Trạng Thái"
+                        searchPlaceholder="Tìm kiếm trạng thái..."
+                        fetchApi={systemConfigHooks.getRescueMissionStatus}
+                        createApi={systemConfigHooks.createRescueMissionStatus}
+                        updateApi={systemConfigHooks.updateRescueMissionStatus}
+                        deleteApi={systemConfigHooks.deleteRescueMissionStatus}
+                        idField="rescueMissionStatusId"
+                        nameField="rescueMissionStatusName"
+                    />
+                )}
+
             </div>
 
-            {/* ── MODAL Thêm / Sửa Loại Phương Tiện ───────────────────── */}
-            {isVtModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-                    <div
-                        className={`w-full max-w-[420px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Header */}
-                        <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
-                            <h3 className={`text-lg font-bold ${theme.text}`}>
-                                {editingVt ? 'Chỉnh sửa loại phương tiện' : 'Thêm loại phương tiện mới'}
-                            </h3>
-                            <button onClick={() => setIsVtModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
-                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                            </button>
-                        </div>
 
-                        {/* Body */}
-                        <div className="p-6">
-                            <label className={`block text-[13px] font-semibold ${theme.text} mb-2`}>
-                                Tên loại phương tiện <span className="text-red-400">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Ví dụ: Ca nô cứu hộ, Trực thăng..."
-                                value={vtForm.vehiclesTypeName}
-                                onChange={e => setVtForm({ vehiclesTypeName: e.target.value })}
-                                onKeyDown={e => e.key === 'Enter' && handleVtSubmit()}
-                                className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
-                                autoFocus
-                            />
-                            {editingVt && (
-                                <p className={`mt-2 text-xs ${theme.textMuted}`}>ID: #{String(editingVt.vehiclesTypeId ?? editingVt.id).padStart(3, '0')}</p>
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
-                            <button onClick={() => setIsVtModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>
-                                Hủy bỏ
-                            </button>
-                            <button
-                                onClick={handleVtSubmit}
-                                disabled={vtSubmitting || !vtForm.vehiclesTypeName.trim()}
-                                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${vtSubmitting || !vtForm.vehiclesTypeName.trim() ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}
-                            >
-                                {vtSubmitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>}
-                                {editingVt ? 'Lưu thay đổi' : 'Thêm mới'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <style dangerouslySetInnerHTML={{
                 __html: `

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi } from '../api/usersApi';
+import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi, createUserApi } from '../api/usersApi';
 
 export const useUsers = () => {
     const [isLoading, setLoading] = useState(false);
@@ -61,12 +61,37 @@ export const useUsers = () => {
         }
     };
 
+    const createUser = async (data) => {
+        setLoading(true);
+        setError(null);
+        try {
+            return await createUserApi(data);
+        } catch (err) {
+            let errorMsg = err.message || "Lỗi tạo người dùng mới";
+            if (err.response?.data) {
+                if (typeof err.response.data === 'string') {
+                    errorMsg = err.response.data;
+                } else if (err.response.data.errors) {
+                    const firstErrorKey = Object.keys(err.response.data.errors)[0];
+                    errorMsg = err.response.data.errors[firstErrorKey][0];
+                } else if (err.response.data.message) {
+                    errorMsg = err.response.data.message;
+                }
+            }
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         isLoading,
         error,
         getUsers,
         updateUser,
         changeUserRole,
-        deleteUser
+        deleteUser,
+        createUser
     };
 };

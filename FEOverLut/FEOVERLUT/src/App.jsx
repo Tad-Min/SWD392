@@ -14,8 +14,6 @@ import AdminLayout from './components/AdminLayout.jsx';
 import AdminDashboard from './page/admin/AdminDashboard.jsx';
 import UserManagement from './page/admin/UserManagement.jsx';
 import SystemConfig from './page/admin/SystemConfig.jsx';
-import AdminReports from './page/admin/AdminReports.jsx';
-
 // Import Manager layout & pages
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
@@ -23,6 +21,7 @@ import InventoryManagement from './page/manager/InventoryManagement.jsx';
 import WarehouseConfig from './page/manager/WarehouseConfig.jsx';
 import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
+import ManagerReports from './page/manager/ManagerReports.jsx';
 
 // Import RescueCoordinator
 import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
@@ -54,7 +53,6 @@ function App() {
               <Route path="dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
               <Route path="users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute><SystemConfig /></ProtectedRoute>} />
-              <Route path="reports" element={<ProtectedRoute><AdminReports /></ProtectedRoute>} />
             </Route>
 
             {/* Manager Routes */}
@@ -65,6 +63,7 @@ function App() {
               <Route path="warehouses" element={<ProtectedRoute><WarehouseConfig /></ProtectedRoute>} />
               <Route path="transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
+              <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>
         </Router>
