@@ -5,6 +5,9 @@ import {
 } from 'recharts';
 import { useUsers } from '../../features/users/hook/useUsers';
 import { useMissions } from '../../features/missions/hook/useMissions';
+import api from '../../config/axios';
+import { toast } from 'react-toastify';
+
 
 const toArr = (v) => {
     if (Array.isArray(v)) return v;
@@ -25,13 +28,13 @@ const systemLoadData = [
     { time: '23:59', requests: 300, cpu: 22 },
 ];
 
-// ── Role Configurations ───────────────────────────────────────────
+// ── Role Configurations (khớp với DB: 1=Citizen, 2=RescueTeam, 3=Coordinator, 4=Manager, 5=Admin) ───
 const ROLE_MAP = {
-    1: { label: 'Admin', color: 'bg-fuchsia-500' },
-    2: { label: 'Manager', color: 'bg-indigo-500' },
+    1: { label: 'Citizen', color: 'bg-slate-400' },
+    2: { label: 'Rescue Team', color: 'bg-emerald-500' },
     3: { label: 'Coordinator', color: 'bg-blue-500' },
-    4: { label: 'Rescuer', color: 'bg-emerald-500' },
-    5: { label: 'Citizen', color: 'bg-slate-400' },
+    4: { label: 'Manager', color: 'bg-indigo-500' },
+    5: { label: 'Admin', color: 'bg-fuchsia-500' },
 };
 
 const AdminDashboard = () => {
@@ -41,6 +44,7 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [missions, setMissions] = useState([]);
     const [requests, setRequests] = useState([]);
+    const [systemLogs, setSystemLogs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const { getUsers } = useUsers();
@@ -59,7 +63,33 @@ const AdminDashboard = () => {
         setIsLoading(false);
     }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
 
+    // ── Fetch real logs từ BE api/Logs ───────────────────────────────
+    const fetchLogs = useCallback(async () => {
+        try {
+            const [reqLogs, missionLogs] = await Promise.allSettled([
+                api.get('Logs/rescue-request'),
+                api.get('Logs/mission'),
+            ]);
+            const combined = [
+                ...(reqLogs.status === 'fulfilled' ? toArr(reqLogs.value?.data) : []).map(l => ({
+                    ...l,
+                    _type: 'REQUEST',
+                    _status: 'info',
+                })),
+                ...(missionLogs.status === 'fulfilled' ? toArr(missionLogs.value?.data) : []).map(l => ({
+                    ...l,
+                    _type: 'MISSION',
+                    _status: 'info',
+                })),
+            ].slice(0, 10);
+            setSystemLogs(combined);
+        } catch {
+            setSystemLogs([]);
+        }
+    }, []);
+
     useEffect(() => { fetchAll(); }, [fetchAll]);
+    useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
     // ── Computed ──────────────────────────────────────────────────
     const totalUsers = users.length;
@@ -81,13 +111,9 @@ const AdminDashboard = () => {
         return 'text-blue-500 bg-blue-500/10';
     };
 
-    // System logs
-    const systemLogs = [
-        { id: 1, type: 'SECURITY', message: 'Failed login attempt detected', time: '2 phút trước', status: 'warning' },
-        { id: 2, type: 'CONFIG', message: `Vehicle types updated (${totalUsers} users active)`, time: '15 phút trước', status: 'info' },
-        { id: 3, type: 'SYSTEM', message: 'Database backup completed successfully', time: '1 giờ trước', status: 'success' },
-        { id: 4, type: 'MISSION', message: `${totalMissions} missions tracked in system`, time: '3 giờ trước', status: 'info' },
-        { id: 5, type: 'REQUEST', message: `${pendingRequests} rescue requests recorded`, time: '5 giờ trước', status: 'warning' },
+    // System logs — từ API thực (fallback placeholder nếu rỗng)
+    const displayLogs = systemLogs.length > 0 ? systemLogs : [
+        { id: 1, _type: 'INFO', changedAt: null, _status: 'info', newRescueRequests: `Tổng ${totalUsers} tài khoản, ${totalMissions} nhiệm vụ, ${requests.length} yêu cầu cứu hộ.` },
     ];
 
     if (isLoading) {
@@ -256,26 +282,28 @@ const AdminDashboard = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                {['Loại Sự Kiện', 'Mô tả sự kiện', 'Thời gian', 'Chi tiết'].map((h, i) => (
-                                    <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider ${i === 3 ? 'text-right' : ''}`}>{h}</th>
+                                {['Loại Sự Kiện', 'Mô tả sự kiện'].map((h, i) => (
+                                    <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50 whitespace-nowrap">
-                            {systemLogs.map(log => (
-                                <tr key={log.id} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                    <td className="px-6 py-4">
-                                        <span className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg ${getLogIconColor(log.status)}`}>{log.type}</span>
-                                    </td>
-                                    <td className={`px-6 py-4 text-[14px] font-medium ${theme.text}`}>{log.message}</td>
-                                    <td className={`px-6 py-4 text-[13px] ${theme.textMuted}`}>{log.time}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className={`p-1.5 rounded-lg opacity-50 group-hover:opacity-100 ${isDarkMode ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-200 text-slate-600'} transition-all inline-block`}>
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {displayLogs.map((log, idx) => {
+                                const logType = log._type ?? log.type ?? 'LOG';
+                                const logMsg = log.newRescueRequests ?? log.newMissions ?? log.description ?? log.message ?? 'Thay đổi dữ liệu hệ thống';
+                                const logTime = log.changedAt
+                                    ? new Date(log.changedAt).toLocaleString('vi-VN')
+                                    : log.time ?? '—';
+                                const logStatus = log._status ?? log.status ?? 'info';
+                                return (
+                                    <tr key={log.logId ?? log.id ?? idx} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
+                                        <td className="px-6 py-4">
+                                            <span className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg ${getLogIconColor(logStatus)}`}>{logType}</span>
+                                        </td>
+                                        <td className={`px-6 py-4 text-[14px] font-medium ${theme.text}`}>{logMsg}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>

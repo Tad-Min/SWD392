@@ -255,6 +255,35 @@ const InventoryManagement = () => {
         'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
     ];
 
+    const handleExportCSV = () => {
+        if (filtered.length === 0) return alert("Không có dữ liệu để xuất!");
+
+        // Add BOM for proper UTF-8 handling in Excel
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "ID,Tên Vật Phẩm,Danh Mục,Số Lượng Tồn Kho,Đơn Vị,Trạng Thái\n";
+
+        filtered.forEach(item => {
+            const st = getStatusBadge(item.totalQty);
+            const row = [
+                `PRD-${String(item.productId).padStart(3, '0')}`,
+                `"${(item.productName || '').replace(/"/g, '""')}"`,
+                `"${(item.categoryName || '').replace(/"/g, '""')}"`,
+                item.totalQty,
+                `"${(item.unit || 'Đơn vị').replace(/"/g, '""')}"`,
+                `"${st.label}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `BaoCaoKho_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-6 animate-inv-in">
             {/* ── HEADER ─────────────────────────────────────────── */}
@@ -278,7 +307,7 @@ const InventoryManagement = () => {
                         <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                         Danh mục
                     </button>
-                    <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
+                    <button onClick={handleExportCSV} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 dark:hover:bg-white/5 transition-colors`}>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Xuất file
                     </button>
@@ -404,21 +433,11 @@ const InventoryManagement = () => {
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${st.cls}`}>{st.label}</span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            {deleteConfirmId === item.productId ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button onClick={() => handleDeleteProduct(item.productId)} className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold rounded flex shrink-0">Xóa</button>
-                                                    <button onClick={() => setDeleteConfirmId(null)} className={`px-2.5 py-1 rounded text-[11px] font-bold border ${theme.border} ${theme.textMuted} hover:bg-black/5 flex shrink-0`}>Hủy</button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => openEditProduct(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`}>
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                    </button>
-                                                    <button onClick={() => setDeleteConfirmId(item.productId)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`}>
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                    </button>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => openEditProduct(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chi tiết / Cập nhật">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -475,11 +494,8 @@ const InventoryManagement = () => {
                                         <div key={cat.categoryId ?? cat.id} className={`flex items-center justify-between p-3 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
                                             <span className={`text-[14px] font-semibold ${theme.text}`}>{cat.categoryName ?? cat.name}</span>
                                             <div className="flex gap-1">
-                                                <button onClick={() => { setIsCatEditing(true); setCatForm({ categoryId: cat.categoryId ?? cat.id, categoryName: cat.categoryName ?? cat.name, description: cat.description ?? '' }); }} className={`p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10`} aria-label="Edit category">
+                                                <button onClick={() => { setIsCatEditing(true); setCatForm({ categoryId: cat.categoryId ?? cat.id, categoryName: cat.categoryName ?? cat.name, description: cat.description ?? '' }); }} className={`p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10`} aria-label="Edit category" title="Sửa danh mục">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
-                                                <button onClick={() => handleCatDelete(cat.categoryId ?? cat.id)} className={`p-1.5 rounded-lg text-red-500 hover:bg-red-500/10`} aria-label="Delete category">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
                                             </div>
                                         </div>

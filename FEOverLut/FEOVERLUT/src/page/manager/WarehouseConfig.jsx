@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { getWareHouseApi, createWareHouseApi, updateWareHouseApi, deleteWareHouseApi, getWareHouseStockApi } from '../../features/wareHouse/api/wareHouseApi';
 import { useInventory } from '../../features/inventory/hook/useInventory';
 
@@ -27,7 +28,6 @@ const WarehouseConfig = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create'); // 'create' | 'edit'
     const [submitting, setSubmitting] = useState(false);
-    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
     // Stock Modal
     const [isStockModalOpen, setIsStockModalOpen] = useState(false);
@@ -115,17 +115,6 @@ const WarehouseConfig = () => {
             alert('Lưu thông tin kho thất bại. Vui lòng kiểm tra lại!');
         } finally {
             setSubmitting(false);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await deleteWareHouseApi(id);
-            setDeleteConfirmId(null);
-            fetchAll();
-        } catch (e) {
-            console.error(e);
-            alert('Không thể xoá kho này từ hệ thống. \n\nLý do: Kho đang có hàng tồn hoặc đã có dữ liệu lịch sử liên quan. Bạn nên chuyển sang trạng thái "Đã đóng" thay vì xoá bỏ hoàn toàn để bảo toàn dữ liệu.');
         }
     };
 
@@ -246,7 +235,7 @@ const WarehouseConfig = () => {
                     </div>
                     <input type="text" placeholder="Tìm kiếm theo Tên kho hoặc Địa chỉ..." value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className={`pl-10 pr-4 py-2.5 rounded-xl text-sm w-full border ${theme.inputBorder} ${theme.inputBg} focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
+                        className={`pl-10 pr-4 py-2.5 rounded-xl text-sm w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
                     />
                 </div>
                 <p className={`lg:ml-auto text-sm ${theme.textMuted} shrink-0`}>
@@ -309,24 +298,14 @@ const WarehouseConfig = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            {deleteConfirmId === whId ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button onClick={() => handleDelete(whId)} className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold rounded flex shrink-0">Xóa kho</button>
-                                                    <button onClick={() => setDeleteConfirmId(null)} className={`px-2.5 py-1 rounded text-[11px] font-bold border ${theme.border} ${theme.textMuted} hover:bg-black/5 flex shrink-0`}>Hủy</button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleViewStock(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-amber-500`} title="Xem tồn kho">
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
-                                                    </button>
-                                                    <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chỉnh sửa kho">
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                    </button>
-                                                    <button onClick={() => setDeleteConfirmId(whId)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`}>
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                    </button>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => handleViewStock(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-amber-500`} title="Xem tồn kho">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
+                                                </button>
+                                                <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chỉnh sửa kho">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -337,7 +316,7 @@ const WarehouseConfig = () => {
             </div>
 
             {/* ── MODAL CREATE/EDIT ──────────────────────────────── */}
-            {isModalOpen && (
+            {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
                     <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         {/* Header */}
@@ -357,7 +336,7 @@ const WarehouseConfig = () => {
                                 <input type="text" placeholder="Ví dụ: Kho Lũ Lụt TP..."
                                     value={form.warehouseName}
                                     onChange={e => setForm(p => ({ ...p, warehouseName: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
                                     autoFocus
                                 />
                             </div>
@@ -367,7 +346,7 @@ const WarehouseConfig = () => {
                                 <input type="text" placeholder="Số nhà, đường, phường, quận..."
                                     value={form.address}
                                     onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
                                 />
                             </div>
 
@@ -376,7 +355,7 @@ const WarehouseConfig = () => {
                                 <input type="text" placeholder="Ví dụ: 10.762622, 106.660172"
                                     value={form.gpsText}
                                     onChange={e => setForm(p => ({ ...p, gpsText: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none font-mono`}
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none font-mono`}
                                 />
                                 <p className={`text-[11px] mt-1 ${theme.textMuted}`}>Chuỗi định dạng: vĩ độ, kinh độ (latitude, longitude).</p>
                             </div>
@@ -405,11 +384,12 @@ const WarehouseConfig = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* ── MODAL VIEW STOCK ──────────────────────────────── */}
-            {isStockModalOpen && (
+            {isStockModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
                     <div className={`w-full max-w-[700px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]`} onClick={e => e.stopPropagation()}>
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between shrink-0`}>
@@ -464,7 +444,8 @@ const WarehouseConfig = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             <style dangerouslySetInnerHTML={{

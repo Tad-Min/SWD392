@@ -9,7 +9,7 @@ export const getAssignVehicleByIdApi = (id) => {
 }
 
 export const getAssignVehicleByVehicleMissionApi = (id) => {
-    return api.get(`Vehicle/AssignVehicle/VehicleMission/${id}`);
+    return api.get(`Vehicle/AssignVehicle/MissionId/${id}`);
 }
 
 export const createAssignVehicleApi = (data) => {

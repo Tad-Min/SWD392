@@ -312,7 +312,7 @@ const ManagerDashboard = () => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className={`text-[14px] font-semibold truncate ${theme.text}`}>{t.teamName ?? `Đội #${t.teamId}`}</p>
-                                        <p className={`text-[12px] ${theme.textMuted} truncate`}>{t.description ?? 'Không có mô tả'}</p>
+                                        <p className={`text-[12px] ${theme.textMuted} truncate`}>Đã tham gia {missions.filter(m => m.teamId === t.teamId).length} nhiệm vụ</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-1 shrink-0">
                                         <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
@@ -329,9 +329,9 @@ const ManagerDashboard = () => {
                     <h3 className={`font-bold ${theme.text} mb-4`}>Hành động nhanh</h3>
                     <div className="flex flex-col gap-3 flex-1">
                         {[
-                            { label: 'Gọi đội cứu hộ', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', route: '/manager/dashboard' },
-                            { label: 'Cập nhật bản đồ', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z', route: '/manager/dashboard' },
-                            { label: 'Xem báo cáo', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', route: '/manager/dashboard' },
+                            { label: 'Gọi đội cứu hộ', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', route: '/RescueCoordinator' },
+                            { label: 'Cập nhật bản đồ', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z', route: '/RescueCoordinator' },
+                            { label: 'Xem báo cáo', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', route: '/manager/reports' },
                         ].map((a, i) => (
                             <button
                                 key={i}

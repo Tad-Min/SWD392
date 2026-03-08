@@ -9,7 +9,7 @@ export const useRescueTeam = () => {
         try {
             setLoading(true);
             const response = await getRescueTeamApi();
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -31,7 +31,7 @@ export const useRescueTeamById = () => {
         try {
             setLoading(true);
             const response = await getRescueTeamByIdApi(id);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -53,7 +53,7 @@ export const useCreateRescueTeam = () => {
         try {
             setLoading(true);
             const response = await createRescueTeamApi(data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -75,7 +75,7 @@ export const useUpdateRescueTeam = () => {
         try {
             setLoading(true);
             const response = await updateRescueTeamApi(id, data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
