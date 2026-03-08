@@ -26,3 +26,9 @@ export const createUserApi = async (data) => {
     const response = await api.post("Auth/Register", data);
     return response.data;
 };
+
+export const getUserByIdApi = async (id) => {
+    const response = await api.get(`User/${id}`);
+    return response.data;
+};
+

@@ -1,19 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, Clock, UserCheck } from 'lucide-react';
-import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
 
-// Badge color palette — cycles through colors based on type id
-const BADGE_COLORS = [
-    'bg-red-500/20 text-red-400 border-red-500/30',
-    'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-];
+const urgencyMeta = {
+    1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+    2: { label: 'Nguy hiểm', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+    3: { label: 'Khẩn cấp', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+};
 
 function timeAgo(dateStr) {
     if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
+    // Ensure the date is interpreted as UTC if it lacks timezone info (e.g. from .NET)
+    const normalizedDate = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+    const diff = Date.now() - new Date(normalizedDate).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Vừa xong';
     if (mins < 60) return `${mins} phút trước`;
@@ -22,37 +20,7 @@ function timeAgo(dateStr) {
     return `${Math.floor(hrs / 24)} ngày trước`;
 }
 
-export default function QueuePanel({ requests = [], onDispatch }) {
-    const [typeMap, setTypeMap] = useState({});
-
-    // Fetch request types from API
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await getRescueRequestTypesApi();
-                const data = res?.data ?? res;
-                if (Array.isArray(data)) {
-                    const map = {};
-                    data.forEach((t, idx) => {
-                        const id = t.id ?? t.rescueRequestTypeId ?? t.typeId;
-                        const name = t.typeName ?? t.name ?? t.label;
-                        if (id != null && name) {
-                            map[id] = {
-                                label: name,
-                                color: BADGE_COLORS[idx % BADGE_COLORS.length],
-                            };
-                        }
-                    });
-                    setTypeMap(map);
-                }
-            } catch (err) {
-                console.error('Failed to fetch request types:', err);
-            }
-        })();
-    }, []);
-
-    const getBadge = (requestType) =>
-        typeMap[requestType] || { label: `Loại ${requestType}`, color: BADGE_COLORS[0] };
+export default function QueuePanel({ requests = [], userMap = {}, onDispatch }) {
 
     return (
         <div className="absolute bottom-4 left-4 z-10 right-[22rem]">
@@ -76,7 +44,7 @@ export default function QueuePanel({ requests = [], onDispatch }) {
                         </p>
                     )}
                     {requests.map((req) => {
-                        const badge = getBadge(req.requestType);
+                        const urgency = urgencyMeta[req.urgencyLevel] || { label: 'Không rõ', color: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
                         return (
                             <div
                                 key={req.id ?? req.rescueRequestId}
@@ -85,12 +53,12 @@ export default function QueuePanel({ requests = [], onDispatch }) {
                                 {/* Top: name + badge */}
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-white truncate max-w-[110px]">
-                                        {req.citizenName || 'Người dân'}
+                                        {userMap[req.userReqId] || req.citizenName || 'Người dân'}
                                     </span>
                                     <span
-                                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${badge.color}`}
+                                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${urgency.color}`}
                                     >
-                                        {badge.label}
+                                        {urgency.label}
                                     </span>
                                 </div>
 
