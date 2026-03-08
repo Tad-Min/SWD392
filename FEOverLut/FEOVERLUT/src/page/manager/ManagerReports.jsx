@@ -467,11 +467,11 @@ const ManagerReports = () => {
                 </div>
 
                 {/* Right: Recent reports */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl flex flex-col overflow-hidden h-fit`}>
+                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl flex flex-col overflow-hidden h-full`}>
                     <div className={`p-5 border-b ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-between`}>
                         <h3 className={`font-bold text-base ${theme.text}`}>Tài liệu gần đây</h3>
                     </div>
-                    <div className="flex-1 overflow-y-auto max-h-[460px] p-2">
+                    <div className="flex-1 overflow-y-auto p-2">
                         {[
                             { id: 1, title: 'Báo cáo tổng kết tuần 12 - Nhiệm vụ cứu hộ', by: 'Manager User', date: 'Hôm nay 10:30', fmt: 'PDF', size: '2.4 MB' },
                             { id: 2, title: 'Bảng kê chi tiết xuất kho vật tư y tế tháng 3', by: 'Hệ thống tự động', date: 'Hôm nay 08:00', fmt: 'Excel', size: '1.1 MB' },

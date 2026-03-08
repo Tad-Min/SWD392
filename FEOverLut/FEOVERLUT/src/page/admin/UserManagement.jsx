@@ -241,15 +241,13 @@ const UserManagement = () => {
                                 <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Họ và Tên</th>
                                 <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Vai trò</th>
                                 <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Trạng thái</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Đội nhóm</th>
-                                <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Đăng nhập lần cuối</th>
                                 <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider text-right`}>Hành động</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-12 text-center">
+                                    <td colSpan="5" className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center space-y-3">
                                             <svg className="w-8 h-8 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -261,7 +259,7 @@ const UserManagement = () => {
                                 </tr>
                             ) : filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-12 text-center">
+                                    <td colSpan="5" className="px-6 py-12 text-center">
                                         <span className={`text-sm ${theme.textMuted}`}>Không tìm thấy người dùng nào.</span>
                                     </td>
                                 </tr>
@@ -306,12 +304,6 @@ const UserManagement = () => {
                                                         {isActive ? 'Đang hoạt động' : 'Đã khóa'}
                                                     </span>
                                                 </div>
-                                            </td>
-                                            <td className={`px-6 py-4 text-sm font-medium ${theme.text}`}>
-                                                {user.TeamName ?? user.teamName ?? '—'}
-                                            </td>
-                                            <td className={`px-6 py-4 text-[13px] ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                                {user.LastLogin ?? '—'}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {deleteConfirmId === userId ? (

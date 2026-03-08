@@ -104,6 +104,7 @@ function Citizens() {
                 description: sosDescription || 'Yêu cầu cứu hộ khẩn cấp',
                 requestType: sosRequestType,
                 peopleCount: sosPeopleCount,
+                urgencyLevel: 1,
                 currentLocation: coords
                     ? {
                         type: 'Point',

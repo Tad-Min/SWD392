@@ -37,15 +37,15 @@ export default function DispatchModal({
     if (!request) return null;
 
     const availableTeams = teams.filter(
-        (t) => t.status === 'Available' || t.status === 'Sẵn sàng'
+        (t) => t.statusId === 1 || t.status === 'Available' || t.status === 'Sẵn sàng'
     );
 
     const handleSubmit = () => {
         if (!selectedTeamId) return;
         onConfirm?.({
             rescueRequestId: request.id ?? request.rescueRequestId,
-            rescueTeamId: selectedTeamId,
-            note,
+            teamId: parseInt(selectedTeamId),
+            description: note || 'Điều phối cứu hộ',
         });
     };
 

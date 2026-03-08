@@ -125,7 +125,33 @@ export const updateRescueMissionStatusApi = async (data) => {
     return response.data;
 };
 
+export const deleteRescueMissionStatusApi = async (id) => {
+    const response = await api.delete(`Status/RescueMissions/${id}`);
+    return response.data;
+};
+
 export const getRescueRequestTypeByIdApi = async (id) => {
     const response = await api.get(`Types/RescueRequests/${id}`);
+    return response.data;
+};
+
+// ── Urgency Levels ───────────────────────────────────────────────────────────
+export const getUrgencyLevelsApi = async () => {
+    const response = await api.get('UrgencyLevel');
+    return response.data;
+};
+
+export const createUrgencyLevelApi = async (data) => {
+    const response = await api.post('UrgencyLevel', data);
+    return response.data;
+};
+
+export const updateUrgencyLevelApi = async (data) => {
+    const response = await api.put('UrgencyLevel', data);
+    return response.data;
+};
+
+export const deleteUrgencyLevelApi = async (id) => {
+    const response = await api.delete(`UrgencyLevel/${id}`);
     return response.data;
 };

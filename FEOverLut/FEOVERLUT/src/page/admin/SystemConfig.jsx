@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useSystemConfig } from '../../features/system_config/hook/useSystemConfig';
 import GenericConfigTab from '../../features/system_config/components/GenericConfigTab';
@@ -6,14 +6,6 @@ import GenericConfigTab from '../../features/system_config/components/GenericCon
 const SystemConfig = () => {
     const { isDarkMode, theme } = useOutletContext();
     const [activeTab, setActiveTab] = useState('emergency');
-
-    // ── Urgency Levels ─────────────────────────────────────────────────
-    const urgencyLevels = [
-        { id: 1, name: 'Critical', desc: 'Sơ tán tức thời thiết yếu', priorityLabel: 'Cao', priorityValue: 100, colorCode: '#DC2626', priorityColor: 'bg-red-600' },
-        { id: 2, name: 'High', desc: 'Chuẩn bị phòng ngừa nguy hiểm', priorityLabel: 'TB - Cao', priorityValue: 75, colorCode: '#F97316', priorityColor: 'bg-orange-500' },
-        { id: 3, name: 'Moderate', desc: 'Chú ý điều kiện tại địa phương', priorityLabel: 'Trung bình', priorityValue: 50, colorCode: '#EAB308', priorityColor: 'bg-yellow-500' },
-        { id: 4, name: 'Low', desc: 'Không có đe dọa trực tiếp', priorityLabel: 'Thấp', priorityValue: 25, colorCode: '#10B981', priorityColor: 'bg-emerald-500' },
-    ];
 
     // ── Hooks ─────────────────────────────────────────────────────────
     const systemConfigHooks = useSystemConfig();
@@ -69,73 +61,19 @@ const SystemConfig = () => {
 
                 {/* ── EMERGENCY LEVELS TAB ────────────────────────────────── */}
                 {activeTab === 'emergency' && (
-                    <>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                            <div>
-                                <h2 className={`text-2xl font-bold ${theme.text}`}>Mức độ khẩn cấp (Emergency Levels)</h2>
-                                <p className={`text-sm ${theme.textMuted} mt-1`}>Định nghĩa các cấp độ cảnh báo để kích hoạt quy trình tự động.</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/30 active:scale-95 whitespace-nowrap">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                                    Thêm mức độ mới
-                                </button>
-                            </div>
-                        </div>
-                        <div className={`w-full border ${theme.border} rounded-xl overflow-hidden mb-8`}>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Tên Cấp Độ</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider w-[25%]`}>Độ Ưu Tiên</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>Mã Màu</th>
-                                            <th className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider text-right`}>Thao Tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
-                                        {urgencyLevels.map((level) => (
-                                            <tr key={level.id} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col">
-                                                        <span className={`text-[15px] font-bold ${theme.text}`}>{level.name}</span>
-                                                        <span className={`text-[12px] ${theme.textMuted} mt-0.5`}>{level.desc}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1.5 w-full pr-4">
-                                                        <div className="flex justify-between items-center text-xs">
-                                                            <span className={`font-semibold ${theme.text}`}>{level.priorityLabel}</span>
-                                                            <span className={theme.textMuted}>{level.priorityValue}</span>
-                                                        </div>
-                                                        <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700/60 rounded-full overflow-hidden">
-                                                            <div className={`h-full ${level.priorityColor} rounded-full`} style={{ width: `${level.priorityValue}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700" style={{ backgroundColor: level.colorCode }}></div>
-                                                        <span className={`text-sm font-mono ${theme.textMuted}`}>{level.colorCode}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                        <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500 transition-colors`}>
-                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                        </button>
-                                                        <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500 transition-colors`}>
-                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </>
+                    <GenericConfigTab
+                        title="Mức Độ Khẩn Cấp (Urgency Levels)"
+                        subtitle="Quản lý các cấp độ khẩn cấp để phân loại yêu cầu cứu hộ."
+                        itemName="mức độ khẩn cấp"
+                        nameHeader="Tên Mức Độ"
+                        searchPlaceholder="Tìm theo tên mức độ..."
+                        fetchApi={systemConfigHooks.getUrgencyLevels}
+                        createApi={systemConfigHooks.createUrgencyLevel}
+                        updateApi={systemConfigHooks.updateUrgencyLevel}
+                        deleteApi={systemConfigHooks.deleteUrgencyLevel}
+                        idField="urgencyLevelId"
+                        nameField="urgencyName"
+                    />
                 )}
 
                 {/* ── REQUEST TYPES TAB (SOS) ──────────────────────────────────── */}
@@ -184,7 +122,7 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createVehicleStatus}
                         updateApi={systemConfigHooks.updateVehicleStatus}
                         deleteApi={systemConfigHooks.deleteVehicleStatus}
-                        idField="statusId"
+                        idField="vehiclesStatusId"
                         nameField="statusName"
                     />
                 )}
@@ -201,8 +139,8 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createRescueTeamStatus}
                         updateApi={systemConfigHooks.updateRescueTeamStatus}
                         deleteApi={systemConfigHooks.deleteRescueTeamStatus}
-                        idField="rescueTeamStatusId"
-                        nameField="rescueTeamStatusName"
+                        idField="rescueTeamsStatusId"
+                        nameField="statusName"
                     />
                 )}
 
@@ -218,8 +156,8 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createRescueRequestStatus}
                         updateApi={systemConfigHooks.updateRescueRequestStatus}
                         deleteApi={systemConfigHooks.deleteRescueRequestStatus}
-                        idField="rescueRequestStatusId"
-                        nameField="rescueRequestStatusName"
+                        idField="rescueRequestsStatusId"
+                        nameField="statusName"
                     />
                 )}
 
@@ -235,8 +173,8 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createRescueMissionStatus}
                         updateApi={systemConfigHooks.updateRescueMissionStatus}
                         deleteApi={systemConfigHooks.deleteRescueMissionStatus}
-                        idField="rescueMissionStatusId"
-                        nameField="rescueMissionStatusName"
+                        idField="rescueMissionsStatusId"
+                        nameField="statusName"
                     />
                 )}
 

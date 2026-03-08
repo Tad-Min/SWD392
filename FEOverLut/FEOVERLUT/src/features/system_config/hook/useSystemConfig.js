@@ -25,7 +25,11 @@ import {
     createRescueMissionStatusApi,
     updateRescueMissionStatusApi,
     deleteRescueMissionStatusApi,
-    getRescueRequestTypeByIdApi
+    getRescueRequestTypeByIdApi,
+    getUrgencyLevelsApi,
+    createUrgencyLevelApi,
+    updateUrgencyLevelApi,
+    deleteUrgencyLevelApi,
 } from '../api/systemConfigApi';
 
 export const useSystemConfig = () => {
@@ -268,6 +272,37 @@ export const useSystemConfig = () => {
         finally { setLoading(false); }
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Urgency Levels
+    // ─────────────────────────────────────────────────────────────────────────
+    const getUrgencyLevels = async () => {
+        setLoading(true);
+        try { return await getUrgencyLevelsApi(); }
+        catch (err) { throw err; }
+        finally { setLoading(false); }
+    };
+
+    const createUrgencyLevel = async (data) => {
+        setLoading(true);
+        try { return await createUrgencyLevelApi(data); }
+        catch (err) { throw err; }
+        finally { setLoading(false); }
+    };
+
+    const updateUrgencyLevel = async (data) => {
+        setLoading(true);
+        try { return await updateUrgencyLevelApi(data); }
+        catch (err) { throw err; }
+        finally { setLoading(false); }
+    };
+
+    const deleteUrgencyLevel = async (id) => {
+        setLoading(true);
+        try { return await deleteUrgencyLevelApi(id); }
+        catch (err) { throw err; }
+        finally { setLoading(false); }
+    };
+
     return {
         isLoading,
         error,
@@ -306,7 +341,13 @@ export const useSystemConfig = () => {
         getRescueMissionStatus,
         createRescueMissionStatus,
         updateRescueMissionStatus,
-        deleteRescueMissionStatus
+        deleteRescueMissionStatus,
+
+        // Urgency Levels
+        getUrgencyLevels,
+        createUrgencyLevel,
+        updateUrgencyLevel,
+        deleteUrgencyLevel,
     };
 };
 

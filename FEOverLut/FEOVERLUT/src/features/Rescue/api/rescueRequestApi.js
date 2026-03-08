@@ -15,7 +15,7 @@ export const createRescueRequestApi = async (data) => {
     return response.data;
 }
 
-export const updateRescueRequestApi = async (data) => {
-    const response = await api.put("RescueRequest/Update", data);
+export const updateRescueRequestApi = async (id, data) => {
+    const response = await api.put(`RescueRequest/Update/${id}`, data);
     return response.data;
 }

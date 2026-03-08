@@ -10,13 +10,13 @@ export const registerApi = async (data) => {
     return response.data;
 };
 
-export const logoutApi = async () => {
-    const response = await api.post("Auth/Logout");
+export const logoutApi = async (data) => {
+    const response = await api.post("Auth/Logout", data);
     return response.data;
 };
 
-export const refreshTokenApi = async () => {
-    const response = await api.post("Auth/RefreshToken");
+export const refreshTokenApi = async (data) => {
+    const response = await api.post("Auth/GetAccessToken", data);
     return response.data;
 };
 
