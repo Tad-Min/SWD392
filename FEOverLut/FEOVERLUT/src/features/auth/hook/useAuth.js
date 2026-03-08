@@ -7,7 +7,13 @@ export const useLogout = () => {
     const logout = async () => {
         setLoading(true);
         try {
-            await logoutApi();
+            const userId = localStorage.getItem('userId');
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            await logoutApi({
+                userId: userId ? parseInt(userId) : 0,
+                refeshToken: refreshToken || "" // Lưu ý: 'RefeshToken' khớp với lỗi chính tả BE
+            });
         } catch (error) {
             console.error("Logout error", error);
         } finally {
