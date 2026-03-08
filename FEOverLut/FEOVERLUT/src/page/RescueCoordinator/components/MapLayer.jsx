@@ -53,13 +53,13 @@ const TILE_LAYERS = {
 };
 
 // ── Custom marker icons ────────────────────────────────────────────────
-const createSOSIcon = () =>
+const createSOSIcon = (colorHex) =>
     L.divIcon({
         className: '',
         html: `
       <div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
-        <span style="position:absolute;inset:0;border-radius:9999px;background:rgba(239,68,68,0.45);animation:ping 1.2s cubic-bezier(0,0,0.2,1) infinite;"></span>
-        <span style="width:14px;height:14px;border-radius:9999px;background:#ef4444;border:2px solid #fff;position:relative;box-shadow:0 0 8px rgba(239,68,68,0.8);"></span>
+        <span style="position:absolute;inset:0;border-radius:9999px;background:${colorHex}80;animation:ping 1.2s cubic-bezier(0,0,0.2,1) infinite;"></span>
+        <span style="width:14px;height:14px;border-radius:9999px;background:${colorHex};border:2px solid #fff;position:relative;box-shadow:0 0 8px ${colorHex};"></span>
       </div>`,
         iconSize: [32, 32],
         iconAnchor: [16, 16],
@@ -90,6 +90,12 @@ const STATUS_LABELS = {
     1: 'Cứu hộ',
     2: 'Cứu trợ',
     3: 'Cả hai',
+};
+
+const URGENCY_META = {
+    1: { label: 'Cần hỗ trợ', colorHex: '#f59e0b', colorIcon: 'amber-500', colorText: 'amber-400', colorBg: 'amber-500/20', colorBorder: 'amber-500/30' }, // Amber
+    2: { label: 'Nguy hiểm', colorHex: '#ef4444', colorIcon: 'red-500', colorText: 'red-400', colorBg: 'red-500/20', colorBorder: 'red-500/30' },       // Red
+    3: { label: 'Khẩn cấp', colorHex: '#9333ea', colorIcon: 'purple-500', colorText: 'purple-400', colorBg: 'purple-500/20', colorBorder: 'purple-500/30' },// Purple
 };
 
 // ── Layer Switcher UI Component ────────────────────────────────────────
@@ -128,11 +134,10 @@ function LayerSwitcher({ activeLayer, onChange }) {
 }
 
 // ── Main MapLayer Component ────────────────────────────────────────────
-export default function MapLayer({ requests = [], teams = [], onDispatch }) {
+export default function MapLayer({ requests = [], teams = [], userMap = {}, onDispatch }) {
     const [activeLayer, setActiveLayer] = useState('dark');
     const isDark = activeLayer === 'dark';
 
-    const sosIcon = createSOSIcon();
     const teamIcon = createTeamIcon();
     const tileUrl = TILE_LAYERS[activeLayer].url;
 
@@ -163,21 +168,28 @@ export default function MapLayer({ requests = [], teams = [], onDispatch }) {
 
                 {/* SOS Markers */}
                 {requests.map((req) => {
-                    const coords = req.currentLocation?.coordinates;
+                    const coords = (req.location ?? req.currentLocation)?.coordinates;
                     if (!coords || coords.length < 2) return null;
                     const pos = [coords[1], coords[0]];
+
+                    const urgency = URGENCY_META[req.urgencyLevel] || URGENCY_META[1]; // Fallback to normal if undefined
+                    const currentSOSIcon = createSOSIcon(urgency.colorHex);
+
                     return (
-                        <Marker key={req.id ?? req.rescueRequestId} position={pos} icon={sosIcon}>
+                        <Marker key={req.id ?? req.rescueRequestId} position={pos} icon={currentSOSIcon}>
                             <Popup className="sos-popup" maxWidth={260} minWidth={220}>
                                 <div className="p-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                                        <AlertTriangle className={`w-4 h-4 text-${urgency.colorIcon}`} />
                                         <span className="font-bold text-sm text-slate-800">
-                                            {req.citizenName || 'Người dân'}
+                                            {userMap[req.userReqId] || req.citizenName || 'Người dân'}
+                                        </span>
+                                        <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md border bg-${urgency.colorBg} text-${urgency.colorText} border-${urgency.colorBorder}`}>
+                                            {urgency.label}
                                         </span>
                                     </div>
                                     <p className="text-xs text-slate-500 mb-1">
-                                        Loại: <span className="font-semibold text-slate-700">{STATUS_LABELS[req.requestType] || 'Cứu hộ'}</span>
+                                        Loại hỗ trợ: <span className="font-semibold text-slate-700">{STATUS_LABELS[req.requestType] || 'Cứu hộ'}</span>
                                     </p>
                                     <p className="text-xs text-slate-500 mb-1">
                                         Số người: <span className="font-semibold text-slate-700">{req.peopleCount ?? 1}</span>
@@ -201,7 +213,7 @@ export default function MapLayer({ requests = [], teams = [], onDispatch }) {
 
                 {/* Team Markers */}
                 {teams.map((team) => {
-                    const coords = team.currentLocation?.coordinates;
+                    const coords = (team.location ?? team.currentLocation)?.coordinates;
                     if (!coords || coords.length < 2) return null;
                     const pos = [coords[1], coords[0]];
                     return (

@@ -9,7 +9,7 @@ export const useRescueRequest = () => {
         try {
             setLoading(true);
             const response = await getRescueRequestApi();
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -31,7 +31,7 @@ export const useRescueRequestById = () => {
         try {
             setLoading(true);
             const response = await getRescueRequestByIdApi(id);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -53,7 +53,7 @@ export const useCreateRescueRequest = () => {
         try {
             setLoading(true);
             const response = await createRescueRequestApi(data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
             throw error;
@@ -76,7 +76,7 @@ export const useUpdateRescueRequest = () => {
         try {
             setLoading(true);
             const response = await updateRescueRequestApi(id, data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {

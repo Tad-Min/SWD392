@@ -5,6 +5,7 @@ import { getRescueRequestTypesApi } from '../../../features/system_config/api/sy
 export default function DispatchModal({
     request,
     teams = [],
+    userMap = {},
     onClose,
     onConfirm,
     loading = false,
@@ -12,6 +13,12 @@ export default function DispatchModal({
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [note, setNote] = useState('');
     const [typeLabels, setTypeLabels] = useState({});
+
+    const urgencyMeta = {
+        1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+        2: { label: 'Nguy hiểm', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+        3: { label: 'Khẩn cấp', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+    };
 
     // Fetch request types from API
     useEffect(() => {
@@ -49,7 +56,8 @@ export default function DispatchModal({
         });
     };
 
-    const requestTypeLabel = typeLabels[request.requestType] || `Loại ${request.requestType}`;
+    const requestTypeLabel = typeLabels[request.requestType];
+    const urgency = urgencyMeta[request.urgencyLevel] || { label: 'Không rõ', color: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -76,12 +84,18 @@ export default function DispatchModal({
                         <div className="flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4 text-red-400" />
                             <span className="text-sm font-semibold text-white">
-                                {request.citizenName || 'Người dân'}
+                                {userMap[request.userReqId] || request.citizenName || 'Người dân'}
                             </span>
-                            <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/30">
-                                {requestTypeLabel}
+                            <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${urgency.color}`}>
+                                {urgency.label}
                             </span>
                         </div>
+                        {requestTypeLabel && (
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                <span className="w-3.5 h-3.5 flex items-center justify-center font-bold">ℹ</span>
+                                <span>Loại: {requestTypeLabel}</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                             <Users className="w-3.5 h-3.5" />
                             <span>{request.peopleCount ?? 1} người cần hỗ trợ</span>
