@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import MyProfileModal from './MyProfileModal';
+import NotificationBell from './NotificationBell';
+import { useLogout } from '../features/auth/hook/useAuth';
 
 const ManagerLayout = () => {
     const navigate = useNavigate();
+    const { logout } = useLogout();
     const location = useLocation();
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -38,12 +43,13 @@ const ManagerLayout = () => {
         { path: '/manager/warehouses', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', label: 'Điểm kho' },
         { path: '/manager/transactions', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', label: 'Lịch sử kho' },
         { path: '/manager/distribution', icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4', label: 'Phân phối' },
+        { path: '/manager/reports', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', label: 'Báo cáo' },
     ];
 
     const currentPageTitle = navItems.find(item => location.pathname.startsWith(item.path))?.label || 'Bảng điều khiển';
 
     return (
-        <div className={`h-screen ${theme.bg} ${theme.text} flex overflow-hidden transition-colors duration-500 font-sans relative`}>
+        <div className={`h-screen ${theme.bg} ${theme.text} flex overflow-hidden transition-all duration-500 ease-in-out font-sans relative`}>
             {/* Ambient Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
                 <div
@@ -57,7 +63,7 @@ const ManagerLayout = () => {
             </div>
 
             {/* Sidebar */}
-            <aside className={`relative z-20 ${isSidebarOpen ? 'w-[260px]' : 'w-20'} flex-shrink-0 h-full ${theme.sidebarBg} ${theme.glassEffect} border-r ${theme.border} transition-all duration-300 flex flex-col`}>
+            <aside className={`relative z-20 ${isSidebarOpen ? 'w-[260px]' : 'w-20'} flex-shrink-0 h-full ${theme.sidebarBg} ${theme.glassEffect} border-r ${theme.border} transition-all duration-500 ease-in-out flex flex-col`}>
                 {/* Logo Area */}
                 <div className="h-20 flex items-center justify-center border-b border-transparent mt-2 flex-shrink-0">
                     <div className="flex items-center gap-3 px-4 w-full cursor-pointer" onClick={() => navigate('/manager/dashboard')}>
@@ -104,21 +110,24 @@ const ManagerLayout = () => {
 
                 {/* User Profile & Logout */}
                 <div className={`mt-auto p-4 border-t ${theme.border} flex-shrink-0 flex flex-col gap-2`}>
-                    <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} p-2 rounded-xl transition-colors`}>
+                    <div
+                        onClick={() => setIsProfileOpen(true)}
+                        className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'} p-2 rounded-xl transition-colors cursor-pointer hover:bg-slate-500/10 active:scale-95`}
+                    >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold flex-shrink-0 uppercase shadow-lg shadow-emerald-500/20">
-                            M
+                            {localStorage.getItem('name')?.charAt(0)?.toUpperCase() || 'M'}
                         </div>
                         {isSidebarOpen && (
                             <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm font-semibold truncate leading-tight">Manager User</span>
-                                <span className={`text-[11px] ${theme.textMuted} truncate`}>manager@cuuho.gov.vn</span>
+                                <span className="text-sm font-semibold truncate leading-tight">{localStorage.getItem('name') || 'Manager User'}</span>
+                                <span className={`text-[11px] text-teal-500 hover:underline truncate mt-0.5`}>Hồ sơ cá nhân</span>
                             </div>
                         )}
                     </div>
 
                     <button
-                        onClick={() => {
-                            localStorage.clear();
+                        onClick={async () => {
+                            await logout();
                             navigate('/');
                         }}
                         className={`
@@ -137,7 +146,7 @@ const ManagerLayout = () => {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col relative z-10 w-full overflow-hidden">
                 {/* Header Navbar */}
-                <header className={`h-20 flex-shrink-0 ${theme.cardBg} ${theme.glassEffect} border-b ${theme.border} flex items-center justify-between px-6 lg:px-10 z-20`}>
+                <header className={`h-20 flex-shrink-0 ${theme.cardBg} ${theme.glassEffect} border-b ${theme.border} flex items-center justify-between px-6 lg:px-10 z-20 transition-all duration-500 ease-in-out`}>
                     <div className="flex items-center gap-4">
                         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={`p-2 rounded-lg ${theme.navHover} transition-colors focus:outline-none ${theme.textMuted}`}>
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,14 +176,7 @@ const ManagerLayout = () => {
                         </button>
 
                         {/* Notifications */}
-                        <div className="relative">
-                            <button className={`relative p-2.5 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 transition-colors ${theme.textMuted}`}>
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                <span className="absolute top-[8px] right-[10px] w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1E293B]"></span>
-                            </button>
-                        </div>
+                        <NotificationBell theme={theme} />
                     </div>
                 </header>
 
@@ -202,6 +204,7 @@ const ManagerLayout = () => {
                     background: ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'};
                 }
             `}} />
+            <MyProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} isDarkMode={isDarkMode} theme={theme} />
         </div>
     );
 };

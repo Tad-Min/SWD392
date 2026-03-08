@@ -13,8 +13,6 @@ public partial class Warehouse
 
     public Point Location { get; set; } = null!;
 
-    public string? LocationText { get; set; }
-
     public string? Address { get; set; }
 
     public bool IsActive { get; set; }

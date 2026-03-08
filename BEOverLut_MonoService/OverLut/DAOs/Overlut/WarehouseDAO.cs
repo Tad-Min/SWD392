@@ -82,7 +82,6 @@ public class WarehouseDAO
 
             existingWarehouse.WarehouseName = warehouse.WarehouseName;
             existingWarehouse.Location = warehouse.Location;
-            existingWarehouse.LocationText = warehouse.LocationText;
             existingWarehouse.Address = warehouse.Address;
             existingWarehouse.IsActive = warehouse.IsActive;
 

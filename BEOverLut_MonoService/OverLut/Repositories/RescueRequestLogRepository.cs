@@ -9,5 +9,7 @@ namespace Repositories
         public async Task<RescueRequestLog?> AddRescueRequestLog(RescueRequestLog rescueRequestLog) => await RescueRequestLogDAO.AddRescueRequestLog(rescueRequestLog);
 
         public async Task<IEnumerable<RescueRequestLog>?> GetRescueRequestLogByRescueRequestId(int rescueRequestId) => await RescueRequestLogDAO.GetRescueRequestLogByRescueRequestId(rescueRequestId);
+
+        public async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogs() => await RescueRequestLogDAO.GetAllRescueRequestLogs();
     }
 }

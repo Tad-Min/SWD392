@@ -29,9 +29,19 @@ namespace Services
             return await _missionLogRepository.AddMissionLog(missionLog);
         }
 
+        public async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogsAsync()
+        {
+            return await _rescueRequestLogRepository.GetAllRescueRequestLogs();
+        }
+
         public async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogsByIdAsync(int id)
         {
             return await _rescueRequestLogRepository.GetRescueRequestLogByRescueRequestId(id);
+        }
+
+        public async Task<IEnumerable<MissionLog>?> GetAllMissionLogsAsync()
+        {
+            return await _missionLogRepository.GetAllMissionLogs();
         }
 
         public async Task<IEnumerable<MissionLog>?> GetAllMissionLogsByIdAsync(int id)

@@ -7,9 +7,19 @@ class Program
     {
         var myServer = new MySocket();
 
-        Task tcpTask = myServer.Start(ProtocolType.Tcp, 8080);
+        myServer.OnMessageReceived += (clientId, message) =>
+        {
+            Console.WriteLine($"[Notification] From {clientId}: {message}");
+        };
 
-        Task udpTask = myServer.Start(ProtocolType.Udp, 8081);
+        myServer.OnFileReceived += (clientId, fileName, fileData) =>
+        {
+            Console.WriteLine($"[File] From {clientId}: {fileName} ({fileData.Length} bytes)");
+        };
+
+        Task tcpTask = myServer.Start(ProtocolType.Tcp, 5010);
+
+        Task udpTask = myServer.Start(ProtocolType.Udp, 5011);
 
         Console.WriteLine("Servers are running. Press any key to exit...");
 

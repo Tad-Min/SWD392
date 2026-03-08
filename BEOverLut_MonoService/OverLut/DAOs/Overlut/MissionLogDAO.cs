@@ -57,4 +57,20 @@ public class MissionLogDAO
             return null;
         }
     }
+
+    public static async Task<IEnumerable<MissionLog>?> GetAllMissionLogs()
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.MissionLogs
+                .OrderByDescending(x => x.ChangedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"MissionLogDAO-GetAllMissionLogs: {ex.Message}");
+            return null;
+        }
+    }
 }

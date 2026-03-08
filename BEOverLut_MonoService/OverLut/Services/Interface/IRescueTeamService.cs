@@ -5,6 +5,7 @@ namespace Services.Interface
     public interface IRescueTeamService
     {
         Task<IEnumerable<RescueTeam>?> GetAllRescueTeamsAsync(int? teamId, string? teamName, int? statusId);
+        Task<RescueTeam?> CreateRescueTeamAsync(RescueTeam rescueTeam);
         Task<RescueTeam?> DeleteTeamByIdAsync(int id);
         Task<IEnumerable<RescueTeamMember>?> GetAllTeamMemberAsync(int? teamId, string? teamName, int? statusId);
         Task<RescueTeam?> KickTeamMemberByMemberIdAsync(int id);

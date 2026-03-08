@@ -9,5 +9,7 @@ namespace Repositories
         public async Task<MissionLog?> AddMissionLog(MissionLog missionLog) => await MissionLogDAO.AddMissionLog(missionLog);
 
         public async Task<IEnumerable<MissionLog>?> GetMissionLogByMissionId(int missionId) => await MissionLogDAO.GetMissionLogByMissionId(missionId);
+
+        public async Task<IEnumerable<MissionLog>?> GetAllMissionLogs() => await MissionLogDAO.GetAllMissionLogs();
     }
 }
