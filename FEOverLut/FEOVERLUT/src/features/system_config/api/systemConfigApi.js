@@ -21,9 +21,13 @@ export const deleteVehicleTypeApi = async (id) => {
     return response.data;
 };
 
-// Types - RescueRequests
-export const getRescueRequestTypesApi = async (params) => {
-    const response = await api.get("Types/RescueRequests", { params });
+export const getVehicleTypeByIdApi = async (id) => {
+    const response = await api.get(`Types/Vehicles/${id}`);
+    return response.data;
+};
+
+export const getRescueRequestTypesApi = async () => {
+    const response = await api.get("Types/RescueRequests");
     return response.data;
 };
 
@@ -121,7 +125,7 @@ export const updateRescueMissionStatusApi = async (data) => {
     return response.data;
 };
 
-export const deleteRescueMissionStatusApi = async (id) => {
-    const response = await api.delete(`Status/RescueMissions/${id}`);
+export const getRescueRequestTypeByIdApi = async (id) => {
+    const response = await api.get(`Types/RescueRequests/${id}`);
     return response.data;
 };

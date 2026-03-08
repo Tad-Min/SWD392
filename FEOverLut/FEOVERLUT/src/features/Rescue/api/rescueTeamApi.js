@@ -10,6 +10,11 @@ export const getRescueTeamByIdApi = async (id) => {
     return response.data;
 }
 
+export const createRescueTeamApi = async (data) => {
+    const response = await api.post("RescueTeam", data);
+    return response.data;
+}
+
 export const updateRescueTeamApi = async (id, data) => {
     const response = await api.put(`RescueTeam/${id}`, data);
     return response.data;

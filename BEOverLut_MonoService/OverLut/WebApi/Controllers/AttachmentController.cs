@@ -109,5 +109,100 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deleting attachment", error = ex.Message });
             }
         }
+
+        // --- NEW CHUNKED UPLOAD APIs ---
+
+        [HttpPost("rescue/create-attachment")]
+        public async Task<IActionResult> CreateAttachmentRescue([FromBody] WebApi.Models.AttachmentModel.CreateAttachmentRescueModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var id = await _attachmentStorageService.CreateAttachmentRescueAsync(model.RescueRequestId, model.FileSize, model.FileType);
+                if (id == null) return BadRequest(new { message = "Failed to create rescue attachment" });
+
+                return Ok(new { attachmentId = id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error creating attachment", error = ex.Message });
+            }
+        }
+
+        [HttpPost("mission/create-attachment")]
+        public async Task<IActionResult> CreateAttachmentMission([FromBody] WebApi.Models.AttachmentModel.CreateAttachmentMissionModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var id = await _attachmentStorageService.CreateAttachmentMissionAsync(model.MissionId, model.FileSize, model.FileType);
+                if (id == null) return BadRequest(new { message = "Failed to create mission attachment" });
+
+                return Ok(new { attachmentId = id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error creating attachment", error = ex.Message });
+            }
+        }
+
+        [HttpPost("chunk")]
+        public async Task<IActionResult> AddFileChunk([FromForm] WebApi.Models.AttachmentModel.FileChunkUploadModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (model.FileChunk == null || model.FileChunk.Length == 0)
+                    return BadRequest(new { message = "Chunk data is empty" });
+
+                using var memoryStream = new MemoryStream();
+                await model.FileChunk.CopyToAsync(memoryStream);
+                var data = memoryStream.ToArray();
+
+                var success = await _attachmentStorageService.AddFileChunkAsync(model.AttachmentId, model.SequenceNumber, data, model.IsLastChunk);
+                if (!success)
+                    return BadRequest(new { message = "Failed to add chunk" });
+
+                return Ok(new { message = "Chunk added successfully", isComplete = model.IsLastChunk });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error adding chunk", error = ex.Message });
+            }
+        }
+
+        [HttpGet("rescue/{rescueId}")]
+        public async Task<IActionResult> GetAttachmentsByRescueId(int rescueId)
+        {
+            try
+            {
+                var result = await _attachmentStorageService.GetAttachmentsByRescueRequestIdAsync(rescueId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving attachments", error = ex.Message });
+            }
+        }
+
+        [HttpGet("mission/{missionId}")]
+        public async Task<IActionResult> GetAttachmentsByMissionId(int missionId)
+        {
+            try
+            {
+                var result = await _attachmentStorageService.GetAttachmentsByMissionIdAsync(missionId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving attachments", error = ex.Message });
+            }
+        }
     }
 }

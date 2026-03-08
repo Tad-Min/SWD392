@@ -5,6 +5,10 @@ import Register from './page/auth/Register.jsx'
 import ClickSpark from './components/ClickSpark.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
+// Import Test pages
+import TestSocket from './page/testsocket/TestSocket.jsx';
+import TestAttachment from './page/testsocket/TestAttachment.jsx';
+
 // Import Admin layout & pages
 import AdminLayout from './components/AdminLayout.jsx';
 import AdminDashboard from './page/admin/AdminDashboard.jsx';
@@ -19,6 +23,9 @@ import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
 import ManagerReports from './page/manager/ManagerReports.jsx';
 
+// Import RescueCoordinator
+import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
+
 function App() {
 
   return (
@@ -32,6 +39,13 @@ function App() {
 
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
+            {/* RescueCoordinator Routes */}
+            <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
+
+
+            {/* Test Routes */}
+            <Route path="/testsocket" element={<TestSocket />} />
+            <Route path="/testattachment" element={<TestAttachment />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>

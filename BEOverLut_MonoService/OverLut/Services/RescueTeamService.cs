@@ -29,6 +29,11 @@ namespace Services
             return await _rescueTeamRepository.GetAllRescueTeam(teamId, teamName, statusId);
         }
 
+        public async Task<RescueTeam?> CreateRescueTeamAsync(RescueTeam rescueTeam)
+        {
+            return await _rescueTeamRepository.CreateRescueTeam(rescueTeam);
+        }
+
         public async Task<RescueTeam?> DeleteTeamByIdAsync(int id)
         {
             var teams = await _rescueTeamRepository.GetAllRescueTeam(id);

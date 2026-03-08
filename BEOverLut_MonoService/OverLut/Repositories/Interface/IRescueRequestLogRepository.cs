@@ -6,5 +6,6 @@ namespace Repositories.Interface
     {
         Task<RescueRequestLog?> AddRescueRequestLog(RescueRequestLog rescueRequestLog);
         Task<IEnumerable<RescueRequestLog>?> GetRescueRequestLogByRescueRequestId(int rescueRequestId);
+        Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogs();
     }
 }

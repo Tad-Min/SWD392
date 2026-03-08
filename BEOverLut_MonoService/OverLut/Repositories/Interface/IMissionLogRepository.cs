@@ -6,5 +6,6 @@ namespace Repositories.Interface
     {
         Task<MissionLog?> AddMissionLog(MissionLog missionLog);
         Task<IEnumerable<MissionLog>?> GetMissionLogByMissionId(int missionId);
+        Task<IEnumerable<MissionLog>?> GetAllMissionLogs();
     }
 }

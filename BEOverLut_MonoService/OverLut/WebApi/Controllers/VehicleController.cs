@@ -16,10 +16,6 @@ namespace WebApi.Controllers
         {
             _vehicleService = vehicleService;
         }
-
-        //All data must be retrieved from the Service Layer.
-        //All method must follow Restfull API
-        //All method must handel Error
         #region Vehicle Assignment
         [HttpGet("AssignVehicle")]
         public async Task<IActionResult> GetAllAssignVehicle(GetAllAssignVehicleModel? model)

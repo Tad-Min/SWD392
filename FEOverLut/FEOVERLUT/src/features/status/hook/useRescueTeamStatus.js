@@ -1,4 +1,5 @@
-import { getRescueTeamStatusApi, getRescueTeamStatusByIdApi, createRescueTeamStatusApi, updateRescueTeamStatusApi, deleteRescueTeamStatusApi } from "../api/rescueTeamsStatusApi";
+import { getRescueTeamsStatusApi, getRescueTeamsStatusByIdApi, createRescueTeamsStatusApi, updateRescueTeamsStatusApi, deleteRescueTeamsStatusApi } from "../api/rescueTeamsStatusApi";
+import { useState } from "react";
 
 export const useRescueTeamStatus = () => {
     const [loading, setLoading] = useState(false);
@@ -7,7 +8,7 @@ export const useRescueTeamStatus = () => {
     const getRescueTeamStatus = async () => {
         try {
             setLoading(true);
-            const response = await getRescueTeamStatusApi();
+            const response = await getRescueTeamsStatusApi();
             return response.data;
         } catch (error) {
             setError(error);
@@ -29,7 +30,7 @@ export const useRescueTeamStatusById = () => {
     const getRescueTeamStatusById = async (id) => {
         try {
             setLoading(true);
-            const response = await getRescueTeamStatusByIdApi(id);
+            const response = await getRescueTeamsStatusByIdApi(id);
             return response.data;
         } catch (error) {
             setError(error);
@@ -51,7 +52,7 @@ export const useCreateRescueTeamStatus = () => {
     const createRescueTeamStatus = async (data) => {
         try {
             setLoading(true);
-            const response = await createRescueTeamStatusApi(data);
+            const response = await createRescueTeamsStatusApi(data);
             return response.data;
         } catch (error) {
             setError(error);
@@ -73,7 +74,7 @@ export const useUpdateRescueTeamStatus = () => {
     const updateRescueTeamStatus = async (data) => {
         try {
             setLoading(true);
-            const response = await updateRescueTeamStatusApi(data);
+            const response = await updateRescueTeamsStatusApi(data);
             return response.data;
         } catch (error) {
             setError(error);
@@ -95,7 +96,7 @@ export const useDeleteRescueTeamStatus = () => {
     const deleteRescueTeamStatus = async (id) => {
         try {
             setLoading(true);
-            const response = await deleteRescueTeamStatusApi(id);
+            const response = await deleteRescueTeamsStatusApi(id);
             return response.data;
         } catch (error) {
             setError(error);

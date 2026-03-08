@@ -1,4 +1,5 @@
 import { getRescueRequestStatusApi, getRescueRequestStatusByIdApi, createRescueRequestStatusApi, updateRescueRequestStatusApi, deleteRescueRequestStatusApi } from "../api/rescueRequestStatusApi";
+import { useState } from "react";
 
 export const useRescueRequestStatus = () => {
     const [loading, setLoading] = useState(false);
