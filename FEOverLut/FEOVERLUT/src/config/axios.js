@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://localhost:7155/api",
+    baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Attach auth token to every request
@@ -11,6 +11,8 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log(`[Axios] ${config.method?.toUpperCase()} ${config.url}`,
+            'Token:', token ? `${token.substring(0, 20)}...` : 'NONE');
         return config;
     },
     (error) => Promise.reject(error)

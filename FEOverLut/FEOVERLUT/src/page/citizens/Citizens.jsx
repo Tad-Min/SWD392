@@ -23,22 +23,35 @@ function Citizens() {
     const [sosMessage, setSosMessage] = useState('');
     const coordsRef = useRef(null); // store latest coords { latitude, longitude }
 
+    // Urgency assessment questions
+    const [hasVulnerable, setHasVulnerable] = useState(false);   // Q1: elderly/children/sick
+    const [waterLevel, setWaterLevel] = useState(0);              // Q2: 0=knee, 1=floor1, 2=roof
+
     // Background animation and theme state
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isDarkMode, setIsDarkMode] = useState(true);
 
+    // ── Calculate urgency score & level ──
+    const urgencyScore = (hasVulnerable ? 1 : 0) + waterLevel + (sosPeopleCount > 5 ? 1 : 0);
+    // Map score → UrgencyLevel ID matching DB: 1=Normal, 2=High, 3=Critical
+    const urgencyLevel = urgencyScore >= 3 ? 3 : urgencyScore === 2 ? 2 : 1;
+    const urgencyMeta = {
+        1: { label: 'Cần hỗ trợ', color: 'bg-amber-500', textColor: 'text-amber-400', emoji: '🟠' },
+        2: { label: 'Nguy hiểm', color: 'bg-red-500', textColor: 'text-red-400', emoji: '🔴' },
+        3: { label: 'SOS khẩn cấp', color: 'bg-purple-600', textColor: 'text-purple-400', emoji: '🟣' },
+    };
+
     useEffect(() => {
         // Track mouse movement for background effect
         const handleMouseMove = (e) => {
-            // Calculate movement offset based on screen percentage to keep it subtle
-            const xOffset = (e.clientX / window.innerWidth - 0.5) * 40; // max 20px movement
-            const yOffset = (e.clientY / window.innerHeight - 0.5) * 20; // max 10px movement
+            const xOffset = (e.clientX / window.innerWidth - 0.5) * 40;
+            const yOffset = (e.clientY / window.innerHeight - 0.5) * 20;
             setMousePos({ x: xOffset, y: yOffset });
         };
 
         window.addEventListener('mousemove', handleMouseMove);
 
-        // Geocoding logics (kept as is)
+        // Geocoding logics
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
@@ -47,19 +60,13 @@ function Citizens() {
                     try {
                         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
                         const data = await response.json();
-
-                        // Extract address parts (street/suburb/district/city depending on what's available)
                         const address = data.address;
                         const district = address.county || address.suburb || address.city_district || "";
                         const city = address.city || address.province || address.state || "";
-
                         const displayAddress = [district, city].filter(Boolean).join(', ');
                         setLocation(displayAddress || 'Không xác định được vị trí');
-
-                        // Default mock risk level for the fetched location
                         setRiskLevel('Trung bình');
                         setRiskColor('yellow');
-
                     } catch (error) {
                         console.error("Error fetching location details:", error);
                         setLocation('Lỗi khi lấy địa chỉ');
@@ -93,6 +100,8 @@ function Citizens() {
         setSosDescription('');
         setSosPeopleCount(1);
         setSosRequestType(1);
+        setHasVulnerable(false);
+        setWaterLevel(0);
         setShowSOSModal(true);
     };
 
@@ -103,6 +112,7 @@ function Citizens() {
             const payload = {
                 description: sosDescription || 'Yêu cầu cứu hộ khẩn cấp',
                 requestType: sosRequestType,
+                urgencyLevel: urgencyLevel,
                 peopleCount: sosPeopleCount,
                 urgencyLevel: 1,
                 currentLocation: coords
@@ -148,22 +158,22 @@ function Citizens() {
         svgFill: isDarkMode ? 'text-[#080d18]' : 'text-blue-100',
     };
 
+    // Shared input/select styles
+    const inputCls = `w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`;
+    const labelCls = `text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`;
+
     return (
         <div className={`min-h-screen ${theme.bg} ${theme.text} relative overflow-hidden font-sans transition-colors duration-500`}>
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                {/* Radial glow center-left */}
                 <div
                     className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#1d4ed8]/20 rounded-full blur-[120px] transition-transform duration-300 ease-out"
                     style={{ transform: `translate(calc(-50% + ${mousePos.x * 2}px), calc(-50% + ${mousePos.y * 2}px))` }}
                 ></div>
-                {/* Radial glow bottom-right */}
                 <div
                     className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#1d4ed8]/15 rounded-full blur-[100px] transition-transform duration-300 ease-out"
                     style={{ transform: `translate(calc(25% + ${mousePos.x}px), calc(25% + ${mousePos.y}px))` }}
                 ></div>
-
-                {/* Wavy bottom SVG with mouse tracking parallax */}
                 <div
                     className="absolute bottom-0 w-full transition-transform duration-300 ease-out"
                     style={{ transform: `translate(${mousePos.x * -1}px, ${mousePos.y * -0.5}px) scale(1.05)` }}
@@ -200,19 +210,10 @@ function Citizens() {
                     <div className="flex flex-col items-center space-y-1.5 mt-2">
                         {/* Small water drop icon */}
                         <div className="relative w-14 h-14 flex flex-col items-center justify-center mb-2">
-                            {/* Soft outer glow */}
                             <div className="absolute inset-0 bg-[#06b6d4] rounded-full blur-md opacity-20"></div>
-
-                            {/* Inner circle background */}
                             <div className="relative w-16 h-16 bg-[#1c2638] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.15)] z-10">
-                                <svg
-                                    className="w-[30px] h-[30px] text-[#22d3ee]"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    {/* Main droplet shape */}
+                                <svg className="w-[30px] h-[30px] text-[#22d3ee]" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2.69l5.66 5.66a8 8 0 11-11.32 0z" />
-                                    {/* Small cut-out arc to simulate reflection */}
                                     <path d="M9.5 16a3.5 3.5 0 003.5 1.5" fill="none" stroke="#1c2638" strokeWidth="2.5" strokeLinecap="round" />
                                 </svg>
                             </div>
@@ -228,12 +229,9 @@ function Citizens() {
 
                         {/* SOS Button Area */}
                         <div className="relative mt-12 mb-10 py-8 flex flex-col items-center justify-center w-full max-w-[320px] mx-auto group">
-                            {/* Outer pulsing ring 1 */}
                             <div className="absolute w-[260px] h-[260px] bg-[#ef4444]/20 rounded-full flex items-center justify-center -z-10 shadow-[0_0_80px_rgba(239,68,68,0.4)] animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] group-hover:scale-75 group-hover:animate-none transition-transform duration-500 ease-in-out"></div>
-                            {/* Outer pulsing ring 2 */}
                             <div className="absolute w-[220px] h-[220px] bg-[#ef4444]/30 rounded-full flex items-center justify-center -z-10 shadow-[0_0_50px_rgba(239,68,68,0.5)] animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite] group-hover:scale-90 transition-transform duration-500 ease-in-out"></div>
 
-                            {/* Inner SOS Button */}
                             <button
                                 onClick={handleSOSClick}
                                 disabled={sosLoading}
@@ -242,11 +240,7 @@ function Citizens() {
                                 {sosLoading ? (
                                     <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
                                 ) : (
-                                    <svg
-                                        className="w-10 h-10 text-white/90 mb-1"
-                                        fill="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
+                                    <svg className="w-10 h-10 text-white/90 mb-1" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
                                     </svg>
                                 )}
@@ -256,88 +250,155 @@ function Citizens() {
                         </div>
                     </div>
 
-                    {/* SOS Confirmation Modal */}
+                    {/* ═══════════ SOS Confirmation Modal ═══════════ */}
                     {showSOSModal && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
-                            <div className={`w-full max-w-md rounded-2xl p-6 space-y-5 shadow-2xl border ${isDarkMode ? 'bg-[#1e253c] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+                            <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl border overflow-y-auto max-h-[90vh] ${isDarkMode ? 'bg-[#1e253c] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
                                 {/* Header */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 mb-5">
                                     <div className="w-11 h-11 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold">Xác nhận yêu cầu cứu hộ</h3>
-                                        <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Vui lòng cung cấp thông tin bên dưới</p>
+                                        <h3 className="text-lg font-bold">Đánh giá tình huống khẩn cấp</h3>
+                                        <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Trả lời các câu hỏi để hệ thống xác định mức độ</p>
                                     </div>
                                 </div>
 
-                                {/* Description */}
-                                <div>
-                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Mô tả tình huống</label>
-                                    <textarea
-                                        value={sosDescription}
-                                        onChange={(e) => setSosDescription(e.target.value)}
-                                        placeholder="Ví dụ: Nước ngập cao, cần di tản gấp..."
-                                        rows={3}
-                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none resize-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white placeholder-slate-500 border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 placeholder-slate-400 border border-slate-200 focus:border-blue-500'}`}
-                                    />
-                                </div>
+                                <div className="space-y-4">
+                                    {/* ── Q1: Vulnerable people ── */}
+                                    <div className={`rounded-xl p-4 ${isDarkMode ? 'bg-[#151b2e]' : 'bg-slate-50'}`}>
+                                        <p className={labelCls}>
+                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-bold mr-2">1</span>
+                                            Có người già, trẻ em hoặc người bệnh không?
+                                        </p>
+                                        <div className="flex gap-3 mt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setHasVulnerable(false)}
+                                                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${!hasVulnerable
+                                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                                                    : isDarkMode ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                                                    }`}
+                                            >
+                                                Không
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setHasVulnerable(true)}
+                                                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${hasVulnerable
+                                                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                                                    : isDarkMode ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                                                    }`}
+                                            >
+                                                Có
+                                            </button>
+                                        </div>
+                                    </div>
 
-                                {/* People Count */}
-                                <div>
-                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Số người cần hỗ trợ</label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        value={sosPeopleCount}
-                                        onChange={(e) => setSosPeopleCount(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`}
-                                    />
-                                </div>
+                                    {/* ── Q2: Water level ── */}
+                                    <div className={`rounded-xl p-4 ${isDarkMode ? 'bg-[#151b2e]' : 'bg-slate-50'}`}>
+                                        <p className={labelCls}>
+                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-bold mr-2">2</span>
+                                            Mức nước hiện tại ở đâu?
+                                        </p>
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            {[
+                                                { value: 0, label: 'Đến đầu gối', icon: '🌊' },
+                                                { value: 1, label: 'Đang ngập tầng 1', icon: '🏠' },
+                                                { value: 2, label: 'Lên tới nóc nhà / Không còn chỗ đứng', icon: '🆘' },
+                                            ].map((opt) => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setWaterLevel(opt.value)}
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer text-left ${waterLevel === opt.value
+                                                        ? opt.value === 2
+                                                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                                                            : opt.value === 1
+                                                                ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                                                                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                                                        : isDarkMode ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                                                        }`}
+                                                >
+                                                    <span className="text-lg">{opt.icon}</span>
+                                                    <span className="flex-1">{opt.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                                {/* Request Type */}
-                                <div>
-                                    <label className={`text-sm font-medium mb-1.5 block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Loại hỗ trợ</label>
-                                    <select
-                                        value={sosRequestType}
-                                        onChange={(e) => setSosRequestType(parseInt(e.target.value))}
-                                        className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors ${isDarkMode ? 'bg-[#151b2e] text-white border border-white/10 focus:border-blue-500' : 'bg-slate-100 text-slate-800 border border-slate-200 focus:border-blue-500'}`}
-                                    >
-                                        <option value={1}>Rescue - Cứu hộ</option>
-                                        <option value={2}>Relief - Cứu trợ</option>
-                                        <option value={3}>Both - Cả hai</option>
-                                    </select>
-                                </div>
+                                    {/* ── Q3: People count ── */}
+                                    <div className={`rounded-xl p-4 ${isDarkMode ? 'bg-[#151b2e]' : 'bg-slate-50'}`}>
+                                        <p className={labelCls}>
+                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-bold mr-2">3</span>
+                                            Số người cần hỗ trợ
+                                        </p>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            value={sosPeopleCount}
+                                            onChange={(e) => setSosPeopleCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                            className={inputCls + ' mt-2'}
+                                        />
+                                    </div>
 
-                                {/* Location preview */}
-                                <div className={`text-xs px-3 py-2 rounded-lg ${isDarkMode ? 'bg-[#151b2e] text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                                    📍 Vị trí: <span className="font-medium">{location}</span>
-                                </div>
+                                    {/* ── Description ── */}
+                                    <div>
+                                        <label className={labelCls}>Mô tả tình huống</label>
+                                        <textarea
+                                            value={sosDescription}
+                                            onChange={(e) => setSosDescription(e.target.value)}
+                                            placeholder="Ví dụ: Nước ngập cao, cần di tản gấp..."
+                                            rows={2}
+                                            className={inputCls + ' resize-none ' + (isDarkMode ? 'placeholder-slate-500' : 'placeholder-slate-400')}
+                                        />
+                                    </div>
 
-                                {/* Buttons */}
-                                <div className="flex gap-3 pt-1">
-                                    <button
-                                        onClick={() => setShowSOSModal(false)}
-                                        className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-colors ${isDarkMode ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
-                                    >
-                                        Hủy bỏ
-                                    </button>
-                                    <button
-                                        onClick={handleSOSConfirm}
-                                        disabled={sosLoading}
-                                        className="flex-1 py-3 rounded-xl font-semibold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {sosLoading ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                Đang gửi...
-                                            </>
-                                        ) : (
-                                            'Gửi yêu cầu SOS'
-                                        )}
-                                    </button>
+                                    {/* ── Request Type ── */}
+                                    <div>
+                                        <label className={labelCls}>Loại hỗ trợ</label>
+                                        <select
+                                            value={sosRequestType}
+                                            onChange={(e) => setSosRequestType(parseInt(e.target.value))}
+                                            className={inputCls}
+                                        >
+                                            <option value={1}>Cứu hộ (Rescue)</option>
+                                            <option value={2}>Cứu trợ (Relief)</option>
+                                            <option value={3}>Cả hai (Both)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* ── Location preview ── */}
+                                    <div className={`text-xs px-3 py-2 rounded-lg ${isDarkMode ? 'bg-[#151b2e] text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                                        📍 Vị trí: <span className="font-medium">{location}</span>
+                                    </div>
+
+                                    {/* ── Buttons ── */}
+                                    <div className="flex gap-3 pt-1">
+                                        <button
+                                            onClick={() => setShowSOSModal(false)}
+                                            className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-colors cursor-pointer ${isDarkMode ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                                        >
+                                            Hủy bỏ
+                                        </button>
+                                        <button
+                                            onClick={handleSOSConfirm}
+                                            disabled={sosLoading}
+                                            className="flex-1 py-3 rounded-xl font-semibold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            {sosLoading ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                    Đang gửi...
+                                                </>
+                                            ) : (
+                                                `Gửi yêu cầu ${urgencyMeta[urgencyLevel].emoji}`
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
