@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import axios from 'axios';
 import { getWareHouseApi, createWareHouseApi, updateWareHouseApi, deleteWareHouseApi, getWareHouseStockApi } from '../../features/wareHouse/api/wareHouseApi';
 import { useInventory } from '../../features/inventory/hook/useInventory';
 
@@ -44,6 +45,21 @@ const WarehouseConfig = () => {
         isActive: true
     });
 
+    // ── Form Address Open API ──────────────────────────────────────
+    const [provinces, setProvinces] = useState([]);
+    const [addrState, setAddrState] = useState({
+        street: '',
+        provinceCode: '',
+        districtCode: '',
+        wardCode: ''
+    });
+
+    useEffect(() => {
+        axios.get('https://provinces.open-api.vn/api/?depth=3')
+            .then(res => setProvinces(res.data))
+            .catch(err => console.error("Failed to fetch provinces:", err));
+    }, []);
+
     // ── Fetch ──────────────────────────────────────────────────────
     const fetchAll = useCallback(async () => {
         setIsLoading(true);
@@ -84,11 +100,25 @@ const WarehouseConfig = () => {
                 }
             }
 
+            let fullAddress = 'Chưa xác định';
+            if (addrState.provinceCode) {
+                const p = provinces.find(p => p.code == addrState.provinceCode);
+                const d = p?.districts?.find(d => d.code == addrState.districtCode);
+                const w = d?.wards?.find(w => w.code == addrState.wardCode);
+                const parts = [];
+                if (addrState.street.trim()) parts.push(addrState.street.trim());
+                if (w) parts.push(w.name);
+                if (d) parts.push(d.name);
+                if (p) parts.push(p.name);
+                if (parts.length > 0) fullAddress = parts.join(', ');
+            } else if (form.address) {
+                fullAddress = form.address;
+            }
+
             const payload = {
                 warehouseId: form.warehouseId || 0,
                 warehouseName: form.warehouseName,
-                address: form.address,
-                locationText: form.address, // Team leader: "Location text là cái địa chỉ bên trên á"
+                address: fullAddress,
                 isActive: form.isActive,
                 location: {
                     type: "Point",
@@ -110,6 +140,7 @@ const WarehouseConfig = () => {
                 gpsText: '10.762622, 106.660172',
                 isActive: true
             });
+            setAddrState({ street: '', provinceCode: '', districtCode: '', wardCode: '' });
             fetchAll();
         } catch (error) {
             alert('Lưu thông tin kho thất bại. Vui lòng kiểm tra lại!');
@@ -126,6 +157,7 @@ const WarehouseConfig = () => {
             gpsText: '10.762622, 106.660172',
             isActive: true
         });
+        setAddrState({ street: '', provinceCode: '', districtCode: '', wardCode: '' });
         setModalMode('create');
         setIsModalOpen(true);
     };
@@ -140,6 +172,30 @@ const WarehouseConfig = () => {
             gpsText: `${itemLat}, ${itemLng}`,
             isActive: item.isActive ?? true
         });
+
+        // Try to parse existing address back into dropdowns
+        let st = item.address || '', pC = '', dC = '', wC = '';
+        if (item.address && provinces.length > 0) {
+            const parts = item.address.split(',').map(s => s.trim());
+            if (parts.length >= 4) {
+                const pName = parts[parts.length - 1];
+                const p = provinces.find(x => x.name.includes(pName) || pName.includes(x.name));
+                if (p) {
+                    pC = p.code;
+                    const dName = parts[parts.length - 2];
+                    const d = p.districts.find(x => x.name.includes(dName) || dName.includes(x.name));
+                    if (d) {
+                        dC = d.code;
+                        const wName = parts[parts.length - 3];
+                        const w = d.wards.find(x => x.name.includes(wName) || wName.includes(x.name));
+                        if (w) wC = w.code;
+                    }
+                }
+                st = parts.slice(0, parts.length - 3).join(', ');
+            }
+        }
+        setAddrState({ street: st, provinceCode: pC, districtCode: dC, wardCode: wC });
+
         setModalMode('edit');
         setIsModalOpen(true);
     };
@@ -318,7 +374,7 @@ const WarehouseConfig = () => {
             {/* ── MODAL CREATE/EDIT ──────────────────────────────── */}
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                    <div className={`w-full max-w-[750px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
                             <h3 className={`text-lg font-bold ${theme.text}`}>
@@ -343,11 +399,33 @@ const WarehouseConfig = () => {
 
                             <div>
                                 <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Địa chỉ</label>
-                                <input type="text" placeholder="Số nhà, đường, phường, quận..."
-                                    value={form.address}
-                                    onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
-                                />
+                                <div className="space-y-3">
+                                    <input type="text" placeholder="Số nhà, đường, hẻm..."
+                                        value={addrState.street}
+                                        onChange={e => setAddrState(p => ({ ...p, street: e.target.value }))}
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
+                                    />
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <select value={addrState.provinceCode} onChange={e => setAddrState(p => ({ ...p, provinceCode: e.target.value, districtCode: '', wardCode: '' }))}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none`}
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}>
+                                            <option value="">-- Tỉnh/Thành --</option>
+                                            {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                                        </select>
+                                        <select value={addrState.districtCode} onChange={e => setAddrState(p => ({ ...p, districtCode: e.target.value, wardCode: '' }))} disabled={!addrState.provinceCode}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50 appearance-none`}
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}>
+                                            <option value="">-- Quận/Huyện --</option>
+                                            {provinces.find(p => p.code == addrState.provinceCode)?.districts?.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
+                                        </select>
+                                        <select value={addrState.wardCode} onChange={e => setAddrState(p => ({ ...p, wardCode: e.target.value }))} disabled={!addrState.districtCode}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50 appearance-none`}
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}>
+                                            <option value="">-- Phường/Xã --</option>
+                                            {provinces.find(p => p.code == addrState.provinceCode)?.districts?.find(d => d.code == addrState.districtCode)?.wards?.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div>

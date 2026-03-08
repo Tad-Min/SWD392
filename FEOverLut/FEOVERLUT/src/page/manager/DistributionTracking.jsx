@@ -338,7 +338,7 @@ const DistributionTracking = () => {
             {/* ── MODAL TẠO GIAO DỊCH ──────────────────────────── */}
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                    <div className={`w-full max-w-[550px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
                             <h3 className={`text-lg font-bold ${theme.text}`}>Tạo Giao Dịch Mới</h3>
                             <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
@@ -350,7 +350,7 @@ const DistributionTracking = () => {
                             <div>
                                 <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Loại giao dịch <span className="text-red-400">*</span></label>
                                 <select value={form.txType} onChange={e => setForm(p => ({ ...p, txType: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
                                     {Object.entries(TX_TYPE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                                 </select>
                             </div>
@@ -359,7 +359,7 @@ const DistributionTracking = () => {
                                 <div>
                                     <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Sản phẩm <span className="text-red-400">*</span></label>
                                     <select value={form.productId} onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
                                         <option value="">-- Chọn --</option>
                                         {products.map(p => <option key={p.productId} value={p.productId}>{p.productName}</option>)}
                                     </select>
@@ -367,7 +367,7 @@ const DistributionTracking = () => {
                                 <div>
                                     <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Kho <span className="text-red-400">*</span></label>
                                     <select value={form.warehouseId} onChange={e => setForm(p => ({ ...p, warehouseId: e.target.value }))}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
                                         <option value="">-- Chọn --</option>
                                         {warehouses.map(w => <option key={w.warehouseId} value={w.warehouseId}>{w.warehouseName ?? w.name}</option>)}
                                     </select>
@@ -382,7 +382,7 @@ const DistributionTracking = () => {
                                         className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
                                 </div>
                                 <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>ID Nhiệm vụ</label>
+                                    <label className={`block text-[13px] font-semibold ${theme.textMuted} mb-1.5`}>ID Nhiệm vụ (Tuỳ chọn)</label>
                                     <input type="number" min="1" value={form.missionId} onChange={e => setForm(p => ({ ...p, missionId: e.target.value }))}
                                         placeholder="(Tuỳ chọn)"
                                         className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
@@ -411,7 +411,7 @@ const DistributionTracking = () => {
             {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
             {isDetailOpen && selectedTx && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                    <div className={`w-full max-w-[600px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
                             <div>
                                 <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>
