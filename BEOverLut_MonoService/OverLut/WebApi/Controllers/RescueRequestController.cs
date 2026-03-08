@@ -62,7 +62,7 @@ namespace WebApi.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("Add")]
         public async Task<IActionResult> AddRescueRequest(CreateRescueRequestModel model)
         {
@@ -83,6 +83,7 @@ namespace WebApi.Controllers
                             UserReqId = userId,
                             Description = model.Description,
                             RequestType = model.RequestType,
+                            UrgencyLevel = model.UrgencyLevel,
                             Location = model.Currentlocation,
                             PeopleCount = model.PeopleCount,
                             LocationText = model.LocationText,
@@ -98,6 +99,7 @@ namespace WebApi.Controllers
                         Description = model.Description,
                         Location = model.Currentlocation,
                         RequestType = model.RequestType,
+                        UrgencyLevel = model.UrgencyLevel,
                         PeopleCount = model.PeopleCount,
                         LocationText = model.LocationText,
                         Ipaddress = GetClientIp(HttpContext),

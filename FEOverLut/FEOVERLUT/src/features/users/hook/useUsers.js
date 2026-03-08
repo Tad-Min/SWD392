@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi, createUserApi } from '../api/usersApi';
+import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi, createUserApi, getUserByIdApi } from '../api/usersApi';
 
 export const useUsers = () => {
     const [isLoading, setLoading] = useState(false);
@@ -95,3 +95,30 @@ export const useUsers = () => {
         createUser
     };
 };
+
+export const useUserById = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getUserById = async (id) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await getUserByIdApi(id);
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi tải thông tin người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        getUserById
+    };
+};
+
