@@ -114,7 +114,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
 
-            ValidIssuer = builder.Configuration["JWTAuth:Authority"],
+            ValidIssuer = builder.Configuration["JWTAuth:Issuer"],
             ValidAudience = builder.Configuration["JWTAuth:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["JWTAuth:key"] ?? "a-string-secret-at-least-256-bits-long")),

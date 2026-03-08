@@ -125,6 +125,11 @@ export const updateRescueMissionStatusApi = async (data) => {
     return response.data;
 };
 
+export const deleteRescueMissionStatusApi = async (id) => {
+    const response = await api.delete(`Status/RescueMissions/${id}`);
+    return response.data;
+};
+
 export const getRescueRequestTypeByIdApi = async (id) => {
     const response = await api.get(`Types/RescueRequests/${id}`);
     return response.data;
