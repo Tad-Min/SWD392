@@ -62,6 +62,7 @@ namespace WebApi.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("Add")]
         public async Task<IActionResult> AddRescueRequest(CreateRescueRequestModel model)
         {

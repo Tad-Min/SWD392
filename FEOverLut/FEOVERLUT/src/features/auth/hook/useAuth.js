@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { loginApi, registerApi, logoutApi } from '../api/authApi';
+import api from '../../../config/axios';
 
 export const useLogout = () => {
     const [isLoading, setLoading] = useState(false);
@@ -28,11 +29,21 @@ export const useLogin = () => {
         setError(null);
         try {
             const response = await loginApi({ email, password });
-            localStorage.setItem('userId', response.userId);
-            localStorage.setItem('roleId', response.roleId);
-            localStorage.setItem('name', response.userName);
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('refreshToken', response.refreshToken);
+            // API response may be nested: { data: { token, ... } } or flat { token, ... }
+            const userData = response?.data ?? response;
+
+            console.log('Login API response:', response);
+            console.log('Resolved userData:', userData);
+
+            localStorage.setItem('userId', userData.userId);
+            localStorage.setItem('roleId', userData.roleId);
+            localStorage.setItem('name', userData.userName);
+            localStorage.setItem('token', userData.token);
+            localStorage.setItem('refreshToken', userData.refreshToken);
+
+            // Save access token on header
+            api.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+
             return response;
         } catch (error) {
             setError(error.message);
