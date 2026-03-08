@@ -338,7 +338,11 @@ const DistributionTracking = () => {
             {/* ── MODAL TẠO GIAO DỊCH ──────────────────────────── */}
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+<<<<<<< Updated upstream
                     <div className={`w-full max-w-[550px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+=======
+                    <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+>>>>>>> Stashed changes
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
                             <h3 className={`text-lg font-bold ${theme.text}`}>Tạo Giao Dịch Mới</h3>
                             <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
@@ -411,7 +415,11 @@ const DistributionTracking = () => {
             {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
             {isDetailOpen && selectedTx && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+<<<<<<< Updated upstream
                     <div className={`w-full max-w-[600px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+=======
+                    <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+>>>>>>> Stashed changes
                         <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
                             <div>
                                 <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>
