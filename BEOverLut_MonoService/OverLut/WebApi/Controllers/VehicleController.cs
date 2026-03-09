@@ -157,7 +157,9 @@ namespace WebApi.Controllers
                     return BadRequest(new { message = "Vehicle data is required" });
 
                 var createdVehicle = await _vehicleService.CreateVehicle(dto);
-                return CreatedAtAction(nameof(GetVehicleById), new { id = createdVehicle.VehicleId }, createdVehicle);
+                if (createdVehicle == null)
+                    return BadRequest(new { message = "Failed to create vehicle" });
+                return CreatedAtAction(nameof(GetVehicleById), new { id = createdVehicle!.VehicleId }, createdVehicle);
             }
             catch (Exception ex)
             {

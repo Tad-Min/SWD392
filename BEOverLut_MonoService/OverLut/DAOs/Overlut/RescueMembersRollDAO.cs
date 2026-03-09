@@ -67,4 +67,21 @@ public class RescueMembersRoleDAO
             return false;
         }
     }
+    public static async Task<bool> DeleteRescueMembersRoleById(int id)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            var existingRoll = await db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == id);
+            if (existingRoll == null) return false;
+            db.RescueMembersRoles.Remove(existingRoll);
+            await db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueMembersRoleDAO-DeleteRescueMembersRoleById: {ex.Message}");
+            return false;
+        }
+    }
 }

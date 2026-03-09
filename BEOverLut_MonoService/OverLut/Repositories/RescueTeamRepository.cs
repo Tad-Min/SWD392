@@ -8,10 +8,16 @@ namespace Repositories
     {
         public async Task<IEnumerable<RescueTeam>?> GetAllRescueTeam(int? teamId = null, string? teamName = null, int? statusId = null) => await RescueTeamDAO.GetAllRescueTeam(teamId, teamName, statusId);
 
+        public async Task<RescueTeam?> GetRescueTeamByTeamId(int teamId) => await RescueTeamDAO.GetRescueTeamByTeamId(teamId);
+
+        public Task<IEnumerable<RescueTeam>?> GetRescueTeamByUserId(int userId) => RescueTeamDAO.GetRescueTeamByUserId(userId);
+
         public async Task<RescueTeam?> CreateRescueTeam(RescueTeam rescueTeam) => await RescueTeamDAO.CreateRescueTeam(rescueTeam);
 
         public async Task<bool> UpdateRescueTeam(RescueTeam rescueTeam) => await RescueTeamDAO.UpdateRescueTeam(rescueTeam);
 
         public async Task<bool> DeleteRescueTeamById(int teamId) => await RescueTeamDAO.DeleteRescueTeamById(teamId);
+
+        
     }
 }

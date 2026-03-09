@@ -20,6 +20,12 @@ public class RescueTeamMemberDAO
         }
     }
 
+    public static async Task<RescueTeamMember?> GetRescueTeamMemberByUserIdAndTeamId(int userId, int teamId)
+    {
+        using var db = new OverlutDbContext();
+        return await db.RescueTeamMembers
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.TeamId == teamId);
+    }
     public static async Task<RescueTeamMember?> AddRescueTeamMember(RescueTeamMember rescueTeamMember)
     {
         try
