@@ -9,7 +9,7 @@ export const useRescueMission = () => {
         try {
             setLoading(true);
             const response = await getRescueMissionApi();
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -31,7 +31,7 @@ export const useRescueMissionById = () => {
         try {
             setLoading(true);
             const response = await getRescueMissionByIdApi(id);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -53,7 +53,7 @@ export const useCreateRescueMission = () => {
         try {
             setLoading(true);
             const response = await createRescueMissionApi(data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {
@@ -76,7 +76,7 @@ export const useUpdateRescueMission = () => {
         try {
             setLoading(true);
             const response = await updateRescueMissionApi(id, data);
-            return response.data;
+            return response;
         } catch (error) {
             setError(error);
         } finally {

@@ -114,7 +114,7 @@ function Citizens() {
                 requestType: sosRequestType,
                 urgencyLevel: urgencyLevel,
                 peopleCount: sosPeopleCount,
-                currentlocation: coords
+                currentLocation: coords
                     ? {
                         type: 'Point',
                         coordinates: [coords.longitude, coords.latitude],

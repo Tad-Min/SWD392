@@ -9,7 +9,9 @@ const urgencyMeta = {
 
 function timeAgo(dateStr) {
     if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
+    // Ensure the date is interpreted as UTC if it lacks timezone info (e.g. from .NET)
+    const normalizedDate = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+    const diff = Date.now() - new Date(normalizedDate).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Vừa xong';
     if (mins < 60) return `${mins} phút trước`;

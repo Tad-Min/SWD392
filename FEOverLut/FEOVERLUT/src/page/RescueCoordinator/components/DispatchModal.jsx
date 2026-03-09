@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Send, MapPin, AlertTriangle, Users } from 'lucide-react';
+import { X, Send, MapPin, AlertTriangle, Users, Clock } from 'lucide-react';
 import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
 
 export default function DispatchModal({
@@ -44,20 +44,29 @@ export default function DispatchModal({
     if (!request) return null;
 
     const availableTeams = teams.filter(
-        (t) => t.status === 'Available' || t.status === 'Sẵn sàng'
+        (t) => t.statusId === 1 || t.status === 'Available' || t.status === 'Sẵn sàng'
     );
 
     const handleSubmit = () => {
         if (!selectedTeamId) return;
         onConfirm?.({
             rescueRequestId: request.id ?? request.rescueRequestId,
-            rescueTeamId: selectedTeamId,
-            note,
+            teamId: parseInt(selectedTeamId),
+            description: note || 'Điều phối cứu hộ',
         });
     };
 
     const requestTypeLabel = typeLabels[request.requestType];
     const urgency = urgencyMeta[request.urgencyLevel] || { label: 'Không rõ', color: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
+
+    // Helper to format date
+    const formatDateTime = (dateStr) => {
+        if (!dateStr) return 'Không có dữ liệu';
+        const tzDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+        return new Date(tzDateStr).toLocaleString('vi-VN', {
+            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -99,6 +108,10 @@ export default function DispatchModal({
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                             <Users className="w-3.5 h-3.5" />
                             <span>{request.peopleCount ?? 1} người cần hỗ trợ</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{formatDateTime(request.createdAt || request.createdDate)}</span>
                         </div>
                         {request.locationText && (
                             <div className="flex items-center gap-2 text-xs text-slate-400">

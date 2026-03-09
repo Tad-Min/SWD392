@@ -26,6 +26,9 @@ import ManagerReports from './page/manager/ManagerReports.jsx';
 // Import RescueCoordinator
 import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
 
+// Import RescueTeam
+import RescueTeamDashboard from './page/RescueTeam/RescueTeamDashboard.jsx';
+
 function App() {
 
   return (
@@ -39,6 +42,8 @@ function App() {
 
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
+            {/* RescueTeam Routes */}
+            <Route path="/rescue-team/tasks" element={<ProtectedRoute><RescueTeamDashboard /></ProtectedRoute>} />
             {/* RescueCoordinator Routes */}
             <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
 
