@@ -22,7 +22,7 @@ const toArr = (v) => {
 
 const dropdownArrow = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`;
 
-const MISSION_STATUS = { 0: 'Chờ xử lý', 1: 'Đang thực hiện', 2: 'Hoàn thành', 3: 'Hủy bỏ' };
+const MISSION_STATUS = { 1: 'Đã phân công', 2: 'Đang di chuyển', 3: 'Đang cứu hộ', 4: 'Hoàn thành', 5: 'Thất bại' };
 const REQUEST_URGENCY = { 1: 'Thấp', 2: 'Trung bình', 3: 'Cao', 4: 'Khẩn cấp' };
 
 const ManagerReports = () => {
@@ -254,8 +254,8 @@ const ManagerReports = () => {
         }
         if (selectedType === 'inventory') {
             const totalQty = stocks.reduce((s, x) => s + (x.quantity ?? 0), 0);
-            const txIn = transactions.filter(t => (t.txType ?? t.txtype) === 1).length;
-            const txOut = transactions.filter(t => (t.txType ?? t.txtype) === 2).length;
+            const txIn = transactions.filter(t => (t.txType ?? t.txtype) === 0).length;
+            const txOut = transactions.filter(t => (t.txType ?? t.txtype) === 1).length;
             const rows = [
                 { label: 'Tổng sản phẩm', value: products.length, color: 'text-blue-500' },
                 { label: 'Tổng tồn kho', value: totalQty.toLocaleString(), color: 'text-emerald-500' },
@@ -274,8 +274,8 @@ const ManagerReports = () => {
             );
         }
         if (selectedType === 'personnel') {
-            const ROLE_MAP = { 1: 'Admin', 2: 'Manager', 3: 'Coordinator', 4: 'Rescuer', 5: 'Citizen' };
-            const COLORS = { 1: '#D946EF', 2: '#6366F1', 3: '#3B82F6', 4: '#10B981', 5: '#94A3B8' };
+            const ROLE_MAP = { 1: 'Citizen', 2: 'RescueTeam', 3: 'Coordinator', 4: 'Manager', 5: 'Admin' };
+            const COLORS = { 1: '#94A3B8', 2: '#10B981', 3: '#3B82F6', 4: '#6366F1', 5: '#D946EF' };
             const data = Object.entries(ROLE_MAP).map(([id, name]) => ({
                 name, count: users.filter(u => (u.roleId ?? u.roleid) === parseInt(id)).length,
                 color: COLORS[id],

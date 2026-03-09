@@ -10,22 +10,9 @@ export const useLogout = () => {
         try {
             const userId = localStorage.getItem('userId');
             const refreshToken = localStorage.getItem('refreshToken');
-<<<<<<< Updated upstream
             await logoutApi({
                 userId: userId ? parseInt(userId) : 0,
                 refeshToken: refreshToken || ""
-=======
-<<<<<<< HEAD
-
-            await logoutApi({
-                userId: userId ? parseInt(userId) : 0,
-                refeshToken: refreshToken || "" // Lưu ý: 'RefeshToken' khớp với lỗi chính tả BE
-=======
-            await logoutApi({
-                userId: userId ? parseInt(userId) : 0,
-                refeshToken: refreshToken || ""
->>>>>>> 366aaba5301dd6e9cfdc332a607863ba454fbc47
->>>>>>> Stashed changes
             });
         } catch (error) {
             console.error("Logout error", error);

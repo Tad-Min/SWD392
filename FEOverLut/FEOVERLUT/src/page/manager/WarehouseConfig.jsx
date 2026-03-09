@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-<<<<<<< Updated upstream
 import axios from 'axios';
-=======
->>>>>>> Stashed changes
 import { getWareHouseApi, createWareHouseApi, updateWareHouseApi, deleteWareHouseApi, getWareHouseStockApi } from '../../features/wareHouse/api/wareHouseApi';
 import { useInventory } from '../../features/inventory/hook/useInventory';
 
@@ -402,7 +399,6 @@ const WarehouseConfig = () => {
 
                             <div>
                                 <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Địa chỉ</label>
-<<<<<<< Updated upstream
                                 <div className="space-y-3">
                                     <input type="text" placeholder="Số nhà, đường, hẻm..."
                                         value={addrState.street}
@@ -430,13 +426,6 @@ const WarehouseConfig = () => {
                                         </select>
                                     </div>
                                 </div>
-=======
-                                <input type="text" placeholder="Số nhà, đường, phường, quận..."
-                                    value={form.address}
-                                    onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none`}
-                                />
->>>>>>> Stashed changes
                             </div>
 
                             <div>
