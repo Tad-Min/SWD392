@@ -335,165 +335,167 @@ const DistributionTracking = () => {
             {/* ── MODAL TẠO GIAO DỊCH ──────────────────────────── */}
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
-                        <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
-                            <h3 className={`text-lg font-bold ${theme.text}`}>Tạo Giao Dịch Mới</h3>
-                            <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
-                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            {/* Loại giao dịch */}
-                            <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Loại giao dịch <span className="text-red-400">*</span></label>
-                                <select value={form.txType} onChange={e => setForm(p => ({ ...p, txType: e.target.value }))}
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
-                                    {Object.entries(TX_TYPE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                                </select>
+                    <div className={`w-full max-w-[550px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                        <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                            <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
+                                <h3 className={`text-lg font-bold ${theme.text}`}>Tạo Giao Dịch Mới</h3>
+                                <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
+                                    <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                </button>
                             </div>
-                            {/* Sản phẩm + Kho */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="p-6 space-y-4">
+                                {/* Loại giao dịch */}
                                 <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Sản phẩm <span className="text-red-400">*</span></label>
-                                    <select value={form.productId} onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
-                                        <option value="">-- Chọn --</option>
-                                        {products.map(p => <option key={p.productId} value={p.productId}>{p.productName}</option>)}
+                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Loại giao dịch <span className="text-red-400">*</span></label>
+                                    <select value={form.txType} onChange={e => setForm(p => ({ ...p, txType: e.target.value }))}
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                        {Object.entries(TX_TYPE).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Kho <span className="text-red-400">*</span></label>
-                                    <select value={form.warehouseId} onChange={e => setForm(p => ({ ...p, warehouseId: e.target.value }))}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
-                                        <option value="">-- Chọn --</option>
-                                        {warehouses.map(w => <option key={w.warehouseId} value={w.warehouseId}>{w.warehouseName ?? w.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            {/* Số lượng + Mission */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Số lượng <span className="text-red-400">*</span></label>
-                                    <input type="number" min="1" value={form.quantity} onChange={e => setForm(p => ({ ...p, quantity: e.target.value }))}
-                                        placeholder="0"
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
-                                </div>
-                                <div>
-                                    <label className={`block text-[13px] font-semibold ${theme.textMuted} mb-1.5`}>ID Nhiệm vụ (Tuỳ chọn)</label>
-                                    <input type="number" min="1" value={form.missionId} onChange={e => setForm(p => ({ ...p, missionId: e.target.value }))}
-                                        placeholder="(Tuỳ chọn)"
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
-                                </div>
-                            </div>
-                            {/* Ghi chú */}
-                            <div>
-                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Ghi chú</label>
-                                <textarea rows={2} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))}
-                                    placeholder="Thông tin thêm..."
-                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none`} />
-                            </div>
-                        </div>
-                        <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
-                            <button onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>Hủy bỏ</button>
-                            <button onClick={handleSubmit} disabled={submitting || !form.warehouseId || !form.productId || !form.quantity}
-                                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !form.warehouseId || !form.productId || !form.quantity ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}>
-                                {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
-                                Xác nhận
-                            </button>
-                        </div>
-                    </div>
-                </div>, document.body
-            )}
-
-            {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
-            {isDetailOpen && selectedTx && createPortal(
-                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
-                        <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
-                            <div>
-                                <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>
-                                <p className={`text-xs ${theme.textMuted} mt-1`}>Mã tham chiếu: #TX-{String(selectedTx.txId ?? selectedTx.txid).padStart(4, '0')}</p>
-                            </div>
-                            <button onClick={() => setIsDetailOpen(false)} className={`p-2 rounded-xl ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'} transition-colors`}>
-                                <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                            </button>
-                        </div>
-
-                        <div className="p-8 space-y-6">
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-1">
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Loại giao dịch</p>
-                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.cls}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.dot}`} />
-                                        {TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.label}
-                                    </span>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Thời gian</p>
-                                    <p className={`text-sm font-semibold ${theme.text}`}>
-                                        {selectedTx.createdAt ? new Date(selectedTx.createdAt).toLocaleString('vi-VN') : '—'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className={`p-5 rounded-2xl border ${theme.border} ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-4`}>
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-1">
-                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Sản phẩm vật tư</p>
-                                        <p className={`text-base font-bold ${theme.text}`}>{getProductName(selectedTx.productId ?? selectedTx.productid)}</p>
+                                {/* Sản phẩm + Kho */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Sản phẩm <span className="text-red-400">*</span></label>
+                                        <select value={form.productId} onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                            <option value="">-- Chọn --</option>
+                                            {products.map(p => <option key={p.productId} value={p.productId}>{p.productName}</option>)}
+                                        </select>
                                     </div>
-                                    <div className="text-right space-y-1">
-                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Số lượng</p>
-                                        <p className={`text-xl font-black ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                            {(selectedTx.quantity ?? 0).toLocaleString()}
-                                        </p>
+                                    <div>
+                                        <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Kho <span className="text-red-400">*</span></label>
+                                        <select value={form.warehouseId} onChange={e => setForm(p => ({ ...p, warehouseId: e.target.value }))}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}>
+                                            <option value="">-- Chọn --</option>
+                                            {warehouses.map(w => <option key={w.warehouseId} value={w.warehouseId}>{w.warehouseName ?? w.name}</option>)}
+                                        </select>
                                     </div>
                                 </div>
-                                <div className={`pt-4 border-t ${theme.border} space-y-1`}>
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Địa điểm kho</p>
-                                    <p className={`text-sm font-semibold ${theme.text}`}>{getWarehouseName(selectedTx.warehouseId ?? selectedTx.warehouseid)}</p>
+                                {/* Số lượng + Mission */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Số lượng <span className="text-red-400">*</span></label>
+                                        <input type="number" min="1" value={form.quantity} onChange={e => setForm(p => ({ ...p, quantity: e.target.value }))}
+                                            placeholder="0"
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-[13px] font-semibold ${theme.textMuted} mb-1.5`}>ID Nhiệm vụ (Tuỳ chọn)</label>
+                                        <input type="number" min="1" value={form.missionId} onChange={e => setForm(p => ({ ...p, missionId: e.target.value }))}
+                                            placeholder="(Tuỳ chọn)"
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`} />
+                                    </div>
+                                </div>
+                                {/* Ghi chú */}
+                                <div>
+                                    <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Ghi chú</label>
+                                    <textarea rows={2} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))}
+                                        placeholder="Thông tin thêm..."
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none`} />
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-1">
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Nhiệm vụ liên kết</p>
-                                    <p className={`text-sm font-bold ${selectedTx.missionId ? 'text-blue-500' : theme.textMuted}`}>
-                                        {selectedTx.missionId ? `#Mission-${selectedTx.missionId}` : 'Giao dịch lẻ'}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Người thực hiện</p>
-                                    <p className={`text-sm font-semibold ${theme.text}`}>UID: {selectedTx.createdByUserId ?? 'Manager'}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Ghi chú chi tiết</p>
-                                <div className={`p-4 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800' : 'bg-white'} text-sm ${theme.text} italic shadow-inner`}>
-                                    {selectedTx.note || "Không có ghi chú thêm cho giao dịch này."}
-                                </div>
+                            <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
+                                <button onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>Hủy bỏ</button>
+                                <button onClick={handleSubmit} disabled={submitting || !form.warehouseId || !form.productId || !form.quantity}
+                                    className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !form.warehouseId || !form.productId || !form.quantity ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30'}`}>
+                                    {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                                    Xác nhận
+                                </button>
                             </div>
                         </div>
-
-                        <div className={`px-8 py-6 border-t ${theme.border} bg-black/5 dark:bg-white/5`}>
-                            <button
-                                onClick={() => setIsDetailOpen(false)}
-                                className={`w-full py-3 rounded-xl text-sm font-bold bg-slate-200 dark:bg-slate-700 ${theme.text} hover:opacity-80 transition-all uppercase tracking-widest`}>
-                                Đóng Cửa Sổ
-                            </button>
-                        </div>
-                    </div>
-                </div>, document.body
+                    </div>, document.body
             )}
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
+                    {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
+                    {isDetailOpen && selectedTx && createPortal(
+                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                                <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
+                                    <div>
+                                        <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>
+                                        <p className={`text-xs ${theme.textMuted} mt-1`}>Mã tham chiếu: #TX-{String(selectedTx.txId ?? selectedTx.txid).padStart(4, '0')}</p>
+                                    </div>
+                                    <button onClick={() => setIsDetailOpen(false)} className={`p-2 rounded-xl ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'} transition-colors`}>
+                                        <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                    </button>
+                                </div>
+
+                                <div className="p-8 space-y-6">
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-1">
+                                            <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Loại giao dịch</p>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.cls}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.dot}`} />
+                                                {TX_TYPE[selectedTx.txType ?? selectedTx.txtype]?.label}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Thời gian</p>
+                                            <p className={`text-sm font-semibold ${theme.text}`}>
+                                                {selectedTx.createdAt ? new Date(selectedTx.createdAt).toLocaleString('vi-VN') : '—'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className={`p-5 rounded-2xl border ${theme.border} ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-4`}>
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-1">
+                                                <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Sản phẩm vật tư</p>
+                                                <p className={`text-base font-bold ${theme.text}`}>{getProductName(selectedTx.productId ?? selectedTx.productid)}</p>
+                                            </div>
+                                            <div className="text-right space-y-1">
+                                                <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Số lượng</p>
+                                                <p className={`text-xl font-black ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                    {(selectedTx.quantity ?? 0).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className={`pt-4 border-t ${theme.border} space-y-1`}>
+                                            <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Địa điểm kho</p>
+                                            <p className={`text-sm font-semibold ${theme.text}`}>{getWarehouseName(selectedTx.warehouseId ?? selectedTx.warehouseid)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-1">
+                                            <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Nhiệm vụ liên kết</p>
+                                            <p className={`text-sm font-bold ${selectedTx.missionId ? 'text-blue-500' : theme.textMuted}`}>
+                                                {selectedTx.missionId ? `#Mission-${selectedTx.missionId}` : 'Giao dịch lẻ'}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Người thực hiện</p>
+                                            <p className={`text-sm font-semibold ${theme.text}`}>UID: {selectedTx.createdByUserId ?? 'Manager'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Ghi chú chi tiết</p>
+                                        <div className={`p-4 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800' : 'bg-white'} text-sm ${theme.text} italic shadow-inner`}>
+                                            {selectedTx.note || "Không có ghi chú thêm cho giao dịch này."}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={`px-8 py-6 border-t ${theme.border} bg-black/5 dark:bg-white/5`}>
+                                    <button
+                                        onClick={() => setIsDetailOpen(false)}
+                                        className={`w-full py-3 rounded-xl text-sm font-bold bg-slate-200 dark:bg-slate-700 ${theme.text} hover:opacity-80 transition-all uppercase tracking-widest`}>
+                                        Đóng Cửa Sổ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>, document.body
+                    )
+                    }
+
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
                 @keyframes dtIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
                 .animate-dt-in { animation: dtIn 0.4s ease-out forwards; }
             ` }} />
-        </div>
-    );
+                </div >
+            );
 };
 
-export default DistributionTracking;
+            export default DistributionTracking;

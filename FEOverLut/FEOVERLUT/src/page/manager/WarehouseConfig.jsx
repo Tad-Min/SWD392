@@ -426,7 +426,7 @@ const WarehouseConfig = () => {
                                         </select>
                                     </div>
                                 </div>
-                            </div>
+                            </div >
 
                             <div>
                                 <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tọa độ GPS</label>
@@ -445,10 +445,10 @@ const WarehouseConfig = () => {
                                     <span className={`ml-3 text-[13px] font-semibold ${theme.text}`}>Kho đang hoạt động</span>
                                 </label>
                             </div>
-                        </div>
+                        </div >
 
                         {/* Footer */}
-                        <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
+                        < div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
                             <button onClick={() => setIsModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>
                                 Hủy bỏ
                             </button>
@@ -460,78 +460,80 @@ const WarehouseConfig = () => {
                                 {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
                                 {modalMode === 'edit' ? 'Cập nhật' : 'Thêm mới'}
                             </button>
-                        </div>
-                    </div>
-                </div>,
+                        </div >
+                    </div >
+                </div >,
                 document.body
             )}
 
             {/* ── MODAL VIEW STOCK ──────────────────────────────── */}
-            {isStockModalOpen && createPortal(
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[700px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]`} onClick={e => e.stopPropagation()}>
-                        <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between shrink-0`}>
-                            <div>
-                                <h3 className={`text-lg font-bold ${theme.text}`}>Tồn Kho: {selectedWarehouseForStock?.warehouseName}</h3>
-                                <p className={`text-xs ${theme.textMuted} mt-0.5`}>Thống kê số lượng vật tư đang lưu trữ tại điểm kho này.</p>
+            {
+                isStockModalOpen && createPortal(
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+                        <div className={`w-full max-w-[700px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]`} onClick={e => e.stopPropagation()}>
+                            <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between shrink-0`}>
+                                <div>
+                                    <h3 className={`text-lg font-bold ${theme.text}`}>Tồn Kho: {selectedWarehouseForStock?.warehouseName}</h3>
+                                    <p className={`text-xs ${theme.textMuted} mt-0.5`}>Thống kê số lượng vật tư đang lưu trữ tại điểm kho này.</p>
+                                </div>
+                                <button onClick={() => setIsStockModalOpen(false)} className={`p-1.5 rounded-lg border ${theme.border} ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
+                                    <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                </button>
                             </div>
-                            <button onClick={() => setIsStockModalOpen(false)} className={`p-1.5 rounded-lg border ${theme.border} ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
-                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                            </button>
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto p-0 min-h-[300px]">
-                            {loadingStock ? (
-                                <div className="p-12 flex flex-col items-center justify-center gap-3">
-                                    <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                                    <span className={`text-sm ${theme.textMuted}`}>Đang tải dữ liệu tồn khoa...</span>
-                                </div>
-                            ) : currentStockData.length === 0 ? (
-                                <div className="p-12 flex flex-col items-center justify-center gap-2">
-                                    <svg className={`w-12 h-12 mb-2 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                                    <span className={`text-[15px] font-semibold ${theme.text}`}>Kho đang trống rỗng</span>
-                                    <span className={`text-sm ${theme.textMuted}`}>Chưa có hàng hóa nào được lưu trữ tại điểm kho này.</span>
-                                </div>
-                            ) : (
-                                <table className="w-full text-left border-collapse">
-                                    <thead className={`sticky top-0 ${isDarkMode ? 'bg-slate-800/95' : 'bg-slate-50/95'} backdrop-blur-md border-b ${theme.border} z-10`}>
-                                        <tr>
-                                            <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase`}>Vật phẩm</th>
-                                            <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase text-right`}>Tồn kho</th>
-                                            <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase`}>Lần cập nhật cuối</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
-                                        {currentStockData.map((st, i) => (
-                                            <tr key={i} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors`}>
-                                                <td className="px-6 py-3">
-                                                    <div className={`text-sm font-bold ${theme.text}`}>{st.productName}</div>
-                                                    <div className={`text-[11px] font-medium uppercase tracking-wide px-2 py-0.5 inline-block mt-1 rounded-md bg-blue-500/10 text-blue-500`}>{st.categoryName}</div>
-                                                </td>
-                                                <td className="px-6 py-3 text-right">
-                                                    <span className={`text-[15px] font-extrabold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{st.currentQuantity}</span>
-                                                    <span className={`text-[11px] font-bold ml-1.5 ${theme.textMuted}`}>{st.unit}</span>
-                                                </td>
-                                                <td className={`px-6 py-3 text-sm font-medium ${theme.textMuted}`}>
-                                                    {st.lastUpdated ? new Date(st.lastUpdated).toLocaleString('vi-VN') : '—'}
-                                                </td>
+                            <div className="flex-1 overflow-y-auto p-0 min-h-[300px]">
+                                {loadingStock ? (
+                                    <div className="p-12 flex flex-col items-center justify-center gap-3">
+                                        <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                        <span className={`text-sm ${theme.textMuted}`}>Đang tải dữ liệu tồn khoa...</span>
+                                    </div>
+                                ) : currentStockData.length === 0 ? (
+                                    <div className="p-12 flex flex-col items-center justify-center gap-2">
+                                        <svg className={`w-12 h-12 mb-2 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                        <span className={`text-[15px] font-semibold ${theme.text}`}>Kho đang trống rỗng</span>
+                                        <span className={`text-sm ${theme.textMuted}`}>Chưa có hàng hóa nào được lưu trữ tại điểm kho này.</span>
+                                    </div>
+                                ) : (
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className={`sticky top-0 ${isDarkMode ? 'bg-slate-800/95' : 'bg-slate-50/95'} backdrop-blur-md border-b ${theme.border} z-10`}>
+                                            <tr>
+                                                <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase`}>Vật phẩm</th>
+                                                <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase text-right`}>Tồn kho</th>
+                                                <th className={`px-6 py-3.5 text-xs font-semibold ${theme.textMuted} uppercase`}>Lần cập nhật cuối</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
+                                            {currentStockData.map((st, i) => (
+                                                <tr key={i} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors`}>
+                                                    <td className="px-6 py-3">
+                                                        <div className={`text-sm font-bold ${theme.text}`}>{st.productName}</div>
+                                                        <div className={`text-[11px] font-medium uppercase tracking-wide px-2 py-0.5 inline-block mt-1 rounded-md bg-blue-500/10 text-blue-500`}>{st.categoryName}</div>
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right">
+                                                        <span className={`text-[15px] font-extrabold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{st.currentQuantity}</span>
+                                                        <span className={`text-[11px] font-bold ml-1.5 ${theme.textMuted}`}>{st.unit}</span>
+                                                    </td>
+                                                    <td className={`px-6 py-3 text-sm font-medium ${theme.textMuted}`}>
+                                                        {st.lastUpdated ? new Date(st.lastUpdated).toLocaleString('vi-VN') : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+                    </div>,
+                    document.body
+                )
+            }
 
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes whIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
                 .animate-wh-in { animation: whIn 0.4s ease-out forwards; }
             ` }} />
-        </div>
+        </div >
     );
 };
 

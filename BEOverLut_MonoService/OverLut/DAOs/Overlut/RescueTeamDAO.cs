@@ -21,6 +21,37 @@ public class RescueTeamDAO
             return null;
         }
     }
+    public static async Task<RescueTeam?> GetRescueTeamByTeamId(int teamId)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.RescueTeams
+                .FirstOrDefaultAsync(e => e.TeamId == teamId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueTeamMemberDAO-GetRescueTeamByTeamId: {ex.Message}");
+            return null;
+        }
+    }
+    public static async Task<IEnumerable<RescueTeam>?> GetRescueTeamByUserId(int userId)
+    {
+        try
+        {
+            using var db = new OverlutDbContext();
+            return await db.RescueTeams
+                .AsNoTracking()
+                .Where(e => e.RescueTeamMembers.Any(x => x.UserId == userId) && e.IsActive)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueTeamMemberDAO-GetRescueTeamByUserId: {ex.Message}");
+            return null;
+        }
+    }
+
 
     public static async Task<RescueTeam?> CreateRescueTeam(RescueTeam rescueTeam)
     {
