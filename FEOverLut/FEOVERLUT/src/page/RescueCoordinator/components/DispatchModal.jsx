@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Send, MapPin, AlertTriangle, Users, Clock } from 'lucide-react';
+import { useVehicle } from '../../../features/Vehicle/hook/useVehicle';
+import { useVehiclesStatus } from '../../../features/status/hook/useVehiclesStatus';
 import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
 
 export default function DispatchModal({
@@ -11,8 +13,11 @@ export default function DispatchModal({
     loading = false,
 }) {
     const [selectedTeamId, setSelectedTeamId] = useState('');
+    const [selectedVehicleId, setSelectedVehicleId] = useState('');
     const [note, setNote] = useState('');
     const [typeLabels, setTypeLabels] = useState({});
+    const [vehicles, setVehicles] = useState([]);
+    const [vehicleStatusMap, setVehicleStatusMap] = useState({});
 
     const urgencyMeta = {
         1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
@@ -20,10 +25,14 @@ export default function DispatchModal({
         3: { label: 'Khẩn cấp', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
     };
 
-    // Fetch request types from API
+    const { fetchVehicle } = useVehicle();
+    const { getVehiclesStatus } = useVehiclesStatus();
+
+    // Fetch request types and vehicles from API
     useEffect(() => {
         (async () => {
             try {
+                // Fetch request types
                 const res = await getRescueRequestTypesApi();
                 const data = res?.data ?? res;
                 if (Array.isArray(data)) {
@@ -35,10 +44,27 @@ export default function DispatchModal({
                     });
                     setTypeLabels(map);
                 }
+
+                // Fetch vehicle statuses
+                const vsData = await getVehiclesStatus();
+                const vsList = vsData?.data ?? vsData ?? [];
+                const vMap = {};
+                vsList.forEach((s) => {
+                    const id = s.id ?? s.vehiclesStatusId;
+                    const name = s.statusName ?? s.name;
+                    if (id != null && name) vMap[id] = name;
+                });
+                setVehicleStatusMap(vMap);
+
+                // Fetch vehicles
+                const vData = await fetchVehicle();
+                const vList = vData?.data ?? vData ?? [];
+                setVehicles(Array.isArray(vList) ? vList : []);
             } catch (err) {
-                console.error('Failed to fetch request types:', err);
+                console.error('Failed to fetch data:', err);
             }
         })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!request) return null;
@@ -47,11 +73,18 @@ export default function DispatchModal({
         (t) => t.statusId === 1 || t.status === 'Available' || t.status === 'Sẵn sàng'
     );
 
+    const availableVehicles = vehicles.filter(v => {
+        const sid = v.statusId ?? v.vehiclesStatusId;
+        const statusName = vehicleStatusMap[sid] || '';
+        return statusName.toLowerCase() === 'available' || statusName.toLowerCase() === 'sẵn sàng';
+    });
+
     const handleSubmit = () => {
         if (!selectedTeamId) return;
         onConfirm?.({
             rescueRequestId: request.id ?? request.rescueRequestId,
             teamId: parseInt(selectedTeamId),
+            vehicleId: selectedVehicleId ? parseInt(selectedVehicleId) : null,
             description: note || 'Điều phối cứu hộ',
         });
     };
@@ -144,6 +177,30 @@ export default function DispatchModal({
                         {availableTeams.length === 0 && (
                             <p className="text-[11px] text-amber-400 mt-1">
                                 Không có đội nào đang sẵn sàng
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Vehicle select */}
+                    <div>
+                        <label className="text-xs font-medium text-slate-300 mb-1.5 block">
+                            Chọn phương tiện di chuyển (tuỳ chọn)
+                        </label>
+                        <select
+                            value={selectedVehicleId}
+                            onChange={(e) => setSelectedVehicleId(e.target.value)}
+                            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none bg-slate-800/80 text-white border border-white/10 focus:border-blue-500 transition-colors"
+                        >
+                            <option value="">-- Không sử dụng / Chọn sau --</option>
+                            {availableVehicles.map((v) => (
+                                <option key={v.id ?? v.vehicleId} value={v.id ?? v.vehicleId}>
+                                    {v.vehicleCode ?? v.name} ({v.vehicleType ?? 'Chưa rõ loại'})
+                                </option>
+                            ))}
+                        </select>
+                        {availableVehicles.length === 0 && (
+                            <p className="text-[11px] text-amber-400 mt-1">
+                                Không có phương tiện nào đang sẵn sàng
                             </p>
                         )}
                     </div>
