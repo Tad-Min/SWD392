@@ -25,7 +25,7 @@ namespace WebApi.Controllers
         #region UserRoles
         [HttpGet("UserRole")]
 
-        public async Task<IActionResult> GetUserRolesAsync()
+        public async Task<IActionResult> GetUserRoles()
         {
             try
             {
@@ -37,8 +37,8 @@ namespace WebApi.Controllers
 
             }
         }
-        [HttpGet("UserRole({id})")]
-        public async Task<IActionResult> GetUserRoleByIdAsync(int id)
+        [HttpGet("UserRole/{id}")]
+        public async Task<IActionResult> GetUserRoleById(int id)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace WebApi.Controllers
             }
         }
         [HttpPost("UserRole")]
-        public async Task<IActionResult> CreateUserRoleAsync(RoleDTO model)
+        public async Task<IActionResult> CreateUserRole(RoleDTO model)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace WebApi.Controllers
 
                 if (createdRole == null) return BadRequest(new { message = "Failed to create user role" });
 
-                return CreatedAtAction(nameof(GetUserRoleByIdAsync), new { id = createdRole.RoleId }, createdRole);
+                return CreatedAtAction(nameof(GetUserRoleById), new { id = createdRole.RoleId }, createdRole);
             }
             catch (Exception ex)
             {
@@ -71,7 +71,7 @@ namespace WebApi.Controllers
         }
         [Authorize]
         [HttpPut("UserRole/{id}")]
-        public async Task<IActionResult> UpdateUserRoleAsync(int id, string name)
+        public async Task<IActionResult> UpdateUserRole(int id, string name)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace WebApi.Controllers
 
         }
         [HttpDelete("UserRole/{id}")]
-        public async Task<IActionResult> DeleteUserRoleByIdAsync(int id)
+        public async Task<IActionResult> DeleteUserRoleById(int id)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace WebApi.Controllers
 
         #region RescueMembersRoles
         [HttpGet("RescueMemberRole")]
-        public async Task<IActionResult> GetAllRescueMembersRolesAsync()
+        public async Task<IActionResult> GetAllRescueMembersRoles()
         {
             try
             {
@@ -125,7 +125,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("RescueMemberRole/{id}")]
-        public async Task<IActionResult> GetRescueMembersRoleByIdAsync(int id)
+        public async Task<IActionResult> GetRescueMembersRoleById(int id)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("RescueMemberRole")]
-        public async Task<IActionResult> CreateRescueMembersRoleAsync(RescueMembersRoleDTO model)
+        public async Task<IActionResult> CreateRescueMembersRole(RescueMembersRoleDTO model)
         {
             try
             {
@@ -150,7 +150,7 @@ namespace WebApi.Controllers
 
                 if (createdRole == null) return BadRequest(new { message = "Failed to create user role" });
 
-                return CreatedAtAction(nameof(GetRescueMembersRoleByIdAsync), new { id = createdRole.RescueMembersRoleId }, createdRole);
+                return CreatedAtAction(nameof(GetRescueMembersRoleById), new { id = createdRole.RescueMembersRoleId }, createdRole);
             }
             catch (Exception ex)
             {
@@ -160,7 +160,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("RescueMemberRole/{id}")]
-        public async Task<IActionResult> UpdateRescueMembersRoleAsync(int id, string name)
+        public async Task<IActionResult> UpdateRescueMembersRole(int id, string name)
         {
             try
             {
@@ -182,7 +182,7 @@ namespace WebApi.Controllers
 
         [HttpDelete("RescueMemberRole/{id}")]
 
-        public async Task<IActionResult> DeleteRescueMembersRoleByIdAsync(int id)
+        public async Task<IActionResult> DeleteRescueMembersRoleById(int id)
         {
             try
             {
