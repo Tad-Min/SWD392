@@ -114,10 +114,6 @@ function Citizens() {
                 requestType: sosRequestType,
                 urgencyLevel: urgencyLevel,
                 peopleCount: sosPeopleCount,
-<<<<<<< Updated upstream
-=======
-                urgencyLevel: 1,
->>>>>>> Stashed changes
                 currentLocation: coords
                     ? {
                         type: 'Point',
