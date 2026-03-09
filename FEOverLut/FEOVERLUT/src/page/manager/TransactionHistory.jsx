@@ -13,14 +13,16 @@ const toArr = (v) => {
     return [];
 };
 
-const getTxTypeName = (type) => {
-    switch (type) {
-        case 1: return { label: 'Nhập kho', color: 'text-emerald-500 bg-emerald-500/10' };
-        case 2: return { label: 'Xuất kho', color: 'text-amber-500 bg-amber-500/10' };
-        case 3: return { label: 'Phân bổ', color: 'text-blue-500 bg-blue-500/10' };
-        case 4: return { label: 'Hủy/Lỗi', color: 'text-red-500 bg-red-500/10' };
-        default: return { label: `Khác (${type})`, color: 'text-slate-500 bg-slate-500/10' };
+const getTxTypeName = (tx) => {
+    const type = tx.txType !== undefined ? tx.txType : tx.txtype;
+    const mId = tx.missionId !== undefined ? tx.missionId : tx.missionid;
+    if (type === 0) return { label: 'Nhập kho', color: 'text-emerald-500 bg-emerald-500/10' };
+    if (type === 1) {
+        if (mId) return { label: 'Phân bổ', color: 'text-blue-500 bg-blue-500/10' };
+        return { label: 'Xuất kho', color: 'text-amber-500 bg-amber-500/10' };
     }
+    if (type === 2) return { label: 'Điều chỉnh', color: 'text-purple-500 bg-purple-500/10' };
+    return { label: `Khác (${type})`, color: 'text-slate-500 bg-slate-500/10' };
 };
 
 const TransactionHistory = () => {
@@ -33,7 +35,7 @@ const TransactionHistory = () => {
     const [warehouses, setWarehouses] = useState([]);
     const [loadingData, setLoadingData] = useState(true);
 
-    const [filterType, setFilterType] = useState(''); // '' | '1' | '2'
+    const [filterType, setFilterType] = useState(''); // '' | '0' | '1' | 'dist' | '2'
     const [searchTerm, setSearchTerm] = useState('');
 
     const fetchData = useCallback(async () => {
@@ -75,12 +77,16 @@ const TransactionHistory = () => {
     const filtered = mappedTransactions.filter(t => {
         const matchSearch = t.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             t.warehouseName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchType = filterType ? String(t.txType) === filterType : true;
+        const matchType = filterType ? (
+            filterType === 'dist' ? (String(t.txType) === '1' && t.missionId)
+                : filterType === '1' ? (String(t.txType) === '1' && !t.missionId)
+                    : String(t.txType) === filterType
+        ) : true;
         return matchSearch && matchType;
     });
 
-    const importsCount = mappedTransactions.filter(t => t.txType === 1).length;
-    const exportsCount = mappedTransactions.filter(t => t.txType === 2).length;
+    const importsCount = mappedTransactions.filter(t => t.txType === 0).length;
+    const exportsCount = mappedTransactions.filter(t => t.txType === 1).length;
 
     const handleExportCSV = () => {
         if (filtered.length === 0) {
@@ -95,15 +101,17 @@ const TransactionHistory = () => {
         let csvContent = "\uFEFF" + headers.join(',') + '\n';
 
         filtered.forEach(tx => {
-            const typeInfo = getTxTypeName(tx.txType);
-            const isAdd = tx.txType === 1;
+            const typeInfo = getTxTypeName(tx);
+            const isAdd = tx.txType === 0 || tx.txType === 2; // Assuming adjust could be positive or negative, but normally we treat 0 as add, 1 as sub. Let's just say 0 is add.
+            // Wait, for adjust (2), quantity might be absolute difference? Actually, lets just stick to 0 is add.
+            const isSub = tx.txType === 1;
             const row = [
                 `TX-${String(tx.txId).padStart(4, '0')}`,
                 tx.createdAt ? new Date(tx.createdAt).toLocaleString('vi-VN').replace(/,/g, '') : '',
                 typeInfo.label,
                 `"${tx.productName}"`,
                 `"${tx.warehouseName}"`,
-                `${isAdd ? '+' : '-'}${tx.quantity}`,
+                `${isAdd ? '+' : isSub ? '-' : ''}${tx.quantity}`,
                 tx.unit,
                 tx.createdByUserId
             ];
@@ -183,10 +191,10 @@ const TransactionHistory = () => {
                     className={`px-4 py-2.5 rounded-xl text-sm border ${theme.inputBorder} ${theme.inputBg} focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] pr-10`}
                 >
                     <option value="">Tất cả loại Giao dịch</option>
-                    <option value="1">Nhập kho</option>
-                    <option value="2">Xuất kho</option>
-                    <option value="3">Phân bổ</option>
-                    <option value="4">Điều chỉnh</option>
+                    <option value="0">Nhập kho</option>
+                    <option value="1">Xuất kho</option>
+                    <option value="dist">Phân bổ</option>
+                    <option value="2">Điều chỉnh</option>
                 </select>
 
                 <p className={`lg:ml-auto text-sm ${theme.textMuted} shrink-0`}>
@@ -221,8 +229,9 @@ const TransactionHistory = () => {
                                     </div>
                                 </td></tr>
                             ) : filtered.map((tx) => {
-                                const typeInfo = getTxTypeName(tx.txType);
-                                const isAdd = tx.txType === 1;
+                                const typeInfo = getTxTypeName(tx);
+                                const isAdd = tx.txType === 0 || (tx.txType === 2 && tx.quantity > 0);
+                                const isSub = tx.txType === 1 || (tx.txType === 2 && tx.quantity < 0);
                                 return (
                                     <tr key={tx.txId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
                                         <td className={`px-6 py-4 text-[13px] font-bold ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
@@ -248,8 +257,8 @@ const TransactionHistory = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className={`text-[15px] font-extrabold ${isAdd ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : (isDarkMode ? 'text-amber-400' : 'text-amber-600')}`}>
-                                                {isAdd ? '+' : '-'}{tx.quantity}
+                                            <div className={`text-[15px] font-extrabold ${isAdd ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : isSub ? (isDarkMode ? 'text-amber-400' : 'text-amber-600') : (isDarkMode ? 'text-purple-400' : 'text-purple-600')}`}>
+                                                {isAdd ? '+' : isSub ? '-' : ''}{Math.abs(tx.quantity)}
                                             </div>
                                             <div className={`text-[11px] font-bold ${theme.textMuted}`}>{tx.unit}</div>
                                         </td>
