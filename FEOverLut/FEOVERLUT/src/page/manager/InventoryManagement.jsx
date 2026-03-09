@@ -151,7 +151,7 @@ const InventoryManagement = () => {
                     const txPayload = {
                         WarehouseId: parseInt(importForm.warehouseId),
                         ProductId: parseInt(targetId),
-                        TxType: modalMode === 'edit_product' ? 4 : 1, // 4 = Adjust if from Edit, 1 = Import
+                        TxType: modalMode === 'edit_product' ? 2 : 0, // 2 = Adjust if from Edit, 0 = In (Import)
                         Quantity: Math.abs(qty),
                         Note: importForm.note || (modalMode === 'edit_product' ? 'Điều chỉnh lúc sửa vật tư' : 'Nhập kho từ Quản lý kho'),
                         MissionId: importForm.missionId ? parseInt(importForm.missionId) : null

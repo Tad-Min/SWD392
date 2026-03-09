@@ -12,7 +12,7 @@ export const useLogout = () => {
             const refreshToken = localStorage.getItem('refreshToken');
             await logoutApi({
                 userId: userId ? parseInt(userId) : 0,
-                refreshToken: refreshToken || ""
+                refeshToken: refreshToken || ""
             });
         } catch (error) {
             console.error("Logout error", error);

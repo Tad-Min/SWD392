@@ -94,7 +94,7 @@ const AdminDashboard = () => {
     // ── Computed ──────────────────────────────────────────────────
     const totalUsers = users.length;
     const totalMissions = missions.length;
-    const pendingRequests = requests.filter(r => r.statusId === 3 || r.status === 3 || r.urgencyLevel > 0).length || requests.length;
+    const pendingRequests = requests.filter(r => r.statusId === 1 || r.status === 1).length;
 
     // Role distribution from real users
     const roleStats = Object.entries(ROLE_MAP).map(([id, info]) => ({
