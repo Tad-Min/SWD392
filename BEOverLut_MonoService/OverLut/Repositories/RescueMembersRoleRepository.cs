@@ -4,9 +4,11 @@ using Repositories.Interface;
 
 namespace Repositories
 {
-    public class RescueMembersRollRepository : IRescueMembersRollRepository
+    public class RescueMembersRoleRepository : IRescueMembersRoleRepository
     {
-        public async Task<IEnumerable<RescueMembersRole>?> GetRescueMembersRoles(int? rescueMembersRollId, string? rollName) => await RescueMembersRoleDAO.GetRescueMembersRoles(rescueMembersRollId, rollName);
+        public async Task<IEnumerable<RescueMembersRole>?> GetAllRescueMembersRoles() => await RescueMembersRoleDAO.GetAllRescueMembersRoles();
+
+        public async Task<RescueMembersRole?> GetRescueMembersRoleById(int id) => await RescueMembersRoleDAO.GetRescueMembersRoleById(id);
 
         public async Task<RescueMembersRole?> CreateRescueMembersRole(RescueMembersRole roll) => await RescueMembersRoleDAO.CreateRescueMembersRole(roll);
 

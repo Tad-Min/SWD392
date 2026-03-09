@@ -202,12 +202,12 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RescueMembersRole>(entity =>
         {
-            entity.HasIndex(e => e.RollName, "UQ_RescueMembersRoles_RollName").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ_RescueMembersRoles_RoleName").IsUnique();
 
             entity.Property(e => e.RescueMembersRoleId)
                 .ValueGeneratedNever()
                 .HasColumnName("RescueMembersRoleID");
-            entity.Property(e => e.RollName).HasMaxLength(100);
+            entity.Property(e => e.RoleName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<RescueMission>(entity =>

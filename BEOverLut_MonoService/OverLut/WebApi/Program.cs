@@ -70,7 +70,7 @@ builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IWarehouseStockRepository, WarehouseStockRepository>();
 builder.Services.AddScoped<IRescueTeamRepository, RescueTeamRepository>();
 builder.Services.AddScoped<IRescueTeamMemberRepository, RescueTeamMemberRepository>();
-builder.Services.AddScoped<IRescueMembersRollRepository, RescueMembersRollRepository>();
+builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
 builder.Services.AddScoped<IUrgencyLevelRepository, UrgencyLevelRepository>();
 
 // Add service scope.

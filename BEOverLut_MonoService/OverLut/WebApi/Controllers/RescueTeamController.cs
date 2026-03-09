@@ -28,6 +28,7 @@ namespace WebApi.Controllers
             try
             {
                 var teams = await _rescueTeamService.GetAllRescueTeamsAsync(teamId, teamName, statusId);
+                
                 return Ok(teams);
             }
             catch (Exception ex)
@@ -84,7 +85,7 @@ namespace WebApi.Controllers
             }
         }
 
-        [HttpGet("GetRescueTeamMembersByUserIdAndTeamId")]
+        [HttpGet("GetRescueTeamMembersByUserIdAndTeamId/{userId}_{teamId}")]
         public async Task<IActionResult> GetRescueTeamMembersByUserIdAndTeamId(int userId, int teamId)
         {
             try
@@ -188,121 +189,7 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error create rescue team", error = ex.Message });
             }
         }
-        [HttpGet("RescueMemberRoles")]
-        public async Task<IActionResult> GetAllRescueMemberRolesAsync(GetAllRescueMemberRolesModel? model)
-        {
-            try
-            {
-                var roles = await _rescueTeamService.GetAllRescueMemberRolesAsync(model?.RoleId, model?.RoleName);
-
-                return Ok(roles);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue teams member roles", error = ex.Message });
-            }
-        }
-        [HttpGet("RescueMemberRole/{id}")]
-        public async Task<IActionResult> GetRescueMembersRoleByIdAsync(int id)
-        {
-            try
-            {
-                var role = await _rescueTeamService.GetRescueMembersRoleByIdAsync(id);
-                if (role == null)
-                    return NotFound(new { message = $"Rescue member role with id {id} not found" });
-
-                return Ok(role);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue member role", error = ex.Message });
-            }
-        }
-
-        [HttpPost("RescueMemberRole")]
-        public async Task<IActionResult> AddRescueMembersRoleAsync([FromBody] RescueMembersRoleDTO rescueMembersRoll)
-        {
-            try
-            {
-                if (rescueMembersRoll == null)
-                    return BadRequest(new { message = "Rescue member role data is required" });
-
-                if (!ModelState.IsValid)
-                    return BadRequest(new { message = "Invalid data", errors = ModelState });
-
-                var newRole = new RescueMembersRole
-                {
-                    RescueMembersRoleId = rescueMembersRoll.RescueMembersRoleId,
-                    RollName = rescueMembersRoll.RollName
-                };
-
-                var createdRole = await _rescueTeamService.AddRescueMembersRoleAsync(newRole);
-                if (createdRole == null)
-                    return BadRequest(new { message = "Failed to create rescue member role" });
-
-                return CreatedAtAction(nameof(GetRescueMembersRoleByIdAsync), new { id = createdRole.RescueMembersRoleId }, createdRole);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error creating rescue member role", error = ex.Message });
-            }
-        }
-
-        [HttpPut("RescueMemberRole/{id}")]
-        public async Task<IActionResult> UpdateRescueMembersRoleAsync(int id, [FromBody] RescueMembersRoleDTO rescueMembersRoll)
-        {
-            try
-            {
-                if (rescueMembersRoll == null)
-                    return BadRequest(new { message = "Rescue member role data is required" });
-
-                if (rescueMembersRoll.RescueMembersRoleId != 0 && rescueMembersRoll.RescueMembersRoleId != id)
-                    return BadRequest(new { message = "ID in route and body must match" });
-
-                if (!ModelState.IsValid)
-                    return BadRequest(new { message = "Invalid data", errors = ModelState });
-
-                var existingRole = await _rescueTeamService.GetRescueMembersRoleByIdAsync(id);
-                if (existingRole == null)
-                    return NotFound(new { message = $"Rescue member role with id {id} not found" });
-
-                var roleToUpdate = new RescueMembersRole
-                {
-                    RescueMembersRoleId = id,
-                    RollName = rescueMembersRoll.RollName
-                };
-
-                var result = await _rescueTeamService.UpdateRescueMembersRoleAsync(roleToUpdate);
-                if (!result)
-                    return BadRequest(new { message = "Failed to update rescue member role" });
-
-                return Ok(new { message = "Rescue member role updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error updating rescue member role", error = ex.Message });
-            }
-        }
-
-        [HttpDelete("RescueMemberRole/{id}")]
-        public async Task<IActionResult> DeleteRescueMemberRollByIdAsync(int id)
-        {
-            try
-            {
-                var existingRole = await _rescueTeamService.GetRescueMembersRoleByIdAsync(id);
-                if (existingRole == null)
-                    return NotFound(new { message = $"Rescue member role with id {id} not found" });
-
-                var result = await _rescueTeamService.DeleteRescueMemberRoleByIdAsync(id);
-                if (!result)
-                    return BadRequest(new { message = "Failed to delete rescue member role" });
-
-                return Ok(new { message = "Rescue member role deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deleting rescue member role", error = ex.Message });
-            }
-        }
+       
+        
     }
 }

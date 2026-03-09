@@ -11,24 +11,27 @@ namespace Services
         private readonly IRescueTeamRepository _rescueTeamRepository;
         private readonly IRescueTeamMemberRepository _rescueTeamMemberRepository;
         private readonly IRescueTeamsStatusRepository _rescueTeamsStatusRepository;
-        private readonly IRescueMembersRollRepository _rescueMembersRollRepository;
+        private readonly IRescueMembersRoleRepository _rescueMembersRoleRepository;
 
         public RescueTeamService(
             IRescueTeamRepository rescueTeamRepository,
             IRescueTeamMemberRepository rescueTeamMemberRepository,
             IRescueTeamsStatusRepository rescueTeamsStatusRepository,
-            IRescueMembersRollRepository rescueMembersRollRepository)
+            IRescueMembersRoleRepository rescueMembersRoleRepository)
         {
             _rescueTeamRepository = rescueTeamRepository;
             _rescueTeamMemberRepository = rescueTeamMemberRepository;
             _rescueTeamsStatusRepository = rescueTeamsStatusRepository;
-            _rescueMembersRollRepository = rescueMembersRollRepository;
+            _rescueMembersRoleRepository = rescueMembersRoleRepository;
         }
 
         #region RescueTeam
-        public async Task<IEnumerable<RescueTeam>?> GetAllRescueTeamsAsync(int? teamId, string? teamName, int? statusId)
+        public async Task<IEnumerable<RescueTeamDTO>?> GetAllRescueTeamsAsync(int? teamId, string? teamName, int? statusId)
         {
-            return await _rescueTeamRepository.GetAllRescueTeam(teamId, teamName, statusId);
+            var teams = await _rescueTeamRepository.GetAllRescueTeam(teamId, teamName, statusId);
+            if (teams == null) return new List<RescueTeamDTO>();
+
+            return teams.Select(e => MappingHandle.EntityToDTO(e)).Where(dto => dto != null).Cast<RescueTeamDTO>();
         }
         public async Task<RescueTeam?> GetRescueTeamByTeamId(int teamId)
         {
@@ -107,39 +110,6 @@ namespace Services
             var member = await _rescueTeamMemberRepository.AddRescueTeamMember(rescueTeamMember);
             if (member == null) return null;
             return MappingHandle.EntityToDTO(member);
-        }
-        #endregion
-
-        #region Rescue Members Roll
-        public async Task<IEnumerable<RescueMembersRoleDTO>?> GetAllRescueMemberRolesAsync(int? id, string? name)
-        {
-            var roles = await _rescueMembersRollRepository.GetRescueMembersRoles(id, name);
-            if (roles == null) return new List<RescueMembersRoleDTO>();
-            
-            return roles.Select(x => MappingHandle.EntityToDTO(x))
-                .Where(r => r != null)
-                .Cast<RescueMembersRoleDTO>();
-        }
-
-        public async Task<RescueMembersRole?> GetRescueMembersRoleByIdAsync(int id)
-        {
-            var rolls = await _rescueMembersRollRepository.GetRescueMembersRoles(id, null);
-            return rolls?.FirstOrDefault();
-        }
-
-        public async Task<RescueMembersRole?> AddRescueMembersRoleAsync(RescueMembersRole rescueMembersRoll)
-        {
-            return await _rescueMembersRollRepository.CreateRescueMembersRole(rescueMembersRoll);
-        }
-
-        public async Task<bool> UpdateRescueMembersRoleAsync(RescueMembersRole rescueMembersRoll)
-        {
-            return await _rescueMembersRollRepository.UpdateRescueMembersRole(rescueMembersRoll);
-        }
-
-        public async Task<bool> DeleteRescueMemberRoleByIdAsync(int id)
-        {
-            return await _rescueMembersRollRepository.DeleteRescueMembersRoleById(id);
         }
         #endregion
     }
