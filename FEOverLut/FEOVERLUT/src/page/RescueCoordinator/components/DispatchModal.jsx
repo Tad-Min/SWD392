@@ -3,6 +3,7 @@ import { X, Send, MapPin, AlertTriangle, Users, Clock } from 'lucide-react';
 import { useVehicle } from '../../../features/Vehicle/hook/useVehicle';
 import { useVehiclesStatus } from '../../../features/status/hook/useVehiclesStatus';
 import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
+import { useSystemConfig } from '../../../features/system_config/hook/useSystemConfig';
 
 export default function DispatchModal({
     request,
@@ -18,6 +19,7 @@ export default function DispatchModal({
     const [typeLabels, setTypeLabels] = useState({});
     const [vehicles, setVehicles] = useState([]);
     const [vehicleStatusMap, setVehicleStatusMap] = useState({});
+    const [vehicleTypeMap, setVehicleTypeMap] = useState({});
 
     const urgencyMeta = {
         1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
@@ -27,6 +29,7 @@ export default function DispatchModal({
 
     const { fetchVehicle } = useVehicle();
     const { getVehiclesStatus } = useVehiclesStatus();
+    const { getVehicleTypes } = useSystemConfig();
 
     // Fetch request types and vehicles from API
     useEffect(() => {
@@ -43,6 +46,23 @@ export default function DispatchModal({
                         if (id != null && name) map[id] = name;
                     });
                     setTypeLabels(map);
+                }
+
+                // Fetch vehicle types
+                try {
+                    const vtRes = await getVehicleTypes();
+                    const vtData = vtRes?.data ?? vtRes;
+                    if (Array.isArray(vtData)) {
+                        const map = {};
+                        vtData.forEach((t) => {
+                            const id = t.id ?? t.vehicleTypeId ?? t.typeId;
+                            const name = t.typeName ?? t.name;
+                            if (id != null && name) map[id] = name;
+                        });
+                        setVehicleTypeMap(map);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch vehicle types:', err);
                 }
 
                 // Fetch vehicle statuses
@@ -82,10 +102,10 @@ export default function DispatchModal({
     const handleSubmit = () => {
         if (!selectedTeamId) return;
         onConfirm?.({
-            rescueRequestId: request.id ?? request.rescueRequestId,
+            rescueRequestId: request.rescueRequestId ?? request.id,
             teamId: parseInt(selectedTeamId),
             vehicleId: selectedVehicleId ? parseInt(selectedVehicleId) : null,
-            description: note || 'Điều phối cứu hộ',
+            description: note.trim() !== '' ? note.trim() : 'Điều phối cứu hộ',
         });
     };
 
@@ -169,7 +189,7 @@ export default function DispatchModal({
                         >
                             <option value="">-- Chọn đội --</option>
                             {availableTeams.map((team) => (
-                                <option key={team.id ?? team.rescueTeamId} value={team.id ?? team.rescueTeamId}>
+                                <option key={team.teamId} value={team.teamId}>
                                     {team.teamName || team.name}
                                 </option>
                             ))}
@@ -193,8 +213,8 @@ export default function DispatchModal({
                         >
                             <option value="">-- Không sử dụng / Chọn sau --</option>
                             {availableVehicles.map((v) => (
-                                <option key={v.id ?? v.vehicleId} value={v.id ?? v.vehicleId}>
-                                    {v.vehicleCode ?? v.name} ({v.vehicleType ?? 'Chưa rõ loại'})
+                                <option key={v.vehicleId} value={v.vehicleId}>
+                                    {v.vehicleCode ?? v.name} ({vehicleTypeMap[v.vehicleType] ?? v.vehicleType ?? 'Chưa rõ loại'})
                                 </option>
                             ))}
                         </select>

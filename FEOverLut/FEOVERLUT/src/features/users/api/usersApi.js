@@ -32,3 +32,27 @@ export const getUserByIdApi = async (id) => {
     return response.data;
 };
 
+export const getUserRoleApi = async () => {
+    const response = await api.get("Roles/UserRole");
+    return response.data;
+};
+
+export const getUserRoleByIdApi = async (id) => {
+    const response = await api.get(`Roles/UserRole/${id}`);
+    return response.data;
+};
+
+export const updateUserRoleApi = async (id, data) => {
+    const response = await api.put(`Roles/UserRole/${id}`, data);
+    return response.data;
+};
+
+export const deleteUserRoleApi = async (id) => {
+    const response = await api.delete(`Roles/UserRole/${id}`);
+    return response.data;
+};
+
+export const createUserRoleApi = async (data) => {
+    const response = await api.post("Roles/UserRole", data);
+    return response.data;
+};
