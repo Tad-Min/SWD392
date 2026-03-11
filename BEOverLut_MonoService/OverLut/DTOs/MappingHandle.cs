@@ -110,7 +110,7 @@ namespace DTOs
             return new RescueMembersRoleDTO
             {
                 RescueMembersRoleId = entity.RescueMembersRoleId,
-                RollName = entity.RollName
+                RoleName = entity.RoleName
             };
         }
 
@@ -457,7 +457,7 @@ namespace DTOs
             return new RescueMembersRole
             {
                 RescueMembersRoleId = dto.RescueMembersRoleId,
-                RollName = dto.RollName
+                RoleName = dto.RoleName
             };
         }
 

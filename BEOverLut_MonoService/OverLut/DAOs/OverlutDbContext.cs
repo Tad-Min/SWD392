@@ -121,7 +121,7 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0B552B2EA").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E092105A51").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(100);
@@ -182,11 +182,11 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E393622578C");
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E398CD70E85");
 
             entity.ToTable("RefreshToken");
 
-            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F81753A2E03D").IsUnique();
+            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F817E87C09F5").IsUnique();
 
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(255)
@@ -202,12 +202,12 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RescueMembersRole>(entity =>
         {
-            entity.HasIndex(e => e.RollName, "UQ_RescueMembersRoles_RollName").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ_RescueMembersRoles_RollName").IsUnique();
 
             entity.Property(e => e.RescueMembersRoleId)
                 .ValueGeneratedNever()
                 .HasColumnName("RescueMembersRoleID");
-            entity.Property(e => e.RollName).HasMaxLength(100);
+            entity.Property(e => e.RoleName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<RescueMission>(entity =>
@@ -256,12 +256,10 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(50)
                 .HasColumnName("IPAddress");
-            entity.Property(e => e.Location)
-                .HasColumnType("geography");
             entity.Property(e => e.LocationText).HasMaxLength(500);
             entity.Property(e => e.PeopleCount).HasDefaultValue(1);
             entity.Property(e => e.UserReqId).HasColumnName("UserReqID");
-
+            entity.Property(e => e.Location).HasColumnType("geography");
             entity.HasOne(d => d.RequestTypeNavigation).WithMany(p => p.RescueRequests)
                 .HasForeignKey(d => d.RequestType)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -468,9 +466,8 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
-            entity.Property(e => e.Location)
-                .HasColumnType("geography");
             entity.Property(e => e.WarehouseName).HasMaxLength(200);
+            entity.Property(e => e.Location).HasColumnType("geography");
         });
 
         modelBuilder.Entity<WarehouseStock>(entity =>

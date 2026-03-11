@@ -70,8 +70,10 @@ builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IWarehouseStockRepository, WarehouseStockRepository>();
 builder.Services.AddScoped<IRescueTeamRepository, RescueTeamRepository>();
 builder.Services.AddScoped<IRescueTeamMemberRepository, RescueTeamMemberRepository>();
-builder.Services.AddScoped<IRescueMembersRollRepository, RescueMembersRollRepository>();
+builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
 builder.Services.AddScoped<IUrgencyLevelRepository, UrgencyLevelRepository>();
+builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Add service scope.
 
@@ -91,6 +93,7 @@ builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionSer
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUrgencyLevelService, UrgencyLevelService>();
 builder.Services.AddScoped<IVehicleAssignmentRepository, VehicleAssignmentRepository>();
+builder.Services.AddScoped<IRolesService, RolesService>();
 // Add Status Repositories
 builder.Services.AddScoped<IRescueMissionsStatusRepository, RescueMissionsStatusRepository>();
 builder.Services.AddScoped<IRescueRequestsStatusRepository, RescueRequestsStatusRepository>();
