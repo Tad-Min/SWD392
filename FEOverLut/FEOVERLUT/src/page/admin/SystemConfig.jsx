@@ -88,8 +88,8 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createRescueRequestType}
                         updateApi={systemConfigHooks.updateRescueRequestType}
                         deleteApi={systemConfigHooks.deleteRescueRequestType}
-                        idField="rescueRequestTypeId"
-                        nameField="rescueRequestTypeName"
+                        idField="rescueRequestsTypeId"
+                        nameField="typeName"
                     />
                 )}
 
@@ -105,8 +105,8 @@ const SystemConfig = () => {
                         createApi={systemConfigHooks.createVehicleType}
                         updateApi={systemConfigHooks.updateVehicleType}
                         deleteApi={systemConfigHooks.deleteVehicleType}
-                        idField="vehiclesTypeId"
-                        nameField="vehiclesTypeName"
+                        idField="vehicleTypeId"
+                        nameField="typeName"
                     />
                 )}
 

@@ -22,6 +22,7 @@ import WarehouseConfig from './page/manager/WarehouseConfig.jsx';
 import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
 import ManagerReports from './page/manager/ManagerReports.jsx';
+import ProductManagement from './page/manager/ProductManagement.jsx';
 
 // Import RescueCoordinator
 import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
@@ -68,6 +69,7 @@ function App() {
               <Route path="warehouses" element={<ProtectedRoute><WarehouseConfig /></ProtectedRoute>} />
               <Route path="transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
+              <Route path="products" element={<ProtectedRoute><ProductManagement /></ProtectedRoute>} />
               <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>

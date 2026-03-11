@@ -64,3 +64,8 @@ export const updateWarehouseStockApi = async (data) => {
     const response = await api.put("WareHouse/Stock", data);
     return response.data;
 };
+
+export const deleteWarehouseStockApi = async (warehouseId, productId) => {
+    const response = await api.delete(`WareHouse/Stock/${warehouseId}/${productId}`);
+    return response.data;
+};

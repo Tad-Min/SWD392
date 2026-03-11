@@ -187,9 +187,22 @@ const MyProfileModal = ({ isOpen, onClose, isDarkMode, theme }) => {
                                     <div className="space-y-1.5">
                                         <label className={`text-[12px] font-bold uppercase tracking-wider ${theme.textMuted}`}>Chức vụ / Role</label>
                                         <div className="py-2.5">
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-fuchsia-500/10 text-fuchsia-500 border border-fuchsia-500/20">
-                                                {user?.roleId === 1 ? 'Admin' : user?.roleId === 2 ? 'Manager' : user?.roleId === 3 ? 'Coordinator' : 'User'}
-                                            </span>
+                                            {(() => {
+                                                const rId = user?.roleId ?? user?.role;
+                                                const roleConfig = {
+                                                    1: { label: 'Công dân', class: 'bg-slate-500/10 text-slate-500 border-slate-500/20' },
+                                                    2: { label: 'Đội Cứu Hộ', class: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+                                                    3: { label: 'Điều Phối Viên', class: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+                                                    4: { label: 'Quản Lý', class: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
+                                                    5: { label: 'Quản Trị Viên', class: 'bg-fuchsia-500/10 text-fuchsia-500 border-fuchsia-500/20' },
+                                                };
+                                                const config = roleConfig[rId] || { label: 'Người dùng', class: 'bg-slate-400/10 text-slate-400 border-slate-400/20' };
+                                                return (
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${config.class}`}>
+                                                        {config.label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
