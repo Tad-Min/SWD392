@@ -132,17 +132,18 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRescueTeam(int id, RescueTeam rescueTeam)
+        public async Task<IActionResult> UpdateRescueTeam(int id, UpdateRescueTeam model)
         {
             try
             {
-                var teams = await _rescueTeamService.GetAllRescueTeamsAsync(id, null, null);
-                var existingTeam = teams?.FirstOrDefault();
+                var existingTeam = await _rescueTeamService.GetRescueTeamByTeamId(id);
                 if (existingTeam == null)
                     return NotFound(new { message = $"Rescue team with ID {id} not found" });
+                if(!string.IsNullOrWhiteSpace(model.TeamName))
+                    existingTeam.TeamName=model.TeamName;
+                existingTeam.StatusId =model.StatusId;
 
-                rescueTeam.TeamId = id;
-                var result = await _rescueTeamService.UpdateRescueTeamAsync(rescueTeam);
+                var result = await _rescueTeamService.UpdateRescueTeamAsync(existingTeam);
                 if (!result)
                     return BadRequest(new { message = "Failed to update rescue team" });
 
