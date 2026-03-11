@@ -1,4 +1,4 @@
-﻿using System.Net.NetworkInformation;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json;
@@ -54,7 +54,7 @@ namespace WebApi.Controllers
                 var rescueRequest = await iRescueRequestService.GetRescueRequestByIdAsync(id);
                 if (rescueRequest == null)
                     return NotFound(new { message = $"RescueRequest with ID {id} not found" });
-                return Ok(rescueRequest);
+                return Ok(MappingHandle.EntityToDTO(rescueRequest));
             }
             catch (Exception ex)
             {

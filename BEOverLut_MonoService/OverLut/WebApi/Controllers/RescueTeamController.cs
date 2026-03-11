@@ -1,4 +1,4 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
 using DTOs;
 using DTOs.Overlut;
 using Microsoft.AspNetCore.Http;
@@ -37,12 +37,12 @@ namespace WebApi.Controllers
             }
         }
         [HttpGet("{id}")]
-        async Task<IActionResult> GetRescueTeamByTeamId(int id)
+        public async Task<IActionResult> GetRescueTeamByTeamId(int id)
         {
             try
             {
                 var team = await _rescueTeamService.GetRescueTeamByTeamId(id);
-                return Ok(team);
+                return Ok(MappingHandle.EntityToDTO(team));
             }
             catch (Exception ex)
             {
@@ -77,7 +77,7 @@ namespace WebApi.Controllers
                 var members = await _rescueTeamService.GetAllTeamMemberByTeamIdAsync(id);
                 if (members == null || !members.Any())
                     return NotFound(new { message = $"No members found for rescue team with ID {id}" });
-                return Ok(members);
+                return Ok(members.Select(m => MappingHandle.EntityToDTO(m)));
             }
             catch (Exception ex)
             {
@@ -182,8 +182,8 @@ namespace WebApi.Controllers
                     TeamName = model.TeamName
                 });
                 if (rescueTeam == null)
-                    BadRequest(new { message = "Failed to create rescue team" });
-                return CreatedAtAction(nameof(GetRescueTeamByTeamId), new { id = rescueTeam!.TeamId }, rescueTeam);
+                    return BadRequest(new { message = "Failed to create rescue team" });
+                return CreatedAtAction(nameof(GetRescueTeamByTeamId), new { id = rescueTeam.TeamId }, MappingHandle.EntityToDTO(rescueTeam));
             }
             catch (Exception ex)
             {
