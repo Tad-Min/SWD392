@@ -30,8 +30,8 @@ export const getRescueTeamMemberByTeamIdApi = async (id) => {
     return response.data;
 }
 
-export const getRescueTeamMemberByUserAndTeamIdApi = async (userId, teamId) => {
-    const response = await api.get(`RescueTeam/GetRescueTeamMembersByUserIdAndTeamId/${userId}/${teamId}`);
+export const getRescueTeamMemberByUserIdAndTeamIdApi = async (userId, teamId) => {
+    const response = await api.get(`RescueTeam/GetRescueTeamMembersByUserIdAndTeamId/${userId}_${teamId}`);
     return response.data;
 }
 
@@ -41,26 +41,26 @@ export const createRescueTeamMemberApi = async (data) => {
 }
 
 export const getRescueTeamMemberRoleApi = async () => {
-    const response = await api.get("RescueTeam/RescueMemberRoles");
+    const response = await api.get("Roles/RescueMemberRole");
     return response.data;
 }
 
 export const getRescueTeamMemberRoleByIdApi = async (id) => {
-    const response = await api.get(`RescueTeam/RescueMemberRole/${id}`);
+    const response = await api.get(`Roles/RescueMemberRole/${id}`);
     return response.data;
 }
 
 export const updateRescueTeamMemberRoleApi = async (id, data) => {
-    const response = await api.put(`RescueTeam/RescueMemberRole/${id}`, data);
+    const response = await api.put(`Roles/RescueMemberRole/${id}`, data);
     return response.data;
 }
 
 export const deleteRescueTeamMemberApi = async (id) => {
-    const response = await api.delete(`RescueTeam/RescueMemberRole/${id}`);
+    const response = await api.delete(`Roles/RescueMemberRole/${id}`);
     return response.data;
 }
 
 export const createRescueTeamMemberRoleApi = async (data) => {
-    const response = await api.post("RescueTeam/RescueMemberRole", data);
+    const response = await api.post("Roles/RescueMemberRole", data);
     return response.data;
 }

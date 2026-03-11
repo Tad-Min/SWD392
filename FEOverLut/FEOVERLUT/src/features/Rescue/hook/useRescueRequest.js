@@ -79,6 +79,7 @@ export const useUpdateRescueRequest = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }

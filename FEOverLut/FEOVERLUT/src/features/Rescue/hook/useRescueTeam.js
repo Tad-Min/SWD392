@@ -1,4 +1,4 @@
-import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi, getRescueTeamMemberByTeamIdApi, getRescueTeamMemberByUserAndTeamIdApi, createRescueTeamMemberApi, getRescueTeamMemberRoleApi, getRescueTeamMemberRoleByIdApi, updateRescueTeamMemberRoleApi, deleteRescueTeamMemberApi, createRescueTeamMemberRoleApi } from "../api/rescueTeamApi";
+import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi, getRescueTeamMemberByTeamIdApi, getRescueTeamMemberByUserIdAndTeamIdApi, createRescueTeamMemberApi, getRescueTeamMemberRoleApi, getRescueTeamMemberRoleByIdApi, updateRescueTeamMemberRoleApi, deleteRescueTeamMemberApi, createRescueTeamMemberRoleApi } from "../api/rescueTeamApi";
 import { useState } from "react";
 
 export const useRescueTeam = () => {
@@ -111,14 +111,14 @@ export const useGetRescueTeamMemberByTeamId = () => {
     }
 }
 
-export const useGetRescueTeamMemberByUserAndTeamId = () => {
+export const useGetRescueTeamMemberByUserIdAndTeamId = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const getRescueTeamMemberByUserAndTeamId = async (userId, teamId) => {
+    const getRescueTeamMemberByUserIdAndTeamId = async (userId, teamId) => {
         try {
             setLoading(true);
-            const response = await getRescueTeamMemberByUserAndTeamIdApi(userId, teamId);
+            const response = await getRescueTeamMemberByUserIdAndTeamIdApi(userId, teamId);
             return response;
         } catch (error) {
             setError(error);
@@ -129,7 +129,7 @@ export const useGetRescueTeamMemberByUserAndTeamId = () => {
     return {
         loading,
         error,
-        getRescueTeamMemberByUserAndTeamId
+        getRescueTeamMemberByUserIdAndTeamId
     }
 }
 

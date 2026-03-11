@@ -126,11 +126,18 @@ namespace WebApi.Controllers
                 var existingRescueRequest = await iRescueRequestService.GetRescueRequestByIdAsync(id);
                 if (existingRescueRequest == null)
                     return NotFound(new { message = $"RescueRequest with ID {id} not found" });
+                var geoJsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
+                };
+                geoJsonOptions.Converters.Add(new NetTopologySuite.IO.Converters.GeoJsonConverterFactory());
                 var logCheck = await iLogService.AddRescueRequestLogAsync(new RescueRequestLog
                 {
                     RescueRequestId = id,
                     ChangedByUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
-                    OldRescueRequests = JsonSerializer.Serialize(MappingHandle.EntityToDTO(existingRescueRequest)),
+                    OldRescueRequests = JsonSerializer.Serialize(MappingHandle.EntityToDTO(existingRescueRequest), geoJsonOptions),
                 }) ?? throw new Exception("Can't write log");
                 existingRescueRequest.RequestType = model.RequestType;
                 existingRescueRequest.UrgencyLevel = model.UrgencyLevel;
