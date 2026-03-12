@@ -14,6 +14,7 @@ import AdminLayout from './components/AdminLayout.jsx';
 import AdminDashboard from './page/admin/AdminDashboard.jsx';
 import UserManagement from './page/admin/UserManagement.jsx';
 import SystemConfig from './page/admin/SystemConfig.jsx';
+import AdminProductManagement from './page/admin/AdminProductManagement.jsx';
 // Import Manager layout & pages
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
@@ -23,6 +24,8 @@ import TransactionHistory from './page/manager/TransactionHistory.jsx';
 import DistributionTracking from './page/manager/DistributionTracking.jsx';
 import ManagerReports from './page/manager/ManagerReports.jsx';
 import ProductManagement from './page/manager/ProductManagement.jsx';
+import RescueTeamManagement from './page/manager/RescueTeamManagement.jsx';
+import VehicleManagement from './page/manager/VehicleManagement.jsx';
 
 // Import RescueCoordinator
 import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
@@ -58,6 +61,7 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
               <Route path="users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
+              <Route path="products" element={<ProtectedRoute><AdminProductManagement /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute><SystemConfig /></ProtectedRoute>} />
             </Route>
 
@@ -70,6 +74,8 @@ function App() {
               <Route path="transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
               <Route path="products" element={<ProtectedRoute><ProductManagement /></ProtectedRoute>} />
+              <Route path="rescue-teams" element={<ProtectedRoute><RescueTeamManagement /></ProtectedRoute>} />
+              <Route path="vehicles" element={<ProtectedRoute><VehicleManagement /></ProtectedRoute>} />
               <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>

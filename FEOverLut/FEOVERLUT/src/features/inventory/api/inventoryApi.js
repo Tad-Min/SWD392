@@ -50,8 +50,10 @@ export const getWarehousesApi = async () => {
     return response.data;
 };
 
-export const getWarehouseStockApi = async () => {
-    const response = await api.get("WareHouse/Stock");
+export const getWarehouseStockApi = async (warehouseId, productId) => {
+    const response = await api.get("WareHouse/Stock", {
+        params: { warehouseId, productId }
+    });
     return response.data;
 };
 

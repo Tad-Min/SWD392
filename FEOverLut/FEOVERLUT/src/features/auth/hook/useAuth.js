@@ -10,16 +10,9 @@ export const useLogout = () => {
         try {
             const userId = localStorage.getItem('userId');
             const refreshToken = localStorage.getItem('refreshToken');
-<<<<<<< HEAD
-            await logoutApi({
-                userId: userId ? parseInt(userId) : 0,
-                refeshToken: refreshToken || ""
-=======
-
             await logoutApi({
                 userId: userId ? parseInt(userId) : 0,
                 refeshToken: refreshToken || "" // Lưu ý: 'RefeshToken' khớp với lỗi chính tả BE
->>>>>>> main
             });
         } catch (error) {
             console.error("Logout error", error);

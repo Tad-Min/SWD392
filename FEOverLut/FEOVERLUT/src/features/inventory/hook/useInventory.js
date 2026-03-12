@@ -136,11 +136,11 @@ export const useInventory = () => {
         }
     }, []);
 
-    const getWarehouseStock = useCallback(async () => {
+    const getWarehouseStock = useCallback(async (warehouseId, productId) => {
         setLoading(true);
         setError(null);
         try {
-            return await getWarehouseStockApi();
+            return await getWarehouseStockApi(warehouseId, productId);
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message || "Lỗi tải tồn kho";
             setError(errorMsg);

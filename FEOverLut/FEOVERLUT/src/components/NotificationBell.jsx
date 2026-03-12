@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as signalR from '@microsoft/signalr';
 import { toast } from 'react-toastify';
 
 const NotificationBell = ({ theme }) => {
@@ -7,56 +6,91 @@ const NotificationBell = ({ theme }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const connectionRef = useRef(null);
+    const wsRef = useRef(null);
 
-    // Setup SignalR connection
+    // Setup Native WebSocket connection
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // Xây dựng connection
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:7155/notificationHub', {
-                accessTokenFactory: () => token,
-                skipNegotiation: true,
-                transport: signalR.HttpTransportType.WebSockets
-            })
-            .withAutomaticReconnect()
-            .build();
+        let reconnectTimer;
+        const connectWebSocket = () => {
+            const wsUrl = 'wss://localhost:7155/ws';
+            console.log('Attempting to connect to WebSocket:', wsUrl);
+            const ws = new WebSocket(wsUrl);
+            wsRef.current = ws;
 
-        connectionRef.current = newConnection;
-
-        // Nhận sự kiện từ Backend (Giả sử BE gọi hàm "ReceiveSOSNotification")
-        newConnection.on('ReceiveSOSNotification', (message, data) => {
-            const newNotif = {
-                id: Date.now(),
-                title: '🆘 Yêu Cầu Cứu Hộ Mới',
-                message: message,
-                time: new Date().toLocaleTimeString(),
-                read: false,
-                data: data
+            ws.onopen = () => {
+                console.log('WebSocket Connected successfully to', wsUrl);
             };
 
-            // Cập nhật state
-            setNotifications(prev => [newNotif, ...prev]);
-            setUnreadCount(prev => prev + 1);
+            ws.onmessage = (event) => {
+                console.log('WS Message received:', event.data);
+                try {
+                    // Determine structure of message. It could be plain text or JSON. 
+                    // Let's assume it's some json broadcast
+                    const data = JSON.parse(event.data);
 
-            // Pop lên một thông báo đỏ góc màn hình
-            toast.error(`SOS Mới: ${message}`, {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "colored",
-            });
-        });
+                    const newNotif = {
+                        id: Date.now(),
+                        title: data.title || 'Thông Báo Mới',
+                        message: data.message || event.data,
+                        time: new Date().toLocaleTimeString(),
+                        read: false,
+                        data: data
+                    };
 
-        // Start kết nối
-        newConnection.start()
-            .then(() => console.log('SignalR Connected!'))
-            .catch(e => console.error('SignalR Connection Error: ', e));
+                    // Cập nhật state
+                    setNotifications(prev => [newNotif, ...prev]);
+                    setUnreadCount(prev => prev + 1);
+
+                    // Pop lên một thông báo đỏ góc màn hình
+                    toast.info(`Thông báo: ${newNotif.message}`, {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: "colored",
+                    });
+                } catch (e) {
+                    // If it's plain text message:
+                    const newNotif = {
+                        id: Date.now(),
+                        title: 'Thông Báo Mới',
+                        message: event.data,
+                        time: new Date().toLocaleTimeString(),
+                        read: false,
+                        data: null
+                    };
+
+                    setNotifications(prev => [newNotif, ...prev]);
+                    setUnreadCount(prev => prev + 1);
+
+                    toast.info(`Thông báo: ${event.data}`, {
+                        position: "top-right",
+                        autoClose: 5000,
+                        theme: "colored",
+                    });
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Error on NotificationBell: ', error);
+            };
+
+            ws.onclose = (event) => {
+                console.log(`WebSocket Disconnected. Code: ${event.code}, Reason: ${event.reason}`);
+                // Attempt to reconnect after 5 seconds if not unmounted
+                reconnectTimer = setTimeout(() => {
+                    console.log('Reconnecting WebSocket...');
+                    connectWebSocket();
+                }, 5000);
+            };
+        }; // End connectWebSocket
+
+        connectWebSocket();
 
         // Click outside to close dropdown
         const handleClickOutside = (event) => {
@@ -67,8 +101,9 @@ const NotificationBell = ({ theme }) => {
         document.addEventListener('mousedown', handleClickOutside);
 
         return () => {
-            if (connectionRef.current) {
-                connectionRef.current.stop();
+            clearTimeout(reconnectTimer);
+            if (wsRef.current) {
+                wsRef.current.close();
             }
             document.removeEventListener('mousedown', handleClickOutside);
         };

@@ -13,17 +13,19 @@ const toArr = (v) => {
 
 const dropdownArrow = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`;
 
-const ProductManagement = () => {
+const AdminProductManagement = () => {
     const { isDarkMode, theme } = useOutletContext();
 
     const {
         getProducts, createProduct, updateProduct, deleteProduct,
-        getCategories, createCategory, updateCategory, deleteCategory
+        getCategories, createCategory, updateCategory, deleteCategory,
+        getWarehouseStock, deleteWarehouseStock
     } = useInventory();
 
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDeletingId, setIsDeletingId] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -111,16 +113,34 @@ const ProductManagement = () => {
     };
 
     const handleDeleteProduct = async (id) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này? Nó có thể báo lỗi nếu đang có hàng trong kho.")) return;
+        if (!window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này? Hệ thống sẽ xoá tất cả hàng hóa liên quan trong các kho trước (Safe Delete).")) return;
+
+        setIsDeletingId(id);
         try {
+            // Bước 1: Lấy danh sách kho chứa sản phẩm này
+            const stockRes = await getWarehouseStock(null, id);
+            const stocks = toArr(stockRes);
+
+            // Bước 2: Xoá lần lượt trong các kho
+            for (let i = 0; i < stocks.length; i++) {
+                const stock = stocks[i];
+                if (stock.warehouseId && stock.productId) {
+                    await deleteWarehouseStock(stock.warehouseId, stock.productId);
+                }
+            }
+
+            // Bước 3: Xoá sản phẩm gốc
             await deleteProduct(id);
             fetchAll();
+            alert("Xóa sản phẩm an toàn thành công!");
         } catch (e) {
             console.error("Fail to delete product", e);
-            let msg = "Lỗi không xác định hoặc vật tư này đã có dữ liệu ràng buộc (Tồn kho/Giao dịch) nên không thể xoá.";
+            let msg = "Lỗi không xác định hoặc vật tư này đã có dữ liệu ràng buộc Giao dịch (Transactions) nên không thể xoá.";
             if (typeof e.response?.data === 'string') msg = e.response.data;
             else if (e.response?.data?.message) msg = e.response.data.message;
             alert(`Xoá thất bại: ${msg}`);
+        } finally {
+            setIsDeletingId(null);
         }
     };
 
@@ -169,8 +189,8 @@ const ProductManagement = () => {
             {/* ── HEADER ─────────────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
-                    <h2 className={`text-2xl font-bold ${theme.text}`}>Danh Mục Sản Phẩm</h2>
-                    <p className={`text-sm ${theme.textMuted} mt-1`}>Quản lý tên, loại và đơn vị của các vật tư cứu trợ (Danh mục gốc).</p>
+                    <h2 className={`text-2xl font-bold ${theme.text}`}>Quản Lý Sản Phẩm (Admin)</h2>
+                    <p className={`text-sm ${theme.textMuted} mt-1`}>Chức năng đầy đủ: xem, sinh mới sản phẩm, loại hàng, và cho phép Safe Delete.</p>
                 </div>
                 <div className="flex gap-3 shrink-0">
                     <button
@@ -271,11 +291,15 @@ const ProductManagement = () => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity gap-2">
-                                                <button onClick={() => { setProductForm({ productId: item.productId, productName: item.productName || '', categoryId: item.categoryId || '', unit: item.unit || '' }); setModalMode('edit'); setIsModalOpen(true); }} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chi tiết / Cập nhật">
+                                                <button disabled={isDeletingId === item.productId} onClick={() => { setProductForm({ productId: item.productId, productName: item.productName || '', categoryId: item.categoryId || '', unit: item.unit || '' }); setModalMode('edit'); setIsModalOpen(true); }} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chi tiết / Cập nhật">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
-                                                <button onClick={() => handleDeleteProduct(item.productId ?? item.id)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`} title="Xoá gốc">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                <button disabled={isDeletingId === item.productId} onClick={() => handleDeleteProduct(item.productId ?? item.id)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`} title="Xóa toàn phần an toàn (Tự động xóa trong kho)">
+                                                    {isDeletingId === item.productId ? (
+                                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                                    ) : (
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    )}
                                                 </button>
                                             </div>
                                         </td>
@@ -354,7 +378,7 @@ const ProductManagement = () => {
                                                 setProductForm(p => ({ ...p, productName: e.target.value }));
                                                 setShowProductDropdown(true);
                                             }}
-                                            onFocus={() => setShowProductDropdown(true)}
+                                            onClick={() => setShowProductDropdown(true)}
                                             className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 pr-10 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
                                             autoFocus
                                         />
@@ -462,4 +486,4 @@ const ProductManagement = () => {
     );
 };
 
-export default ProductManagement;
+export default AdminProductManagement;
