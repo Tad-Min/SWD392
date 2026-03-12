@@ -3,7 +3,7 @@ import {
     getProductsApi, createProductApi, updateProductApi, deleteProductApi,
     getCategoriesApi, createCategoryApi, updateCategoryApi, deleteCategoryApi,
     getWarehousesApi,
-    getWarehouseStockApi, createWarehouseStockApi, updateWarehouseStockApi
+    getWarehouseStockApi, createWarehouseStockApi, updateWarehouseStockApi, deleteWarehouseStockApi
 } from '../api/inventoryApi';
 
 export const useInventory = () => {
@@ -136,11 +136,11 @@ export const useInventory = () => {
         }
     }, []);
 
-    const getWarehouseStock = useCallback(async () => {
+    const getWarehouseStock = useCallback(async (warehouseId, productId) => {
         setLoading(true);
         setError(null);
         try {
-            return await getWarehouseStockApi();
+            return await getWarehouseStockApi(warehouseId, productId);
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message || "Lỗi tải tồn kho";
             setError(errorMsg);
@@ -178,6 +178,20 @@ export const useInventory = () => {
         }
     }, []);
 
+    const deleteWarehouseStock = useCallback(async (warehouseId, productId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            return await deleteWarehouseStockApi(warehouseId, productId);
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi xóa tồn kho";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         isLoading,
         error,
@@ -192,6 +206,7 @@ export const useInventory = () => {
         getWarehouses,
         getWarehouseStock,
         createWarehouseStock,
-        updateWarehouseStock
+        updateWarehouseStock,
+        deleteWarehouseStock
     };
 };

@@ -50,8 +50,10 @@ export const getWarehousesApi = async () => {
     return response.data;
 };
 
-export const getWarehouseStockApi = async () => {
-    const response = await api.get("WareHouse/Stock");
+export const getWarehouseStockApi = async (warehouseId, productId) => {
+    const response = await api.get("WareHouse/Stock", {
+        params: { warehouseId, productId }
+    });
     return response.data;
 };
 
@@ -62,5 +64,10 @@ export const createWarehouseStockApi = async (data) => {
 
 export const updateWarehouseStockApi = async (data) => {
     const response = await api.put("WareHouse/Stock", data);
+    return response.data;
+};
+
+export const deleteWarehouseStockApi = async (warehouseId, productId) => {
+    const response = await api.delete(`WareHouse/Stock/${warehouseId}/${productId}`);
     return response.data;
 };

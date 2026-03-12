@@ -12,7 +12,7 @@ export const useLogout = () => {
             const refreshToken = localStorage.getItem('refreshToken');
             await logoutApi({
                 userId: userId ? parseInt(userId) : 0,
-                refeshToken: refreshToken || ""
+                refeshToken: refreshToken || "" // Lưu ý: 'RefeshToken' khớp với lỗi chính tả BE
             });
         } catch (error) {
             console.error("Logout error", error);

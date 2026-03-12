@@ -1,0 +1,27 @@
+[
+  {
+    "rescueMissionsStatusId": 1,
+    "statusName": "Assigned",
+    "isDeleted": false
+  },
+  {
+    "rescueMissionsStatusId": 2,
+    "statusName": "EnRoute",
+    "isDeleted": false
+  },
+  {
+    "rescueMissionsStatusId": 3,
+    "statusName": "Rescuing",
+    "isDeleted": false
+  },
+  {
+    "rescueMissionsStatusId": 4,
+    "statusName": "Completed",
+    "isDeleted": false
+  },
+  {
+    "rescueMissionsStatusId": 5,
+    "statusName": "Failed",
+    "isDeleted": false
+  }
+]

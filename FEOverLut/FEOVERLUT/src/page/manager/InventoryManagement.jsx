@@ -18,9 +18,9 @@ const InventoryManagement = () => {
     const { isDarkMode, theme } = useOutletContext();
 
     const {
-        getProducts, createProduct, updateProduct, deleteProduct,
-        getCategories, createCategory, updateCategory, deleteCategory,
-        getWarehouses, getWarehouseStock, createWarehouseStock, updateWarehouseStock
+        getProducts, updateProduct,
+        getCategories,
+        getWarehouses, getWarehouseStock, createWarehouseStock, updateWarehouseStock, deleteWarehouseStock
     } = useInventory();
 
     const { createTransaction } = useTransaction();
@@ -46,12 +46,8 @@ const InventoryManagement = () => {
         productId: null, productName: '', categoryId: '', quantity: 0, warehouseId: '', unit: '', note: ''
     });
 
-    // Category modal form state
-    const [catForm, setCatForm] = useState({ categoryId: null, categoryName: '', description: '' });
-    const [isCatEditing, setIsCatEditing] = useState(false);
-
     // Delete confirm
-    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const [deleteStockModal, setDeleteStockModal] = useState({ isOpen: false, productId: null, productName: '', warehouseId: '' });
 
     // ── Fetch ──────────────────────────────────────────────────────
     const fetchAll = useCallback(async () => {
@@ -67,7 +63,7 @@ const InventoryManagement = () => {
         if (wRes.status === 'fulfilled') setWarehouses(toArr(wRes.value));
         if (sRes.status === 'fulfilled') setStocks(toArr(sRes.value));
         setIsLoading(false);
-    }, [getProducts, getCategories, getWarehouses, getWarehouseStock]); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getProducts, getCategories, getWarehouses, getWarehouseStock]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -97,29 +93,17 @@ const InventoryManagement = () => {
         try {
             let targetId = importForm.productId;
 
-            // 1. Update existing product OR Find/Create new product
+            // 1. Update existing product
             if (modalMode === 'edit_product' && targetId) {
                 await updateProduct(targetId, {
                     productName: importForm.productName.trim(),
                     categoryId: importForm.categoryId ? parseInt(importForm.categoryId) : null,
                     unit: importForm.unit || 'Đơn vị',
                 });
-            } else {
-                // If we don't have an ID but the name matches an existing product
-                if (!targetId) {
-                    const existing = products.find(p => p.productName.toLowerCase() === importForm.productName.trim().toLowerCase());
-                    if (existing) targetId = existing.productId ?? existing.id;
-                }
-
-                // Create product only if it still doesn't exist
-                if (!targetId) {
-                    const newProd = await createProduct({
-                        productName: importForm.productName.trim(),
-                        categoryId: importForm.categoryId ? parseInt(importForm.categoryId) : null,
-                        unit: importForm.unit || 'Đơn vị',
-                    });
-                    targetId = newProd?.productId ?? newProd?.id;
-                }
+            } else if (modalMode === 'import' && !targetId) {
+                alert("Vui lòng chọn một vật phẩm có sẵn hoặc tạo mới trong Quản lý sản phẩm.");
+                setSubmitting(false);
+                return;
             }
 
             // 2. Add / Update stock entry (Always process if warehouse and quantity > 0)
@@ -190,52 +174,21 @@ const InventoryManagement = () => {
         setIsModalOpen(true);
     };
 
-    const handleDeleteProduct = async (id) => {
+    const handleDeleteStockConfirm = async () => {
+        if (!deleteStockModal.warehouseId) {
+            alert("Vui lòng chọn điểm kho để xóa!");
+            return;
+        }
         try {
-            await deleteProduct(id);
-            setDeleteConfirmId(null);
+            await deleteWarehouseStock(deleteStockModal.warehouseId, deleteStockModal.productId);
+            setDeleteStockModal({ isOpen: false, productId: null, productName: '', warehouseId: '' });
             fetchAll();
         } catch (e) {
-            console.error("Fail to delete product", e);
-            let msg = "Lỗi không xác định hoặc vật tư này đã có dữ liệu ràng buộc (Tồn kho/Giao dịch) nên không thể xoá.";
+            console.error("Fail to delete stock", e);
+            let msg = "Lỗi không xác định khi xoá kho.";
             if (typeof e.response?.data === 'string') msg = e.response.data;
             else if (e.response?.data?.message) msg = e.response.data.message;
             alert(`Xoá thất bại: ${msg}`);
-        }
-    };
-
-    // ── Manage Categories ──────────────────────────────────────────
-    const handleCatSubmit = async () => {
-        if (!catForm.categoryName.trim()) return;
-        setSubmitting(true);
-        try {
-            const catName = catForm.categoryName.trim(); // Extract trimmed name
-            if (isCatEditing && catForm.categoryId) {
-                await updateCategory(catForm.categoryId, catName); // Pass raw string
-            } else {
-                await createCategory(catName); // Pass raw string
-            }
-            // Refresh categories directly instead of full fetch for speed
-            const freshCats = await getCategories(); // Renamed cRes to freshCats
-            setCategories(toArr(freshCats));
-            setIsModalOpen(false); // Changed from setIsCatModalOpen(false)
-            setCatForm({ categoryId: null, categoryName: '', description: '' });
-            setIsCatEditing(false); // Keep this line as it was
-        } catch (error) { // Added error parameter
-            console.error(error); // Log error
-            alert('Lỗi khi lưu danh mục. Vui lòng thử tên khác hoặc kiểm tra lại!'); // Updated alert message
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleCatDelete = async (id) => {
-        try {
-            await deleteCategory(id);
-            const cRes = await getCategories();
-            setCategories(toArr(cRes));
-        } catch (e) {
-            alert('Xoá thất bại. Vui lòng kiểm tra sản phẩm đang dùng danh mục này.');
         }
     };
 
@@ -433,9 +386,12 @@ const InventoryManagement = () => {
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${st.cls}`}>{st.label}</span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity gap-2">
                                                 <button onClick={() => openEditProduct(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chi tiết / Cập nhật">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                                <button onClick={() => setDeleteStockModal({ isOpen: true, productId: item.productId ?? item.id, productName: item.productName || '', warehouseId: '' })} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-red-500`} title="Xoá khỏi kho">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
                                             </div>
                                         </td>
@@ -449,88 +405,51 @@ const InventoryManagement = () => {
 
             {/* ── MODAL NHẬP HÀNG ──────────────────────────────── */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-                    <div className={`w-full max-w-[460px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-[650px] mt-16 ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
                             <h3 className={`text-lg font-bold ${theme.text}`}>
-                                {modalMode === 'categories' ? 'Quản lý Danh mục' : modalMode === 'edit_product' ? 'Cập nhật Sản phẩm' : 'Nhập Hàng Mới'}
+                                {modalMode === 'edit_product' ? 'Cập nhật Sản phẩm' : 'Nhập Hàng Mới'}
                             </h3>
                             <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`} aria-label="Close modal">
                                 <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                             </button>
                         </div>
 
-                        {/* Body for Categories */}
-                        {modalMode === 'categories' && (
-                            <div className="p-6">
-                                <div className="space-y-4 mb-6">
-                                    <div className="flex flex-col gap-2">
-                                        <label htmlFor="catNameInput" className={`text-[13px] font-semibold ${theme.text}`}>Tên danh mục mới</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                id="catNameInput"
-                                                name="categoryName"
-                                                type="text"
-                                                placeholder="Tên danh mục..."
-                                                value={catForm.categoryName}
-                                                onChange={e => setCatForm(p => ({ ...p, categoryName: e.target.value }))}
-                                                className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none`}
-                                            />
-                                            <button onClick={handleCatSubmit} disabled={!catForm.categoryName.trim() || submitting}
-                                                className={`px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all ${submitting || !catForm.categoryName.trim() ? 'bg-purple-600/50' : 'bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-500/30'}`}>
-                                                {isCatEditing ? 'Lưu' : 'Thêm'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    {isCatEditing && (
-                                        <button onClick={() => { setIsCatEditing(false); setCatForm({ categoryId: null, categoryName: '', description: '' }); }}
-                                            className="text-xs text-blue-500 hover:underline">Hủy chỉnh sửa</button>
-                                    )}
-                                </div>
-                                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
-                                    {categories.length === 0 && <p className={`text-sm text-center ${theme.textMuted}`}>Chưa có danh mục nào.</p>}
-                                    {categories.map(cat => (
-                                        <div key={cat.categoryId ?? cat.id} className={`flex items-center justify-between p-3 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
-                                            <span className={`text-[14px] font-semibold ${theme.text}`}>{cat.categoryName ?? cat.name}</span>
-                                            <div className="flex gap-1">
-                                                <button onClick={() => { setIsCatEditing(true); setCatForm({ categoryId: cat.categoryId ?? cat.id, categoryName: cat.categoryName ?? cat.name, description: cat.description ?? '' }); }} className={`p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10`} aria-label="Edit category" title="Sửa danh mục">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         {/* Body for Import & Edit */}
                         {modalMode !== 'categories' && (
                             <div className="p-6 space-y-4">
                                 <div>
                                     <label htmlFor="productSelect" className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tên vật phẩm <span className="text-red-400">*</span></label>
-                                    <input
+                                    <select
                                         id="productSelect"
-                                        name="productName"
-                                        type="text"
-                                        list="product-list"
-                                        placeholder="Chọn hoặc nhập tên vật phẩm mới..."
-                                        value={importForm.productName}
+                                        name="productId"
+                                        value={importForm.productId || ''}
                                         onChange={e => {
-                                            const val = e.target.value;
-                                            const existing = products.find(p => p.productName === val);
+                                            const valId = parseInt(e.target.value);
+                                            if (isNaN(valId)) {
+                                                setImportForm(p => ({ ...p, productId: null, productName: '', categoryId: '', unit: '' }));
+                                                return;
+                                            }
+                                            const existing = products.find(p => (p.productId ?? p.id) === valId);
                                             if (existing) {
-                                                setImportForm(p => ({ ...p, productName: val, categoryId: existing.categoryId || '', unit: existing.unit || '' }));
-                                            } else {
-                                                setImportForm(p => ({ ...p, productName: val }));
+                                                setImportForm(p => ({
+                                                    ...p,
+                                                    productId: existing.productId ?? existing.id,
+                                                    productName: existing.productName || '',
+                                                    categoryId: existing.categoryId || '',
+                                                    unit: existing.unit || ''
+                                                }));
                                             }
                                         }}
-                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none`}
-                                        autoFocus
-                                    />
-                                    <datalist id="product-list">
-                                        {products.map(p => <option key={p.productId} value={p.productName} />)}
-                                    </datalist>
+                                        className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none bg-no-repeat`}
+                                        style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                                        disabled={modalMode === 'edit_product'}
+                                    >
+                                        <option value="">-- Chọn sản phẩm có sẵn --</option>
+                                        {products.map(p => <option key={p.productId ?? p.id} value={p.productId ?? p.id}>{p.productName}</option>)}
+                                    </select>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -541,7 +460,8 @@ const InventoryManagement = () => {
                                             name="categoryId"
                                             value={importForm.categoryId}
                                             onChange={e => setImportForm(p => ({ ...p, categoryId: e.target.value }))}
-                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer`}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            disabled={modalMode === 'import'}
                                         >
                                             <option value="">-- Chọn --</option>
                                             {categories.map(c => <option key={c.categoryId ?? c.id} value={c.categoryId ?? c.id}>{c.categoryName ?? c.name}</option>)}
@@ -560,11 +480,11 @@ const InventoryManagement = () => {
                                                 placeholder="0"
                                             />
                                             {modalMode === 'edit_product' ? (
-                                                <div className={`w-14 items-center justify-center flex text-[11px] font-bold ${theme.textMuted} bg-black/5 dark:bg-white/5 rounded-xl border ${theme.border}`}>
-                                                    {importForm.unit || 'ĐV'}
+                                                <div className={`w-24 items-center justify-center flex text-sm font-bold ${theme.textMuted} bg-black/5 dark:bg-white/5 rounded-xl border ${theme.border}`}>
+                                                    {importForm.unit || 'Đơn vị'}
                                                 </div>
                                             ) : (
-                                                <div className="w-16">
+                                                <div className="w-24">
                                                     <label htmlFor="unitInput" className="sr-only">Đơn vị</label>
                                                     <input
                                                         id="unitInput"
@@ -573,7 +493,8 @@ const InventoryManagement = () => {
                                                         placeholder="Vd: Thùng"
                                                         value={importForm.unit}
                                                         onChange={e => setImportForm(p => ({ ...p, unit: e.target.value }))}
-                                                        className={`w-full h-full text-[11px] text-center border ${theme.inputBorder} ${theme.inputBg} rounded-xl focus:ring-1 focus:ring-blue-500 outline-none`}
+                                                        className={`w-full h-full text-sm text-center border ${theme.inputBorder} ${theme.inputBg} rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-semibold disabled:opacity-50 disabled:bg-black/5 dark:disabled:bg-white/5`}
+                                                        disabled={modalMode === 'import'}
                                                     />
                                                 </div>
                                             )}
@@ -627,6 +548,35 @@ const InventoryManagement = () => {
                                 </button>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL XÓA TRONG KHO ───────────────────────────── */}
+            {deleteStockModal.isOpen && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-sm ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl p-6`} onClick={e => e.stopPropagation()}>
+                        <h3 className={`text-lg font-bold ${theme.text} mb-2`}>Xóa sản phẩm khỏi kho?</h3>
+                        <p className={`text-sm ${theme.textMuted} mb-4`}>Chọn kho lưu trữ mà bạn muốn xóa mục "<strong className="text-red-500">{deleteStockModal.productName}</strong>" này.</p>
+                        <select
+                            value={deleteStockModal.warehouseId}
+                            onChange={(e) => setDeleteStockModal(p => ({ ...p, warehouseId: e.target.value }))}
+                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer mb-6 appearance-none bg-no-repeat`}
+                            style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                        >
+                            <option value="">-- Chọn kho hiện có --</option>
+                            {/* Chỉ hiển thị những kho có sản phẩm này */}
+                            {Array.from(new Set(stocks.filter(s => s.productId === deleteStockModal.productId).map(s => s.warehouseId)))
+                                .map(whId => {
+                                    const wh = warehouses.find(w => (w.warehouseId ?? w.id) === whId);
+                                    if (!wh) return null;
+                                    return <option key={whId} value={whId}>{wh.warehouseName ?? wh.name}</option>;
+                                })}
+                        </select>
+                        <div className="flex items-center justify-end gap-3">
+                            <button onClick={() => setDeleteStockModal({ isOpen: false, productId: null, productName: '', warehouseId: '' })} className={`px-4 py-2 rounded-xl text-sm font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${theme.textMuted}`}>Hủy</button>
+                            <button onClick={handleDeleteStockConfirm} className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-500 shadow-md">Xóa khỏi kho</button>
+                        </div>
                     </div>
                 </div>
             )}

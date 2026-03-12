@@ -46,7 +46,11 @@ const GenericConfigTab = ({
             // But let's assume they accept { typeName: search } or { name: search }
             const params = search ? { typeName: search, name: search } : {};
             const res = await fetchApi(params);
-            setItems(res);
+            if (Array.isArray(res)) {
+                setItems(res.filter(item => item.isDeleted !== true));
+            } else {
+                setItems(res);
+            }
         } catch (err) {
             setError(`Không thể tải danh sách ${itemName}.`);
         } finally {
