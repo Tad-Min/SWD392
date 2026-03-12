@@ -44,7 +44,7 @@ function App() {
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
             {/* RescueTeam Routes */}
-            <Route path="/rescue-team/tasks" element={<ProtectedRoute><RescueTeamDashboard /></ProtectedRoute>} />
+            <Route path="/RescueTeam" element={<ProtectedRoute><RescueTeamDashboard /></ProtectedRoute>} />
             {/* RescueCoordinator Routes */}
             <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
 

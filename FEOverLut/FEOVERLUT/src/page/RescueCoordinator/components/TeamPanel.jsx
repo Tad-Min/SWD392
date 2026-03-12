@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Users, Shield, Radio, ChevronDown, Truck, Activity } from 'lucide-react';
-import { useRescueTeamStatus } from '../../../features/status/hook/useRescueTeamStatus';
+import { useRescueTeamStatusById } from '../../../features/status/hook/useRescueTeamStatus';
 import { useGetRescueTeamMemberByTeamId, useGetRescueTeamMemberRoleById } from '../../../features/Rescue/hook/useRescueTeam';
 import { useVehicle } from '../../../features/Vehicle/hook/useVehicle';
 import { useVehiclesStatus } from '../../../features/status/hook/useVehiclesStatus';
+import { useSystemConfig } from '../../../features/system_config/hook/useSystemConfig';
 import { getUserByIdApi } from '../../../features/users/api/usersApi';
 
 // Badge color palette by status name
@@ -136,41 +137,72 @@ export default function TeamPanel({ teams = [] }) {
     const [vehiclesCollapsed, setVehiclesCollapsed] = useState(false);
 
     // Status maps
-    const { getRescueTeamStatus } = useRescueTeamStatus();
+    const { getRescueTeamStatusById } = useRescueTeamStatusById();
     const [statusMap, setStatusMap] = useState({});
 
     // Vehicles state
     const { fetchVehicle } = useVehicle();
     const { getVehiclesStatus } = useVehiclesStatus();
+    const { getVehicleTypes } = useSystemConfig();
     const [vehicles, setVehicles] = useState([]);
     const [vehicleStatusMap, setVehicleStatusMap] = useState({});
+    const [vehicleTypeMap, setVehicleTypeMap] = useState({});
 
     // Fetch Team Statuses
     useEffect(() => {
+        if (!teams || teams.length === 0) return;
+
         (async () => {
             try {
-                const data = await getRescueTeamStatus();
-                const list = data?.data ?? data;
-                if (Array.isArray(list)) {
-                    const map = {};
-                    list.forEach((s) => {
-                        const id = s.id ?? s.rescueTeamStatusId;
-                        const name = s.statusName ?? s.name;
-                        if (id != null && name) map[id] = name;
-                    });
-                    setStatusMap(map);
+                const uniqueStatusIds = [...new Set(teams.map(t => t.statusId ?? t.rescueTeamStatusId ?? t.id).filter(Boolean))];
+                const newMap = { ...statusMap };
+                let hasChanges = false;
+
+                await Promise.all(
+                    uniqueStatusIds.map(async (sid) => {
+                        if (newMap[sid]) return; // already fetched
+                        try {
+                            const data = await getRescueTeamStatusById(sid);
+                            const status = data?.data ?? data;
+                            if (status && (status.statusName || status.name)) {
+                                newMap[sid] = status.statusName || status.name;
+                                hasChanges = true;
+                            }
+                        } catch (err) {
+                            console.error(`Failed to fetch status for id ${sid}:`, err);
+                        }
+                    })
+                );
+
+                if (hasChanges) {
+                    setStatusMap(newMap);
                 }
             } catch (err) {
                 console.error('Failed to fetch team statuses:', err);
             }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [teams]);
 
     // Fetch Vehicles & Vehicle Statuses
     useEffect(() => {
         (async () => {
             try {
+                // Fetch vehicle types
+                try {
+                    const vtData = await getVehicleTypes();
+                    const vtList = vtData?.data ?? vtData ?? [];
+                    const vtMap = {};
+                    vtList.forEach(t => {
+                        const id = t.id ?? t.vehicleTypeId ?? t.typeId;
+                        const name = t.typeName ?? t.name;
+                        if (id != null && name) vtMap[id] = name;
+                    });
+                    setVehicleTypeMap(vtMap);
+                } catch (err) {
+                    console.error('Failed to fetch vehicle types:', err);
+                }
+
                 // Fetch vehicle statuses
                 const vsData = await getVehiclesStatus();
                 const vsList = vsData?.data ?? vsData ?? [];
@@ -310,7 +342,7 @@ export default function TeamPanel({ teams = [] }) {
                                         </p>
                                         <div className="flex items-center justify-between mt-0.5">
                                             <p className="text-[10px] text-slate-400 truncate">
-                                                Loại: {v.vehicleType ?? 'Không rõ'}
+                                                Loại: {vehicleTypeMap[v.vehicleType] ?? v.vehicleType ?? 'Không rõ'}
                                             </p>
                                             <div className="flex items-center gap-1">
                                                 <Activity className="w-3 h-3 text-slate-500" />

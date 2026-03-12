@@ -56,6 +56,7 @@ export const useCreateRescueMission = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }

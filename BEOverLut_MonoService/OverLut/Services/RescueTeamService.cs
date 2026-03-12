@@ -1,6 +1,8 @@
 ﻿using BusinessObject.OverlutEntiy;
 using DTOs;
+using DTOs.Appsettings;
 using DTOs.Overlut;
+using Microsoft.Extensions.Options;
 using Repositories.Interface;
 using Services.Interface;
 
@@ -12,17 +14,20 @@ namespace Services
         private readonly IRescueTeamMemberRepository _rescueTeamMemberRepository;
         private readonly IRescueTeamsStatusRepository _rescueTeamsStatusRepository;
         private readonly IRescueMembersRoleRepository _rescueMembersRoleRepository;
+        private readonly RescueTeamSettings rescueTeamSettings;
 
         public RescueTeamService(
             IRescueTeamRepository rescueTeamRepository,
             IRescueTeamMemberRepository rescueTeamMemberRepository,
             IRescueTeamsStatusRepository rescueTeamsStatusRepository,
-            IRescueMembersRoleRepository rescueMembersRoleRepository)
+            IRescueMembersRoleRepository rescueMembersRoleRepository,
+            IOptions<RescueTeamSettings> rescueTeamSettings)
         {
             _rescueTeamRepository = rescueTeamRepository;
             _rescueTeamMemberRepository = rescueTeamMemberRepository;
             _rescueTeamsStatusRepository = rescueTeamsStatusRepository;
             _rescueMembersRoleRepository = rescueMembersRoleRepository;
+            this.rescueTeamSettings = rescueTeamSettings.Value;
         }
 
         #region RescueTeam
@@ -40,6 +45,7 @@ namespace Services
 
         public async Task<RescueTeam?> CreateRescueTeamAsync(RescueTeam rescueTeam)
         {
+            rescueTeam.StatusId = rescueTeamSettings.DefaultStatusId;
             return await _rescueTeamRepository.CreateRescueTeam(rescueTeam);
         }
 

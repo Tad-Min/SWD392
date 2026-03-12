@@ -1,3 +1,4 @@
+using DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
@@ -24,7 +25,7 @@ namespace WebApi.Controllers
                 if (levels == null || !levels.Any())
                     return NotFound(new { message = "No urgency levels found" });
 
-                return Ok(levels);
+                return Ok(levels.Select(l => MappingHandle.EntityToDTO(l)));
             }
             catch (Exception ex)
             {
@@ -45,7 +46,7 @@ namespace WebApi.Controllers
                 if (level == null)
                     return NotFound(new { message = $"Urgency level with ID {id} not found" });
 
-                return Ok(level);
+                return Ok(MappingHandle.EntityToDTO(level));
             }
             catch (Exception ex)
             {
@@ -67,7 +68,7 @@ namespace WebApi.Controllers
                     return BadRequest(new { message = "Failed to create urgency level" });
 
                 return CreatedAtAction(nameof(GetUrgencyLevelById),
-                    new { id = createdLevel.UrgencyLevelId }, createdLevel);
+                    new { id = createdLevel.UrgencyLevelId }, MappingHandle.EntityToDTO(createdLevel));
             }
             catch (Exception ex)
             {
