@@ -104,11 +104,9 @@ namespace Services
             return null;
         }
 
-        public async Task<RescueTeam?> KickTeamMemberByMemberIdAsync(int id)
+        public async Task<bool> DeleteRescueTeamMember(int userId, int teamId)
         {
-            // Find team members for the given user, then delete
-            // This returns the team after kicking the member
-            return null;
+            return await _rescueTeamMemberRepository.DeleteRescueTeamMember(userId, teamId);
         }
 
         public async Task<RescueTeamMemberDTO?> AddTeamMemberAsync(RescueTeamMember rescueTeamMember)

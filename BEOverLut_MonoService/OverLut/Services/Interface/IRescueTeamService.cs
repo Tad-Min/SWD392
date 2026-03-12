@@ -13,9 +13,8 @@ namespace Services.Interface
         Task<RescueTeamMemberDTO?> GetRescueTeamMemberByUserIdAndTeamId(int userId, int teamId);
 
         Task<IEnumerable<RescueTeamDTO>?> GetRescueTeamByUserId(int userId);
-        Task<RescueTeam?> KickTeamMemberByMemberIdAsync(int id);
         Task<RescueTeamMemberDTO?> AddTeamMemberAsync(RescueTeamMember rescueTeamMember);
         Task<bool> UpdateRescueTeamAsync(RescueTeam rescueTeam);
-        
+        Task<bool> DeleteRescueTeamMember(int userId, int teamId);
     }
 }
