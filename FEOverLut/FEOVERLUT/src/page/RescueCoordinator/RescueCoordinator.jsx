@@ -13,6 +13,7 @@ import { useRescueRequest, useUpdateRescueRequest } from '../../features/Rescue/
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
+import { useRescueRequestStatus } from '../../features/status/hook/useRescueRequestStatus';
 import { getUserByIdApi } from '../../features/users/api/usersApi';
 
 export default function RescueCoordinator() {
@@ -23,12 +24,14 @@ export default function RescueCoordinator() {
     const { loading: missionLoading, createRescueMission } = useCreateRescueMission();
     const { fetchVehicle } = useVehicle();
     const { updateVehicle } = useUpdateVehicle();
+    const { getRescueRequestStatus } = useRescueRequestStatus();
 
     const [requests, setRequests] = useState([]);
     const [teams, setTeams] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [dispatchTarget, setDispatchTarget] = useState(null);
     const [userMap, setUserMap] = useState({});
+    const [requestStatusMap, setRequestStatusMap] = useState({});
     const [isMissionModalOpen, setIsMissionModalOpen] = useState(false);
 
     // Fetch data from API on mount
@@ -74,6 +77,16 @@ export default function RescueCoordinator() {
             } catch (err) {
                 console.error('Failed to fetch vehicles:', err);
                 setVehicles([]);
+            }
+            try {
+                const statusData = await getRescueRequestStatus();
+                const sMap = {};
+                (statusData ?? []).forEach(s => {
+                    sMap[s.rescueRequestsStatusId] = s.statusName;
+                });
+                setRequestStatusMap(sMap);
+            } catch (err) {
+                console.error('Failed to fetch request statuses:', err);
             }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,7 +180,7 @@ export default function RescueCoordinator() {
             <TaskBar />
             {/* Map — full-screen background layer */}
             <div className="absolute inset-0 z-0">
-                <MapLayer requests={requests} teams={teams} userMap={userMap} onDispatch={handleDispatch} />
+                <MapLayer requests={requests} teams={teams} userMap={userMap} requestStatusMap={requestStatusMap} onDispatch={handleDispatch} />
             </div>
 
             {/* Quản Lý Chung button */}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, Users, Map, Layers } from 'lucide-react';
+import { AlertTriangle, Users, Map, Layers, Filter } from 'lucide-react';
 
 // ── Vietnam map bounds ─────────────────────────────────────────────────
 const VIETNAM_BOUNDS = [
@@ -52,6 +52,25 @@ const TILE_LAYERS = {
     },
 };
 
+// ── Request Status Filters ─────────────────────────────────────────────
+const REQUEST_LAYERS = {
+    new: {
+        label: 'Yêu cầu mới',
+        statuses: [1, 2], // New, Verified
+        icon: <span className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+    },
+    inProgress: {
+        label: 'Tiến trình',
+        statuses: [3, 4, 5], // Assigned, EnRoute, OnSite
+        icon: <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+    },
+    resolved: {
+        label: 'Đã xong',
+        statuses: [6, 7, 8], // Resolved, Cancelled, DuplicateMerged
+        icon: <span className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+    },
+};
+
 // ── Custom marker icons ────────────────────────────────────────────────
 const createSOSIcon = (colorHex) =>
     L.divIcon({
@@ -98,48 +117,109 @@ const URGENCY_META = {
     3: { label: 'Khẩn cấp', colorHex: '#9333ea', colorIcon: 'purple-500', colorText: 'purple-400', colorBg: 'purple-500/20', colorBorder: 'purple-500/30' },// Purple
 };
 
-// ── Layer Switcher UI Component ────────────────────────────────────────
-function LayerSwitcher({ activeLayer, onChange }) {
-    const [open, setOpen] = useState(false);
+// ── Map Controls UI Component ────────────────────────────────────────
+function MapControls({ activeLayer, onLayerChange, activeFilters, onFilterChange }) {
+    const [openLayer, setOpenLayer] = useState(false);
+    const [openFilter, setOpenFilter] = useState(false);
 
     return (
-        <div className="absolute top-4 left-4 z-[1000]">
-            <button
-                onClick={() => setOpen(!open)}
-                className="w-10 h-10 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center justify-center hover:bg-slate-800/90 transition-colors cursor-pointer"
-                title="Chuyển lớp bản đồ"
-            >
-                <Layers className="w-5 h-5 text-white" />
-            </button>
+        <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
+            {/* Layer Switcher */}
+            <div className="relative">
+                <button
+                    onClick={() => { setOpenLayer(!openLayer); setOpenFilter(false); }}
+                    className="w-10 h-10 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center justify-center hover:bg-slate-800/90 transition-colors cursor-pointer"
+                    title="Chuyển lớp bản đồ"
+                >
+                    <Layers className="w-5 h-5 text-white" />
+                </button>
 
-            {open && (
-                <div className="mt-2 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
-                    {Object.entries(TILE_LAYERS).map(([key, layer]) => (
-                        <button
-                            key={key}
-                            onClick={() => { onChange(key); setOpen(false); }}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${activeLayer === key
-                                ? 'bg-blue-600/30 text-blue-300'
-                                : 'text-slate-300 hover:bg-white/5'
-                                }`}
-                        >
-                            <span className="text-base">{layer.icon}</span>
-                            {layer.label}
-                        </button>
-                    ))}
-                </div>
-            )}
+                {openLayer && (
+                    <div className="absolute top-0 left-12 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
+                        {Object.entries(TILE_LAYERS).map(([key, layer]) => (
+                            <button
+                                key={key}
+                                onClick={() => { onLayerChange(key); setOpenLayer(false); }}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${activeLayer === key
+                                    ? 'bg-blue-600/30 text-blue-300'
+                                    : 'text-slate-300 hover:bg-white/5'
+                                    }`}
+                            >
+                                <span className="text-base">{layer.icon}</span>
+                                {layer.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Request Filter */}
+            <div className="relative">
+                <button
+                    onClick={() => { setOpenFilter(!openFilter); setOpenLayer(false); }}
+                    className="w-10 h-10 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl flex items-center justify-center hover:bg-slate-800/90 transition-colors cursor-pointer"
+                    title="Lọc trạng thái yêu cầu"
+                >
+                    <Filter className="w-4 h-4 text-white" />
+                    {activeFilters.length < 3 && (
+                        <span className="absolute top-2 right-2 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                    )}
+                </button>
+
+                {openFilter && (
+                    <div className="absolute top-0 left-12 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[170px] p-2 space-y-1">
+                        <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            Lớp Hiển Thị
+                        </div>
+                        {Object.entries(REQUEST_LAYERS).map(([key, layer]) => {
+                            const isActive = activeFilters.includes(key);
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => {
+                                        if (isActive) {
+                                            onFilterChange(activeFilters.filter((k) => k !== key));
+                                        } else {
+                                            onFilterChange([...activeFilters, key]);
+                                        }
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${isActive
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center justify-center w-4 h-4">
+                                        {isActive ? layer.icon : <span className="w-3 h-3 rounded-full bg-slate-700 shadow-inner" />}
+                                    </div>
+                                    {layer.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
 
 // ── Main MapLayer Component ────────────────────────────────────────────
-export default function MapLayer({ requests = [], teams = [], userMap = {}, onDispatch }) {
+export default function MapLayer({ requests = [], teams = [], userMap = {}, requestStatusMap = {}, onDispatch }) {
     const [activeLayer, setActiveLayer] = useState('dark');
+    const [activeFilters, setActiveFilters] = useState(['new', 'inProgress', 'resolved']); // All visible by default
     const isDark = activeLayer === 'dark';
 
     const teamIcon = createTeamIcon();
     const tileUrl = TILE_LAYERS[activeLayer].url;
+
+    const filteredRequests = requests.filter(req => {
+        const reqStatusId = req.status || 1; // Default to 1 (New) if undefined
+        return activeFilters.some(filterKey =>
+            REQUEST_LAYERS[filterKey].statuses.includes(reqStatusId)
+        );
+    });
 
     return (
         <div className="relative w-full h-full">
@@ -167,7 +247,7 @@ export default function MapLayer({ requests = [], teams = [], userMap = {}, onDi
                 ))}
 
                 {/* SOS Markers */}
-                {requests.map((req) => {
+                {filteredRequests.map((req) => {
                     const coords = (req.location ?? req.currentLocation)?.coordinates;
                     if (!coords || coords.length < 2) return null;
                     const pos = [coords[1], coords[0]];
@@ -188,6 +268,12 @@ export default function MapLayer({ requests = [], teams = [], userMap = {}, onDi
                                             {urgency.label}
                                         </span>
                                     </div>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        ID yêu cầu: <span className="font-semibold text-slate-700">#{req.rescueRequestId ?? req.id}</span>
+                                    </p>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        Trạng thái: <span className="font-semibold text-slate-700">{requestStatusMap[req.status] || 'Không rõ'}</span>
+                                    </p>
                                     <p className="text-xs text-slate-500 mb-1">
                                         Loại hỗ trợ: <span className="font-semibold text-slate-700">{STATUS_LABELS[req.requestType] || 'Cứu hộ'}</span>
                                     </p>
@@ -236,8 +322,13 @@ export default function MapLayer({ requests = [], teams = [], userMap = {}, onDi
                 })}
             </MapContainer>
 
-            {/* Layer Switcher overlay — outside MapContainer so it's always on top */}
-            <LayerSwitcher activeLayer={activeLayer} onChange={setActiveLayer} />
+            {/* Map Controls overlay — outside MapContainer so it's always on top */}
+            <MapControls
+                activeLayer={activeLayer}
+                onLayerChange={setActiveLayer}
+                activeFilters={activeFilters}
+                onFilterChange={setActiveFilters}
+            />
         </div>
     );
 }
