@@ -14,14 +14,14 @@ const toArr = (v) => {
 
 const RescueTeamManagement = () => {
     const { isDarkMode, theme } = useOutletContext();
-    
+
     const { getRescueTeam } = useRescueTeam();
     const { createRescueTeam } = useCreateRescueTeam();
     const { updateRescueTeam } = useUpdateRescueTeam();
     const { getRescueTeamMemberByTeamId } = useGetRescueTeamMemberByTeamId();
     const { createRescueTeamMember } = useCreateRescueTeamMember();
     const { deleteRescueTeamMember } = useDeleteRescueTeamMember();
-    
+
     const { getUsers } = useUsers();
 
     const [teams, setTeams] = useState([]);
@@ -70,7 +70,7 @@ const RescueTeamManagement = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const filteredTeams = teams.filter(t => 
+    const filteredTeams = teams.filter(t =>
         (t.teamName || t.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -127,7 +127,7 @@ const RescueTeamManagement = () => {
                 roleId: 1 // Default role for member if required by BE, adjust accordingly
             };
             await createRescueTeamMember(payload);
-            
+
             // Refresh members list
             const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
             setTeamMembers(toArr(res));
@@ -143,18 +143,18 @@ const RescueTeamManagement = () => {
 
     const handleDeleteMember = async (member) => {
         console.log("Deleting member:", member);
-        // Fallback fields for ID
-        const memberId = member.id || member.rescueTeamMemberId || member.teamMemberId || member.userId;
-        
-        if (!memberId) {
-            alert("Không tìm thấy ID thành viên để xóa.");
+        const uId = member.userId;
+        const tId = member.teamId || selectedTeam.id || selectedTeam.teamId;
+
+        if (!uId || !tId) {
+            alert("Thiếu thông tin (UserId hoặc TeamId) để xóa.");
             return;
         }
 
         if (!window.confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi đội?")) return;
         setIsSubmitting(true);
         try {
-            await deleteRescueTeamMember(memberId);
+            await deleteRescueTeamMember({ userId: uId, teamId: tId });
             // Refresh members list
             const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
             setTeamMembers(toArr(res));
@@ -302,8 +302,8 @@ const RescueTeamManagement = () => {
                         <div className={`p-4 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'} mb-4 shrink-0`}>
                             <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Thêm thành viên vào đội</label>
                             <div className="flex gap-2">
-                                <select 
-                                    value={newMemberId} 
+                                <select
+                                    value={newMemberId}
                                     onChange={e => setNewMemberId(e.target.value)}
                                     className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full max-w-[250px]`}
                                 >
@@ -314,7 +314,7 @@ const RescueTeamManagement = () => {
                                         </option>
                                     ))}
                                 </select>
-                                <button 
+                                <button
                                     onClick={handleAddMember}
                                     disabled={!newMemberId || isSubmitting}
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold shrink-0 disabled:opacity-50"
@@ -346,7 +346,7 @@ const RescueTeamManagement = () => {
                                                 <p className={`text-[11px] ${theme.textMuted}`}>Role ID: {m.roleId}</p>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => handleDeleteMember(m)}
                                             disabled={isSubmitting}
                                             className={`p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50`}
