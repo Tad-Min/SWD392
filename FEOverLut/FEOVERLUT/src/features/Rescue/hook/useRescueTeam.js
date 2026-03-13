@@ -12,6 +12,7 @@ export const useRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -34,6 +35,7 @@ export const useRescueTeamById = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -56,6 +58,7 @@ export const useCreateRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -78,6 +81,7 @@ export const useUpdateRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -100,6 +104,7 @@ export const useGetRescueTeamMemberByTeamId = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -122,6 +127,7 @@ export const useGetRescueTeamMemberByUserIdAndTeamId = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -144,6 +150,7 @@ export const useCreateRescueTeamMember = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -166,6 +173,7 @@ export const useGetRescueTeamMemberRole = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -188,6 +196,7 @@ export const useGetRescueTeamMemberRoleById = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -210,6 +219,7 @@ export const useUpdateRescueTeamMemberRole = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -232,6 +242,7 @@ export const useDeleteRescueTeamMemberRole = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -254,6 +265,7 @@ export const useCreateRescueTeamMemberRole = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -270,13 +282,14 @@ export const useDeleteRescueTeamMember = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const deleteRescueTeamMember = async (id) => {
+    const deleteRescueTeamMember = async (data) => {
         try {
             setLoading(true);
-            const response = await deleteRescueTeamMemberApi(id);
+            const response = await deleteRescueTeamMemberApi(data);
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }

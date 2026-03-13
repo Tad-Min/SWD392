@@ -55,6 +55,7 @@ export const updateRescueTeamMemberRoleApi = async (id, data) => {
     return response.data;
 }
 
+
 export const deleteRescueTeamMemberRoleApi = async (id) => {
     const response = await api.delete(`Roles/RescueMemberRole/${id}`);
     return response.data;
@@ -66,6 +67,7 @@ export const createRescueTeamMemberRoleApi = async (data) => {
 }
 
 export const deleteRescueTeamMemberApi = async (data) => {
-    const response = await api.delete("RescueTeam/RescueTeamMember", data);
+    // Axios DELETE with body requires { data } in config object
+    const response = await api.delete("RescueTeam/RescueTeamMember", { data });
     return response.data;
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useRescueTeam, useCreateRescueTeam, useUpdateRescueTeam, useGetRescueTeamMemberByTeamId, useCreateRescueTeamMember } from '../../features/Rescue/hook/useRescueTeam';
+import { useRescueTeam, useCreateRescueTeam, useUpdateRescueTeam, useGetRescueTeamMemberByTeamId, useCreateRescueTeamMember, useDeleteRescueTeamMember } from '../../features/Rescue/hook/useRescueTeam';
 import { useUsers } from '../../features/users/hook/useUsers';
 
 const toArr = (v) => {
@@ -14,17 +14,19 @@ const toArr = (v) => {
 
 const RescueTeamManagement = () => {
     const { isDarkMode, theme } = useOutletContext();
-    
+
     const { getRescueTeam } = useRescueTeam();
     const { createRescueTeam } = useCreateRescueTeam();
     const { updateRescueTeam } = useUpdateRescueTeam();
     const { getRescueTeamMemberByTeamId } = useGetRescueTeamMemberByTeamId();
     const { createRescueTeamMember } = useCreateRescueTeamMember();
-    
+    const { deleteRescueTeamMember } = useDeleteRescueTeamMember();
+
     const { getUsers } = useUsers();
 
     const [teams, setTeams] = useState([]);
     const [users, setUsers] = useState([]);
+    const [occupiedUserIds, setOccupiedUserIds] = useState(new Set());
     const [isLoading, setIsLoading] = useState(true);
 
     // Filter
@@ -46,7 +48,21 @@ const RescueTeamManagement = () => {
         setIsLoading(true);
         try {
             const res = await getRescueTeam();
-            setTeams(toArr(res));
+            const teamsData = toArr(res);
+            setTeams(teamsData);
+
+            // Fetch all members to find occupied users
+            const allMembersPromises = teamsData.map(t => getRescueTeamMemberByTeamId(t.id || t.teamId));
+            const allMembersResults = await Promise.allSettled(allMembersPromises);
+            
+            const occupied = new Set();
+            allMembersResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    const members = toArr(result.value);
+                    members.forEach(m => occupied.add(m.userId));
+                }
+            });
+            setOccupiedUserIds(occupied);
         } catch (error) {
             console.error(error);
         } finally {
@@ -69,7 +85,7 @@ const RescueTeamManagement = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const filteredTeams = teams.filter(t => 
+    const filteredTeams = teams.filter(t =>
         (t.teamName || t.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -105,7 +121,9 @@ const RescueTeamManagement = () => {
         setIsMembersLoading(true);
         try {
             const res = await getRescueTeamMemberByTeamId(team.id || team.teamId);
-            setTeamMembers(toArr(res));
+            const data = toArr(res);
+            console.log("Team Members data:", data);
+            setTeamMembers(data);
         } catch (error) {
             console.error("Lỗi lấy danh sách thành viên", error);
             setTeamMembers([]);
@@ -124,7 +142,10 @@ const RescueTeamManagement = () => {
                 roleId: 1 // Default role for member if required by BE, adjust accordingly
             };
             await createRescueTeamMember(payload);
-            
+
+            // Update occupied state
+            setOccupiedUserIds(prev => new Set(prev).add(payload.userId));
+
             // Refresh members list
             const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
             setTeamMembers(toArr(res));
@@ -133,6 +154,40 @@ const RescueTeamManagement = () => {
         } catch (error) {
             console.error(error);
             alert("Không thể thêm thành viên. (Có thể do User này đã làm trưởng nhóm hoặc có lỗi truy xuất)");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteMember = async (member) => {
+        console.log("Deleting member:", member);
+        const uId = member.userId;
+        const tId = member.teamId || selectedTeam.id || selectedTeam.teamId;
+
+        if (!uId || !tId) {
+            alert("Thiếu thông tin (UserId hoặc TeamId) để xóa.");
+            return;
+        }
+
+        if (!window.confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi đội?")) return;
+        setIsSubmitting(true);
+        try {
+            await deleteRescueTeamMember({ userId: uId, teamId: tId });
+            
+            // Update occupied state
+            setOccupiedUserIds(prev => {
+                const next = new Set(prev);
+                next.delete(uId);
+                return next;
+            });
+
+            // Refresh members list
+            const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
+            setTeamMembers(toArr(res));
+            alert("Xóa thành viên thành công!");
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi khi xóa thành viên.");
         } finally {
             setIsSubmitting(false);
         }
@@ -273,19 +328,21 @@ const RescueTeamManagement = () => {
                         <div className={`p-4 rounded-xl border ${theme.border} ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'} mb-4 shrink-0`}>
                             <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Thêm thành viên vào đội</label>
                             <div className="flex gap-2">
-                                <select 
-                                    value={newMemberId} 
+                                <select
+                                    value={newMemberId}
                                     onChange={e => setNewMemberId(e.target.value)}
                                     className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full max-w-[250px]`}
                                 >
                                     <option value="">-- Chọn User --</option>
-                                    {users.map(u => (
-                                        <option key={u.id || u.userId} value={u.id || u.userId}>
-                                            {u.fullName || u.email || 'User #' + (u.id || u.userId)}
-                                        </option>
-                                    ))}
+                                    {users
+                                        .filter(u => !occupiedUserIds.has(u.id || u.userId))
+                                        .map(u => (
+                                            <option key={u.id || u.userId} value={u.id || u.userId}>
+                                                {u.fullName || u.email || 'User #' + (u.id || u.userId)}
+                                            </option>
+                                        ))}
                                 </select>
-                                <button 
+                                <button
                                     onClick={handleAddMember}
                                     disabled={!newMemberId || isSubmitting}
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold shrink-0 disabled:opacity-50"
@@ -317,6 +374,16 @@ const RescueTeamManagement = () => {
                                                 <p className={`text-[11px] ${theme.textMuted}`}>Role ID: {m.roleId}</p>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={() => handleDeleteMember(m)}
+                                            disabled={isSubmitting}
+                                            className={`p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50`}
+                                            title="Xóa thành viên"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 );
                             })}
