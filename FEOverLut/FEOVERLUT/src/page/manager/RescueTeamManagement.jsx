@@ -26,6 +26,7 @@ const RescueTeamManagement = () => {
 
     const [teams, setTeams] = useState([]);
     const [users, setUsers] = useState([]);
+    const [occupiedUserIds, setOccupiedUserIds] = useState(new Set());
     const [isLoading, setIsLoading] = useState(true);
 
     // Filter
@@ -47,7 +48,21 @@ const RescueTeamManagement = () => {
         setIsLoading(true);
         try {
             const res = await getRescueTeam();
-            setTeams(toArr(res));
+            const teamsData = toArr(res);
+            setTeams(teamsData);
+
+            // Fetch all members to find occupied users
+            const allMembersPromises = teamsData.map(t => getRescueTeamMemberByTeamId(t.id || t.teamId));
+            const allMembersResults = await Promise.allSettled(allMembersPromises);
+            
+            const occupied = new Set();
+            allMembersResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    const members = toArr(result.value);
+                    members.forEach(m => occupied.add(m.userId));
+                }
+            });
+            setOccupiedUserIds(occupied);
         } catch (error) {
             console.error(error);
         } finally {
@@ -128,6 +143,9 @@ const RescueTeamManagement = () => {
             };
             await createRescueTeamMember(payload);
 
+            // Update occupied state
+            setOccupiedUserIds(prev => new Set(prev).add(payload.userId));
+
             // Refresh members list
             const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
             setTeamMembers(toArr(res));
@@ -155,6 +173,14 @@ const RescueTeamManagement = () => {
         setIsSubmitting(true);
         try {
             await deleteRescueTeamMember({ userId: uId, teamId: tId });
+            
+            // Update occupied state
+            setOccupiedUserIds(prev => {
+                const next = new Set(prev);
+                next.delete(uId);
+                return next;
+            });
+
             // Refresh members list
             const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
             setTeamMembers(toArr(res));
@@ -308,11 +334,13 @@ const RescueTeamManagement = () => {
                                     className={`flex-1 border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full max-w-[250px]`}
                                 >
                                     <option value="">-- Chọn User --</option>
-                                    {users.map(u => (
-                                        <option key={u.id || u.userId} value={u.id || u.userId}>
-                                            {u.fullName || u.email || 'User #' + (u.id || u.userId)}
-                                        </option>
-                                    ))}
+                                    {users
+                                        .filter(u => !occupiedUserIds.has(u.id || u.userId))
+                                        .map(u => (
+                                            <option key={u.id || u.userId} value={u.id || u.userId}>
+                                                {u.fullName || u.email || 'User #' + (u.id || u.userId)}
+                                            </option>
+                                        ))}
                                 </select>
                                 <button
                                     onClick={handleAddMember}
