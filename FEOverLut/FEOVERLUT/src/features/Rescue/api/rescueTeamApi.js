@@ -55,12 +55,17 @@ export const updateRescueTeamMemberRoleApi = async (id, data) => {
     return response.data;
 }
 
-export const deleteRescueTeamMemberApi = async (id) => {
+export const deleteRescueTeamMemberRoleApi = async (id) => {
     const response = await api.delete(`Roles/RescueMemberRole/${id}`);
     return response.data;
 }
 
 export const createRescueTeamMemberRoleApi = async (data) => {
     const response = await api.post("Roles/RescueMemberRole", data);
+    return response.data;
+}
+
+export const deleteRescueTeamMemberApi = async (data) => {
+    const response = await api.delete("RescueTeam/RescueTeamMember", data);
     return response.data;
 }

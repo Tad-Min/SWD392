@@ -1,4 +1,4 @@
-import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi, getRescueTeamMemberByTeamIdApi, getRescueTeamMemberByUserIdAndTeamIdApi, createRescueTeamMemberApi, getRescueTeamMemberRoleApi, getRescueTeamMemberRoleByIdApi, updateRescueTeamMemberRoleApi, deleteRescueTeamMemberApi, createRescueTeamMemberRoleApi } from "../api/rescueTeamApi";
+import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi, getRescueTeamMemberByTeamIdApi, getRescueTeamMemberByUserIdAndTeamIdApi, createRescueTeamMemberApi, getRescueTeamMemberRoleApi, getRescueTeamMemberRoleByIdApi, updateRescueTeamMemberRoleApi, deleteRescueTeamMemberRoleApi, createRescueTeamMemberRoleApi, deleteRescueTeamMemberApi } from "../api/rescueTeamApi";
 import { useState } from "react";
 
 export const useRescueTeam = () => {
@@ -221,14 +221,14 @@ export const useUpdateRescueTeamMemberRole = () => {
     }
 }
 
-export const useDeleteRescueTeamMember = () => {
+export const useDeleteRescueTeamMemberRole = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const deleteRescueTeamMember = async (id) => {
         try {
             setLoading(true);
-            const response = await deleteRescueTeamMemberApi(id);
+            const response = await deleteRescueTeamMemberRoleApi(id);
             return response;
         } catch (error) {
             setError(error);
@@ -262,5 +262,28 @@ export const useCreateRescueTeamMemberRole = () => {
         loading,
         error,
         createRescueTeamMemberRole
+    }
+}
+
+
+export const useDeleteRescueTeamMember = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const deleteRescueTeamMember = async (id) => {
+        try {
+            setLoading(true);
+            const response = await deleteRescueTeamMemberApi(id);
+            return response;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        deleteRescueTeamMember
     }
 }
