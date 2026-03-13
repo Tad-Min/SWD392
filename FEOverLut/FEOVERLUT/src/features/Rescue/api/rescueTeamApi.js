@@ -56,7 +56,7 @@ export const updateRescueTeamMemberRoleApi = async (id, data) => {
 }
 
 export const deleteRescueTeamMemberApi = async (id) => {
-    const response = await api.delete(`Roles/RescueMemberRole/${id}`);
+    const response = await api.delete(`RescueTeam/RescueTeamMember/${id}`);
     return response.data;
 }
 

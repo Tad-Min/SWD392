@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useRescueTeam, useCreateRescueTeam, useUpdateRescueTeam, useGetRescueTeamMemberByTeamId, useCreateRescueTeamMember } from '../../features/Rescue/hook/useRescueTeam';
+import { useRescueTeam, useCreateRescueTeam, useUpdateRescueTeam, useGetRescueTeamMemberByTeamId, useCreateRescueTeamMember, useDeleteRescueTeamMember } from '../../features/Rescue/hook/useRescueTeam';
 import { useUsers } from '../../features/users/hook/useUsers';
 
 const toArr = (v) => {
@@ -20,6 +20,7 @@ const RescueTeamManagement = () => {
     const { updateRescueTeam } = useUpdateRescueTeam();
     const { getRescueTeamMemberByTeamId } = useGetRescueTeamMemberByTeamId();
     const { createRescueTeamMember } = useCreateRescueTeamMember();
+    const { deleteRescueTeamMember } = useDeleteRescueTeamMember();
     
     const { getUsers } = useUsers();
 
@@ -105,7 +106,9 @@ const RescueTeamManagement = () => {
         setIsMembersLoading(true);
         try {
             const res = await getRescueTeamMemberByTeamId(team.id || team.teamId);
-            setTeamMembers(toArr(res));
+            const data = toArr(res);
+            console.log("Team Members data:", data);
+            setTeamMembers(data);
         } catch (error) {
             console.error("Lỗi lấy danh sách thành viên", error);
             setTeamMembers([]);
@@ -133,6 +136,32 @@ const RescueTeamManagement = () => {
         } catch (error) {
             console.error(error);
             alert("Không thể thêm thành viên. (Có thể do User này đã làm trưởng nhóm hoặc có lỗi truy xuất)");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteMember = async (member) => {
+        console.log("Deleting member:", member);
+        // Fallback fields for ID
+        const memberId = member.id || member.rescueTeamMemberId || member.teamMemberId || member.userId;
+        
+        if (!memberId) {
+            alert("Không tìm thấy ID thành viên để xóa.");
+            return;
+        }
+
+        if (!window.confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi đội?")) return;
+        setIsSubmitting(true);
+        try {
+            await deleteRescueTeamMember(memberId);
+            // Refresh members list
+            const res = await getRescueTeamMemberByTeamId(selectedTeam.id || selectedTeam.teamId);
+            setTeamMembers(toArr(res));
+            alert("Xóa thành viên thành công!");
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi khi xóa thành viên.");
         } finally {
             setIsSubmitting(false);
         }
@@ -317,6 +346,16 @@ const RescueTeamManagement = () => {
                                                 <p className={`text-[11px] ${theme.textMuted}`}>Role ID: {m.roleId}</p>
                                             </div>
                                         </div>
+                                        <button 
+                                            onClick={() => handleDeleteMember(m)}
+                                            disabled={isSubmitting}
+                                            className={`p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50`}
+                                            title="Xóa thành viên"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 );
                             })}

@@ -1,10 +1,6 @@
-﻿using System.Text;
-using System.Text.Json.Nodes;
-using BusinessObject.OverlutEntiy;
-using DAOs;
+﻿using DAOs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -16,7 +12,7 @@ using Repositories.Interface;
 using Scalar.AspNetCore;
 using Services;
 using Services.Interface;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
 using WebApi.Extensions;
 
 

@@ -274,7 +274,7 @@ const ManagerDashboard = () => {
                         {stocks.length === 0 ? (
                             <p className={`text-sm ${theme.textMuted} text-center py-8`}>Không có dữ liệu tồn kho.</p>
                         ) : stocks.slice(0, 6).map((s, i) => {
-                            const qty = s.quantity ?? s.totalQuantity ?? 0;
+                            const qty = s.currentQuantity ?? s.currentquantity ?? s.quantity ?? s.totalQuantity ?? 0;
                             const cap = s.capacity ?? 100;
                             const pct = Math.min(Math.round((qty / cap) * 100), 100);
                             const lowStock = pct < 30;
