@@ -19,3 +19,8 @@ export const updateRescueMissionApi = async (data) => {
     const response = await api.put("RescueMission/Update", data);
     return response.data;
 }
+
+export const getRescueMissionByTeamIdApi = async (teamId) => {
+    const response = await api.get(`RescueMission/GetByTeamId/${teamId}`);
+    return response.data;
+}
