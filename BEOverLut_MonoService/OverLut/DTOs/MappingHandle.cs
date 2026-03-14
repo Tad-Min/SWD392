@@ -122,6 +122,7 @@ namespace DTOs
                 MissionId = entity.MissionId,
                 RescueRequestId = entity.RescueRequestId,
                 CoordinatorUserId = entity.CoordinatorUserId,
+                Description = entity.Description,
                 TeamId = entity.TeamId,
                 StatusId = entity.StatusId,
                 AssignedAt = entity.AssignedAt
@@ -471,7 +472,8 @@ namespace DTOs
                 CoordinatorUserId = dto.CoordinatorUserId,
                 TeamId = dto.TeamId,
                 StatusId = dto.StatusId,
-                AssignedAt = dto.AssignedAt
+                AssignedAt = dto.AssignedAt,
+                Description = dto.Description,
             };
         }
 

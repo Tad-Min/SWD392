@@ -18,4 +18,6 @@ public class RescueMissionDTO
     public int StatusId { get; set; }
 
     public DateTime AssignedAt { get; set; }
+
+    public string? Description { get; set; }
 }

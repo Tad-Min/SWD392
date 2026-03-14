@@ -31,14 +31,14 @@ namespace WebApi.Controllers
                 model?.statusId,
                 model?.description
             );
-            return Ok(result?.Select(m => MappingHandle.EntityToDTO(m)));
+            return Ok(result);
         }
 
         [HttpGet("GetByTeamId/{id}")]
         public async Task<IActionResult> GetRescueMissionByTeamId(int id)
         {
             var result = await _rescueMissionService.GetAllRescueMissionAsync(null, null, null, id, null, null);
-            return Ok(result?.Select(m => MappingHandle.EntityToDTO(m)));
+            return Ok(result);
         }
 
         [HttpGet("GetById/{id}")]

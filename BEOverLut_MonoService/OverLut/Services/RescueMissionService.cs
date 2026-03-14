@@ -1,7 +1,9 @@
+using System.Text.Json;
 using BusinessObject.OverlutEntiy;
+using DTOs;
+using DTOs.Overlut;
 using Repositories.Interface;
 using Services.Interface;
-using System.Text.Json;
 
 namespace Services
 {
@@ -63,9 +65,12 @@ namespace Services
             return _rescueMissionRepository.DeleteRescueMission(id);
         }
 
-        public Task<IEnumerable<RescueMission>?> GetAllRescueMissionAsync(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description)
+        public async Task<IEnumerable<RescueMissionDTO>?> GetAllRescueMissionAsync(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description)
         {
-            return _rescueMissionRepository.GetAllRescueMission(missionId, rescueRequestId, coordinatorUserId, teamId, statusId, description);
+            var result = await _rescueMissionRepository.GetAllRescueMission(missionId, rescueRequestId, coordinatorUserId, teamId, statusId, description);
+            if (result == null) return new List<RescueMissionDTO>();
+
+            return result.Select(x => MappingHandle.EntityToDTO(x)).Where(x => x != null).Cast <RescueMissionDTO>();
         }
 
         public Task<RescueMission?> GetRescueMissionByIdAsync(int id)
