@@ -34,6 +34,13 @@ namespace WebApi.Controllers
             return Ok(result?.Select(m => MappingHandle.EntityToDTO(m)));
         }
 
+        [HttpGet("GetByTemmId/{id}")]
+        public async Task<IActionResult> GetRescueMissionByTeamId(int id)
+        {
+            var result = await _rescueMissionService.GetAllRescueMissionAsync(null, null, null, id, null, null);
+            return Ok(result?.Select(m => MappingHandle.EntityToDTO(m)));
+        }
+
         [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetRescueMissionById(int id)
         {
