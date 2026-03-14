@@ -30,6 +30,11 @@ export const getRescueTeamMemberByTeamIdApi = async (id) => {
     return response.data;
 }
 
+export const getRescueTeamByUserIdApi = async (id) => {
+    const response = await api.get(`RescueTeam/GetRescueTeamByUserId/${id}`);
+    return response.data;
+}
+
 export const getRescueTeamMemberByUserIdAndTeamIdApi = async (userId, teamId) => {
     const response = await api.get(`RescueTeam/GetRescueTeamMembersByUserIdAndTeamId/${userId}_${teamId}`);
     return response.data;

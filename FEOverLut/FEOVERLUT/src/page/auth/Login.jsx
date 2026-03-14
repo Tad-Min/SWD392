@@ -20,7 +20,7 @@ function Login() {
             const roleId = response.roleId;
             const roleHomeMap = {
                 1: '/Citizens',
-                2: '/rescue-team/tasks',
+                2: '/RescueTeam',
                 3: '/RescueCoordinator',
                 4: '/manager',
                 5: '/admin',
