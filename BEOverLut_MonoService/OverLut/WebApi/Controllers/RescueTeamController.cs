@@ -55,12 +55,11 @@ namespace WebApi.Controllers
         {
             try
             {
-                var teams = await _rescueTeamService.GetAllRescueTeamsAsync(id, null, null);
-                var team = teams?.FirstOrDefault();
-                if (team == null)
+                var teams = await _rescueTeamService.GetRescueTeamByUserId(id);
+                if (teams == null)
                     return NotFound(new { message = $"Rescue team with ID {id} not found" });
 
-                return Ok(team);
+                return Ok(teams);
             }
             catch (Exception ex)
             {

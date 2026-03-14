@@ -62,24 +62,9 @@ namespace Services
         public async Task<IEnumerable<RescueTeamDTO>?> GetRescueTeamByUserId(int userId)
         {
             var teamMembers = await _rescueTeamRepository.GetRescueTeamByUserId(userId);
-            if (teamMembers == null) return null;
-            var rescueTeamDTOs = new List<RescueTeamDTO>();
-            foreach (var member in teamMembers)
-            {
-                var teams = await _rescueTeamRepository.GetAllRescueTeam(member.TeamId);
-                var team = teams?.FirstOrDefault();
-                if (team != null)
-                {
-                    rescueTeamDTOs.Add(new RescueTeamDTO
-                    {
-                        TeamId = team.TeamId,
-                        TeamName = team.TeamName,
-                        StatusId = team.StatusId,
-                        CreatedAt = team.CreatedAt,
-                    });
-                }
-            }
-            return rescueTeamDTOs;
+            if (teamMembers == null) return new List<RescueTeamDTO>();
+            
+            return teamMembers.Select(e => MappingHandle.EntityToDTO(e)).Where(e => e!= null).Cast<RescueTeamDTO>();
         }
 
         public async Task<RescueTeamMemberDTO?> GetRescueTeamMemberByUserIdAndTeamId(int userId, int teamId)
