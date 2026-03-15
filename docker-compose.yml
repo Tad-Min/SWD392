@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: overlut-db
+    environment:
+      SA_PASSWORD: "12345"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1723:1433"
+    volumes:
+      - ./BEOverLut_MonoService/OverLut/OverLut.sql:/var/opt/mssql/scripts/OverLut.sql:ro
+      - overlut-db-volume:/var/opt/mssql/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P $${SA_PASSWORD} -Q \"SELECT 1\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - overlut-net
+
+  # Database Initialization
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /bin/bash -c "\
+      until /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -Q 'SELECT 1' 2>/dev/null; do \
+        echo 'Waiting for SQL Server...'; sleep 2; \
+      done; \
+      echo 'Running OverLut.sql...'; \
+      /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -i /scripts/OverLut.sql"
+    volumes:
+      - ./BEOverLut_MonoService/OverLut/OverLut.sql:/scripts/OverLut.sql:ro
+    environment:
+      SA_PASSWORD: "12345"
+    restart: "no"
+    networks:
+      - overlut-net
+
+  # Backend API (.NET)
+  webapi:
+    build:
+      context: ./BEOverLut_MonoService/OverLut
+      dockerfile: WebApi/Dockerfile
+    image: overlut-webapi:latest
+    container_name: overlut-api
+    depends_on:
+      - db-init
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=OverLutDb;User Id=sa;Password=12345;"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+      - "5000:8080"
+    restart: always
+    networks:
+      - overlut-net
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./FEOverLut/FEOVERLUT
+      dockerfile: Dockerfile
+    image: overlut-frontend:latest
+    container_name: overlut-frontend
+    depends_on:
+      - webapi
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    restart: always
+    networks:
+      - overlut-net
+
+  # Mobile Web (Flutter)
+  mobile-web:
+    build:
+      context: ./FlutterOverLut/flutteroverlut
+      dockerfile: Dockerfile
+    image: overlut-mobile-web:latest
+    container_name: overlut-mobile-web
+    depends_on:
+      - webapi
+    ports:
+      - "3001:80"
+    restart: always
+    networks:
+      - overlut-net
+
+volumes:
+  overlut-db-volume:
+
+networks:
+  overlut-net:
+    name: overlut-net
