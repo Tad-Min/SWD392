@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RoleDAO
 {
-    public static async Task<IEnumerable<Role>?> GetAllRoles()
+    private readonly OverlutDbContext _db;
+
+    public RoleDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<Role>?> GetAllRoles()
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Roles.ToListAsync();
+            
+            return await _db.Roles.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -18,12 +24,12 @@ public class RoleDAO
         }
     }
 
-    public static async Task<Role?> GetRoleById(int roleId)
+    public async Task<Role?> GetRoleById(int roleId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Roles.FirstOrDefaultAsync(x => x.RoleId == roleId);
+            
+            return await _db.Roles.FirstOrDefaultAsync(x => x.RoleId == roleId);
         }
         catch (Exception ex)
         {
@@ -32,15 +38,15 @@ public class RoleDAO
         }
     }
 
-    public static async Task<Role?> AddRole(Role role)
+    public async Task<Role?> AddRole(Role role)
     {
         try
         {
             if (role == null)
                 throw new ArgumentNullException(nameof(role));
-            using var db = new OverlutDbContext();
-            await db.Roles.AddAsync(role);
-            await db.SaveChangesAsync();
+            
+            await _db.Roles.AddAsync(role);
+            await _db.SaveChangesAsync();
             return role;
         }
         catch (Exception ex)
@@ -50,19 +56,19 @@ public class RoleDAO
         }
     }
 
-    public static async Task<bool> UpdateRole(Role role)
+    public async Task<bool> UpdateRole(Role role)
     {
         try
         {
             if (role == null)
                 throw new ArgumentNullException(nameof(role));
-            using var db = new OverlutDbContext();
-            var existingRole = await db.Roles.FirstOrDefaultAsync(x => x.RoleId == role.RoleId);
+            
+            var existingRole = await _db.Roles.FirstOrDefaultAsync(x => x.RoleId == role.RoleId);
             if (existingRole == null)
                 throw new Exception("Role not found");
             existingRole.RoleName = role.RoleName;
-            db.Roles.Update(existingRole);
-            await db.SaveChangesAsync();
+            _db.Roles.Update(existingRole);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -72,16 +78,16 @@ public class RoleDAO
         }
     }
 
-    public static async Task<bool> DeleteRole(int roleId)
+    public async Task<bool> DeleteRole(int roleId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var role = await db.Roles.FirstOrDefaultAsync(x => x.RoleId == roleId);
+            
+            var role = await _db.Roles.FirstOrDefaultAsync(x => x.RoleId == roleId);
             if (role == null)
                 throw new Exception("Role not found");
-            db.Roles.Remove(role);
-            await db.SaveChangesAsync();
+            _db.Roles.Remove(role);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

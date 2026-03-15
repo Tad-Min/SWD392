@@ -5,7 +5,14 @@ namespace DAOs.Overlut;
 
 public class InventoryTransactionDAO
 {
-    public static async Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(
+    private readonly OverlutDbContext _db;
+
+    public InventoryTransactionDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<IEnumerable<InventoryTransaction>?> GetAllInventoryTransaction(
         int? txId,
         int? warehouseId,
         int? productId,
@@ -49,7 +56,7 @@ public class InventoryTransactionDAO
         }
     }
 
-    public static async Task<InventoryTransaction?> AddInventoryTransaction(InventoryTransaction transaction)
+    public async Task<InventoryTransaction?> AddInventoryTransaction(InventoryTransaction transaction)
     {
         try
         {

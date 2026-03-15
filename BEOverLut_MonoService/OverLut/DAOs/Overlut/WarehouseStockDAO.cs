@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class WarehouseStockDAO
 {
-    public static async Task<IEnumerable<WarehouseStock>?> GetAllWarehouseStocks(int? warehouseId, int? productId)
+    private readonly OverlutDbContext _db;
+
+    public WarehouseStockDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<WarehouseStock>?> GetAllWarehouseStocks(int? warehouseId, int? productId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.WarehouseStocks.AsQueryable();
+            
+            var query = _db.WarehouseStocks.AsQueryable();
 
             if (warehouseId.HasValue)
                 query = query.Where(x => x.WarehouseId == warehouseId.Value);
@@ -25,17 +31,17 @@ public class WarehouseStockDAO
         }
     }
 
-    public static async Task<WarehouseStock?> AddWarehouseStock(WarehouseStock warehouseStock)
+    public async Task<WarehouseStock?> AddWarehouseStock(WarehouseStock warehouseStock)
     {
         try
         {
             if (warehouseStock == null)
                 throw new ArgumentNullException(nameof(warehouseStock));
 
-            using var db = new OverlutDbContext();
+            
             warehouseStock.LastUpdated = DateTime.UtcNow;
-            await db.WarehouseStocks.AddAsync(warehouseStock);
-            await db.SaveChangesAsync();
+            await _db.WarehouseStocks.AddAsync(warehouseStock);
+            await _db.SaveChangesAsync();
             return warehouseStock;
         }
         catch (Exception ex)
@@ -45,15 +51,15 @@ public class WarehouseStockDAO
         }
     }
 
-    public static async Task<bool> UpdateWarehouseStock(WarehouseStock warehouseStock)
+    public async Task<bool> UpdateWarehouseStock(WarehouseStock warehouseStock)
     {
         try
         {
             if (warehouseStock == null)
                 throw new ArgumentNullException(nameof(warehouseStock));
 
-            using var db = new OverlutDbContext();
-            var existingStock = await db.WarehouseStocks.FirstOrDefaultAsync(
+            
+            var existingStock = await _db.WarehouseStocks.FirstOrDefaultAsync(
                 x => x.WarehouseId == warehouseStock.WarehouseId && x.ProductId == warehouseStock.ProductId);
 
             if (existingStock == null) return false;
@@ -61,8 +67,8 @@ public class WarehouseStockDAO
             existingStock.CurrentQuantity = warehouseStock.CurrentQuantity;
             existingStock.LastUpdated = DateTime.UtcNow;
 
-            db.WarehouseStocks.Update(existingStock);
-            await db.SaveChangesAsync();
+            _db.WarehouseStocks.Update(existingStock);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -72,18 +78,18 @@ public class WarehouseStockDAO
         }
     }
 
-    public static async Task<bool> DeleteWarehouseStockByWarehouseIdAndProductId(int warehouseId, int productId)
+    public async Task<bool> DeleteWarehouseStockByWarehouseIdAndProductId(int warehouseId, int productId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var warehouseStock = await db.WarehouseStocks.FirstOrDefaultAsync(
+            
+            var warehouseStock = await _db.WarehouseStocks.FirstOrDefaultAsync(
                 x => x.WarehouseId == warehouseId && x.ProductId == productId);
 
             if (warehouseStock == null) return false;
 
-            db.WarehouseStocks.Remove(warehouseStock);
-            await db.SaveChangesAsync();
+            _db.WarehouseStocks.Remove(warehouseStock);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

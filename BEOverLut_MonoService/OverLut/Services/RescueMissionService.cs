@@ -2,7 +2,7 @@ using System.Text.Json;
 using BusinessObject.OverlutEntiy;
 using DTOs;
 using DTOs.Overlut;
-using Repositories.Interface;
+using Repositories.Interface.Overlut;
 using Services.Interface;
 
 namespace Services

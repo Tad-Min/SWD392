@@ -4,17 +4,24 @@ namespace DAOs.Overlut;
 
 public class MissionLogDAO
 {
-    public static async Task<MissionLog?> AddMissionLog(MissionLog missionLog)
+    private readonly OverlutDbContext _db;
+
+    public MissionLogDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<MissionLog?> AddMissionLog(MissionLog missionLog)
     {
         try
         {
             if (missionLog == null)
                 throw new ArgumentNullException(nameof(missionLog));
 
-            using var db = new OverlutDbContext();
+            
             missionLog.ChangedAt = DateTime.UtcNow;
-            await db.MissionLogs.AddAsync(missionLog);
-            await db.SaveChangesAsync();
+            await _db.MissionLogs.AddAsync(missionLog);
+            await _db.SaveChangesAsync();
             return missionLog;
         }
         catch (Exception ex)
@@ -24,12 +31,12 @@ public class MissionLogDAO
         }
     }
 
-    public static async Task<IEnumerable<MissionLog>?> GetMissionLogByMissionId(int missionId)
+    public async Task<IEnumerable<MissionLog>?> GetMissionLogByMissionId(int missionId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.MissionLogs
+            
+            return await _db.MissionLogs
                 .Where(x => x.MissionId == missionId)
                 .OrderByDescending(x => x.ChangedAt)
                 .ToListAsync();
@@ -41,12 +48,12 @@ public class MissionLogDAO
         }
     }
 
-    public static async Task<IEnumerable<MissionLog>?> GetMissionLogByUserId(int userId)
+    public async Task<IEnumerable<MissionLog>?> GetMissionLogByUserId(int userId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.MissionLogs
+            
+            return await _db.MissionLogs
                 .Where(x => x.ChangedByUserId == userId)
                 .OrderByDescending(x => x.ChangedAt)
                 .ToListAsync();
@@ -58,12 +65,12 @@ public class MissionLogDAO
         }
     }
 
-    public static async Task<IEnumerable<MissionLog>?> GetAllMissionLogs()
+    public async Task<IEnumerable<MissionLog>?> GetAllMissionLogs()
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.MissionLogs
+            
+            return await _db.MissionLogs
                 .OrderByDescending(x => x.ChangedAt)
                 .ToListAsync();
         }

@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class VehicleDAO
 {
-    public static async Task<IEnumerable<Vehicle>?> GetAllVehicles(int? vehicleId = null, string? vehicleCode = null, int? vehicleType = null, int? capacity = null, int? statusId = null)
+    private readonly OverlutDbContext _db;
+
+    public VehicleDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<Vehicle>?> GetAllVehicles(int? vehicleId = null, string? vehicleCode = null, int? vehicleType = null, int? capacity = null, int? statusId = null)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.Vehicles.AsQueryable();
+            
+            var query = _db.Vehicles.AsQueryable();
             if (vehicleId.HasValue) query = query.Where(x => x.VehicleId == vehicleId.Value);
             if (!string.IsNullOrEmpty(vehicleCode)) query = query.Where(x => x.VehicleCode.Contains(vehicleCode));
             if (vehicleType.HasValue) query = query.Where(x => x.VehicleType == vehicleType.Value);
@@ -24,12 +30,12 @@ public class VehicleDAO
         }
     }
 
-    public static async Task<Vehicle?> GetVehicleById(int vehicleId)
+    public async Task<Vehicle?> GetVehicleById(int vehicleId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicleId);
+            
+            return await _db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicleId);
         }
         catch (Exception ex)
         {
@@ -38,15 +44,15 @@ public class VehicleDAO
         }
     }
 
-    public static async Task<Vehicle?> AddVehicle(Vehicle vehicle)
+    public async Task<Vehicle?> AddVehicle(Vehicle vehicle)
     {
         try
         {
             if (vehicle == null)
                 throw new ArgumentNullException(nameof(vehicle));
-            using var db = new OverlutDbContext();
-            await db.Vehicles.AddAsync(vehicle);
-            await db.SaveChangesAsync();
+            
+            await _db.Vehicles.AddAsync(vehicle);
+            await _db.SaveChangesAsync();
             return vehicle;
         }
         catch (Exception ex)
@@ -56,14 +62,14 @@ public class VehicleDAO
         }
     }
 
-    public static async Task<bool> UpdateVehicle(Vehicle vehicle)
+    public async Task<bool> UpdateVehicle(Vehicle vehicle)
     {
         try
         {
             if (vehicle == null)
                 throw new ArgumentNullException(nameof(vehicle));
-            using var db = new OverlutDbContext();
-            var existingVehicle = await db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicle.VehicleId);
+            
+            var existingVehicle = await _db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicle.VehicleId);
             if (existingVehicle == null)
                 throw new Exception("Vehicle not found");
             existingVehicle.VehicleCode = vehicle.VehicleCode;
@@ -71,8 +77,8 @@ public class VehicleDAO
             existingVehicle.Capacity = vehicle.Capacity;
             existingVehicle.StatusId = vehicle.StatusId;
             existingVehicle.Note = vehicle.Note;
-            db.Vehicles.Update(existingVehicle);
-            await db.SaveChangesAsync();
+            _db.Vehicles.Update(existingVehicle);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -82,16 +88,16 @@ public class VehicleDAO
         }
     }
 
-    public static async Task<bool> DeleteVehicleById(int vehicleId)
+    public async Task<bool> DeleteVehicleById(int vehicleId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var vehicle = await db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicleId);
+            
+            var vehicle = await _db.Vehicles.FirstOrDefaultAsync(x => x.VehicleId == vehicleId);
             if (vehicle == null)
                 throw new Exception("Vehicle not found");
-            db.Vehicles.Remove(vehicle);
-            await db.SaveChangesAsync();
+            _db.Vehicles.Remove(vehicle);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

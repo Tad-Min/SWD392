@@ -4,38 +4,70 @@ namespace DAOs.Overlut;
 
 public class AttachmentMissionDAO
 {
-    public static async Task<IEnumerable<AttachmentMission>> GetAllAttachmentMissionsWithMissionId(int missionId)
-    {
-        using var db = new OverlutDbContext();
+    private readonly OverlutDbContext _db;
 
-        return await db.AttachmentMissions.Where(x => x.MissionId == missionId).ToListAsync();
-    }
-    public static async Task<IEnumerable<AttachmentMission>> GetAllAttachmentMissionsWithAttachmentId(Guid attachmentId)
+    public AttachmentMissionDAO(OverlutDbContext db)
     {
-        using var db = new OverlutDbContext();
-
-        return await db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ToListAsync();
+        _db = db;
     }
 
-    public static async Task<Boolean> DeleteAttachmentMissionsById(Guid attachmentId)
+    public async Task<IEnumerable<AttachmentMission>?> GetAllAttachmentMissionsWithMissionId(int missionId)
     {
-        using var db = new OverlutDbContext();
-
-        return await db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ExecuteDeleteAsync() > 0;
-    }
-
-    public static async Task<AttachmentMission> AddAttachmentMissionsByMissionId(Guid attachmentId, int missionId, long fileSize, String fileType)
-    {
-        using var db = new OverlutDbContext();
-        var att = new AttachmentMission
+        try
         {
-            AttachmentId = attachmentId,
-            MissionId = missionId,
-            FileSize = fileSize,
-            FileType = fileType,
-        };
-        await db.AttachmentMissions.AddAsync(att);
-        await db.SaveChangesAsync();
-        return att;
+            return await _db.AttachmentMissions.Where(x => x.MissionId == missionId).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AttachmentMissionDAO-GetAllAttachmentMissionsWithMissionId: {ex.Message}");
+            return null;
+        }
+    }
+    public async Task<IEnumerable<AttachmentMission>?> GetAllAttachmentMissionsWithAttachmentId(Guid attachmentId)
+    {
+        try
+        {
+            return await _db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AttachmentMissionDAO-GetAllAttachmentMissionsWithAttachmentId: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> DeleteAttachmentMissionsById(Guid attachmentId)
+    {
+        try
+        {
+            return await _db.AttachmentMissions.Where(x => x.AttachmentId == attachmentId).ExecuteDeleteAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AttachmentMissionDAO-DeleteAttachmentMissionsById: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<AttachmentMission?> AddAttachmentMissionsByMissionId(Guid attachmentId, int missionId, long fileSize, String fileType)
+    {
+        try
+        {
+            var att = new AttachmentMission
+            {
+                AttachmentId = attachmentId,
+                MissionId = missionId,
+                FileSize = fileSize,
+                FileType = fileType,
+            };
+            await _db.AttachmentMissions.AddAsync(att);
+            await _db.SaveChangesAsync();
+            return att;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AttachmentMissionDAO-AddAttachmentMissionsByMissionId: {ex.Message}");
+            return null;
+        }
     }
 }

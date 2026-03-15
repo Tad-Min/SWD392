@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class VehiclesStatusDAO
 {
-    public static async Task<IEnumerable<VehiclesStatus>?> GetAll(string? statusName)
+    private readonly OverlutDbContext _db;
+
+    public VehiclesStatusDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<VehiclesStatus>?> GetAll(string? statusName)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.VehiclesStatuses.AsQueryable();
+            
+            var query = _db.VehiclesStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
                 query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
@@ -23,12 +29,12 @@ public class VehiclesStatusDAO
         }
     }
 
-    public static async Task<VehiclesStatus?> GetById(int id)
+    public async Task<VehiclesStatus?> GetById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id && !x.IsDeleted);
+            
+            return await _db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -37,7 +43,7 @@ public class VehiclesStatusDAO
         }
     }
 
-    public static async Task<VehiclesStatus?> Create(VehiclesStatus status)
+    public async Task<VehiclesStatus?> Create(VehiclesStatus status)
     {
         try
         {
@@ -47,9 +53,9 @@ public class VehiclesStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            await db.VehiclesStatuses.AddAsync(status);
-            await db.SaveChangesAsync();
+            
+            await _db.VehiclesStatuses.AddAsync(status);
+            await _db.SaveChangesAsync();
             return status;
         }
         catch (Exception ex)
@@ -59,7 +65,7 @@ public class VehiclesStatusDAO
         }
     }
 
-    public static async Task<bool> Update(VehiclesStatus status)
+    public async Task<bool> Update(VehiclesStatus status)
     {
         try
         {
@@ -69,15 +75,15 @@ public class VehiclesStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            var existingStatus = await db.VehiclesStatuses.FirstOrDefaultAsync(
+            
+            var existingStatus = await _db.VehiclesStatuses.FirstOrDefaultAsync(
                 x => x.VehiclesStatusId == status.VehiclesStatusId);
 
             if (existingStatus == null) return false;
 
             existingStatus.StatusName = status.StatusName;
-            db.VehiclesStatuses.Update(existingStatus);
-            await db.SaveChangesAsync();
+            _db.VehiclesStatuses.Update(existingStatus);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -87,17 +93,17 @@ public class VehiclesStatusDAO
         }
     }
 
-    public static async Task<bool> Delete(int id)
+    public async Task<bool> Delete(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var status = await db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id);
+            
+            var status = await _db.VehiclesStatuses.FirstOrDefaultAsync(x => x.VehiclesStatusId == id);
 
             if (status == null) return false;
 
-            db.VehiclesStatuses.Remove(status);
-            await db.SaveChangesAsync();
+            _db.VehiclesStatuses.Remove(status);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

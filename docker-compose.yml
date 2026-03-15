@@ -5,19 +5,21 @@ services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: overlut-db
+    user: root
     environment:
-      SA_PASSWORD: "12345"
+      SA_PASSWORD: "OverLut@2026"
       ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
     ports:
       - "1723:1433"
     volumes:
-      - ./BEOverLut_MonoService/OverLut/OverLut.sql:/var/opt/mssql/scripts/OverLut.sql:ro
       - overlut-db-volume:/var/opt/mssql/data
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P $${SA_PASSWORD} -Q \"SELECT 1\""]
-      interval: 10s
-      timeout: 5s
-      retries: 12
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "OverLut@2026", "-Q", "SELECT 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 40s
     networks:
       - overlut-net
 
@@ -26,17 +28,20 @@ services:
     image: mcr.microsoft.com/mssql-tools
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     entrypoint: /bin/bash -c "\
-      until /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -Q 'SELECT 1' 2>/dev/null; do \
-        echo 'Waiting for SQL Server...'; sleep 2; \
+      echo 'Waiting for SQL Server to be ready...'; sleep 60; \
+      echo 'Attempting to connect...'; \
+      until /opt/mssql-tools/bin/sqlcmd -S db -U SA -P OverLut@2026 -Q 'SELECT 1' 2>/dev/null; do \
+        echo 'Retrying connection...'; sleep 5; \
       done; \
-      echo 'Running OverLut.sql...'; \
-      /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -i /scripts/OverLut.sql"
+      echo 'SQL Server ready! Running OverLut.sql...'; \
+      /opt/mssql-tools/bin/sqlcmd -S db -U SA -P OverLut@2026 -i /scripts/OverLut.sql; \
+      echo 'Database initialization complete!'"
     volumes:
       - ./BEOverLut_MonoService/OverLut/OverLut.sql:/scripts/OverLut.sql:ro
     environment:
-      SA_PASSWORD: "12345"
+      SA_PASSWORD: "OverLut@2026"
     restart: "no"
     networks:
       - overlut-net
@@ -51,8 +56,10 @@ services:
     depends_on:
       - db-init
     environment:
-      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=OverLutDb;User Id=sa;Password=12345;"
-      ASPNETCORE_ENVIRONMENT: "Production"
+      # Cấu trúc: ConnectionStrings__<Tên_chuỗi_kết_nối_trong_appsettings>
+      ConnectionStrings__overlutdb: "Server=db,1433;Database=OverLutDb;User Id=sa;Password=OverLut@2026;TrustServerCertificate=True;"
+      ConnectionStrings__overlutstoragedb: "Server=db,1433;Database=OverLutDb_Storage;User Id=sa;Password=OverLut@2026;TrustServerCertificate=True;"
+      ASPNETCORE_ENVIRONMENT: "Development" # Đổi thành Development để có thể xem Swagger qua Docker
       ASPNETCORE_URLS: "http://+:8080"
     ports:
       - "5000:8080"
@@ -60,23 +67,24 @@ services:
     networks:
       - overlut-net
 
-  # Frontend (React)
+# Frontend (React)
   frontend:
     build:
       context: ./FEOverLut/FEOVERLUT
       dockerfile: Dockerfile
+      args: 
+        - VITE_API_URL=http://localhost:5000/api # Thêm dòng này để Vite nhận API
     image: overlut-frontend:latest
     container_name: overlut-frontend
     depends_on:
       - webapi
     ports:
       - "3000:80"
-    environment:
-      - VITE_API_URL=http://localhost:5000
+    # Bạn có thể xóa phần environment: - VITE_API_URL đi vì nó không có tác dụng với Nginx
     restart: always
     networks:
       - overlut-net
-
+              
   # Mobile Web (Flutter)
   mobile-web:
     build:

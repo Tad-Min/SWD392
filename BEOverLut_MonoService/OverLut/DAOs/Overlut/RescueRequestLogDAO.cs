@@ -4,17 +4,23 @@ namespace DAOs.Overlut;
 
 public class RescueRequestLogDAO
 {
-    public static async Task<RescueRequestLog?> AddRescueRequestLog(RescueRequestLog rescueRequestLog)
+    private readonly OverlutDbContext _db;
+
+    public RescueRequestLogDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<RescueRequestLog?> AddRescueRequestLog(RescueRequestLog rescueRequestLog)
     {
         try
         {
             if (rescueRequestLog == null)
                 throw new ArgumentNullException(nameof(rescueRequestLog));
 
-            using var db = new OverlutDbContext();
+            
             rescueRequestLog.ChangedAt = DateTime.UtcNow;
-            await db.RescueRequestLogs.AddAsync(rescueRequestLog);
-            await db.SaveChangesAsync();
+            await _db.RescueRequestLogs.AddAsync(rescueRequestLog);
+            await _db.SaveChangesAsync();
             return rescueRequestLog;
         }
         catch (Exception ex)
@@ -24,12 +30,12 @@ public class RescueRequestLogDAO
         }
     }
 
-    public static async Task<IEnumerable<RescueRequestLog>?> GetRescueRequestLogByRescueRequestId(int rescueRequestId)
+    public async Task<IEnumerable<RescueRequestLog>?> GetRescueRequestLogByRescueRequestId(int rescueRequestId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueRequestLogs
+            
+            return await _db.RescueRequestLogs
                 .Where(x => x.RescueRequestId == rescueRequestId)
                 .OrderByDescending(x => x.ChangedAt)
                 .ToListAsync();
@@ -41,12 +47,12 @@ public class RescueRequestLogDAO
         }
     }
 
-    public static async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogs()
+    public async Task<IEnumerable<RescueRequestLog>?> GetAllRescueRequestLogs()
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueRequestLogs
+            
+            return await _db.RescueRequestLogs
                 .OrderByDescending(x => x.ChangedAt)
                 .ToListAsync();
         }

@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RescueMembersRoleDAO
 {
-    public static async Task<IEnumerable<RescueMembersRole>?> GetAllRescueMembersRoles()
+    private readonly OverlutDbContext _db;
+
+    public RescueMembersRoleDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<RescueMembersRole>?> GetAllRescueMembersRoles()
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueMembersRoles.ToListAsync();
+            
+            return await _db.RescueMembersRoles.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -18,12 +24,12 @@ public class RescueMembersRoleDAO
         }
     }
 
-    public static async Task<RescueMembersRole?> GetRescueMembersRoleById(int id)
+    public async Task<RescueMembersRole?> GetRescueMembersRoleById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == id);
+            
+            return await _db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == id);
         }
         catch (Exception ex)
         {
@@ -32,16 +38,16 @@ public class RescueMembersRoleDAO
         }
     }
 
-    public static async Task<RescueMembersRole?> CreateRescueMembersRole(RescueMembersRole roll)
+    public async Task<RescueMembersRole?> CreateRescueMembersRole(RescueMembersRole roll)
     {
         try
         {
             if (roll == null)
                 throw new ArgumentNullException(nameof(roll));
 
-            using var db = new OverlutDbContext();
-            await db.RescueMembersRoles.AddAsync(roll);
-            await db.SaveChangesAsync();
+            
+            await _db.RescueMembersRoles.AddAsync(roll);
+            await _db.SaveChangesAsync();
             return roll;
         }
         catch (Exception ex)
@@ -51,20 +57,20 @@ public class RescueMembersRoleDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueMembersRole(RescueMembersRole roll)
+    public async Task<bool> UpdateRescueMembersRole(RescueMembersRole roll)
     {
         try
         {
             if (roll == null)
                 throw new ArgumentNullException(nameof(roll));
 
-            using var db = new OverlutDbContext();
-            var existingRoll = await db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == roll.RescueMembersRoleId);
+            
+            var existingRoll = await _db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == roll.RescueMembersRoleId);
             if (existingRoll == null) return false;
 
             existingRoll.RoleName = roll.RoleName;
-            db.RescueMembersRoles.Update(existingRoll);
-            await db.SaveChangesAsync();
+            _db.RescueMembersRoles.Update(existingRoll);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -73,15 +79,15 @@ public class RescueMembersRoleDAO
             return false;
         }
     }
-    public static async Task<bool> DeleteRescueMembersRoleById(int id)
+    public async Task<bool> DeleteRescueMembersRoleById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var existingRoll = await db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == id);
+            
+            var existingRoll = await _db.RescueMembersRoles.FirstOrDefaultAsync(x => x.RescueMembersRoleId == id);
             if (existingRoll == null) return false;
-            db.RescueMembersRoles.Remove(existingRoll);
-            await db.SaveChangesAsync();
+            _db.RescueMembersRoles.Remove(existingRoll);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

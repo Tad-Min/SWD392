@@ -1,13 +1,13 @@
 ﻿USE master
 GO
-----DROP DB----
+----DROP _db----
 DROP DATABASE IF EXISTS OverlutDb
 GO
 DROP DATABASE IF EXISTS OverlutDb_Storage
 GO
 
 
-----CREATE DB----
+----CREATE _db----
 CREATE DATABASE OverlutDb
 GO
 CREATE DATABASE OverlutDb_Storage

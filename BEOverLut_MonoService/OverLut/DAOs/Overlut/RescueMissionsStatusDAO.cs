@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RescueMissionsStatusDAO
 {
-    public static async Task<IEnumerable<RescueMissionsStatus>?> GetAllRescueMissionsStatus(string? statusName)
+    private readonly OverlutDbContext _db;
+
+    public RescueMissionsStatusDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<RescueMissionsStatus>?> GetAllRescueMissionsStatus(string? statusName)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.RescueMissionsStatuses.AsQueryable();
+            
+            var query = _db.RescueMissionsStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
                 query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
@@ -23,12 +29,12 @@ public class RescueMissionsStatusDAO
         }
     }
 
-    public static async Task<RescueMissionsStatus?> GetRescueMissionsStatusById(int id)
+    public async Task<RescueMissionsStatus?> GetRescueMissionsStatusById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id && !x.IsDeleted);
+            
+            return await _db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -37,7 +43,7 @@ public class RescueMissionsStatusDAO
         }
     }
 
-    public static async Task<RescueMissionsStatus?> CreateRescueMissionsStatus(RescueMissionsStatus status)
+    public async Task<RescueMissionsStatus?> CreateRescueMissionsStatus(RescueMissionsStatus status)
     {
         try
         {
@@ -47,9 +53,9 @@ public class RescueMissionsStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            await db.RescueMissionsStatuses.AddAsync(status);
-            await db.SaveChangesAsync();
+            
+            await _db.RescueMissionsStatuses.AddAsync(status);
+            await _db.SaveChangesAsync();
             return status;
         }
         catch (Exception ex)
@@ -59,7 +65,7 @@ public class RescueMissionsStatusDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueMissionsStatus(RescueMissionsStatus status)
+    public async Task<bool> UpdateRescueMissionsStatus(RescueMissionsStatus status)
     {
         try
         {
@@ -69,22 +75,22 @@ public class RescueMissionsStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            var existingStatus = await db.RescueMissionsStatuses.FirstOrDefaultAsync(
+            
+            var existingStatus = await _db.RescueMissionsStatuses.FirstOrDefaultAsync(
                 x => x.RescueMissionsStatusId == status.RescueMissionsStatusId);
 
             if (existingStatus == null) return false;
 
             existingStatus.IsDeleted = true;
-            db.RescueMissionsStatuses.Update(existingStatus);
+            _db.RescueMissionsStatuses.Update(existingStatus);
 
             var newStatus = new RescueMissionsStatus
             {
                 StatusName = status.StatusName,
                 IsDeleted = false
             };
-            await db.RescueMissionsStatuses.AddAsync(newStatus);
-            await db.SaveChangesAsync();
+            await _db.RescueMissionsStatuses.AddAsync(newStatus);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -94,18 +100,18 @@ public class RescueMissionsStatusDAO
         }
     }
 
-    public static async Task<bool> DeleteRescueMissionsStatus(int id)
+    public async Task<bool> DeleteRescueMissionsStatus(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var status = await db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id);
+            
+            var status = await _db.RescueMissionsStatuses.FirstOrDefaultAsync(x => x.RescueMissionsStatusId == id);
 
             if (status == null) return false;
 
             status.IsDeleted = true;
-            db.RescueMissionsStatuses.Update(status);
-            await db.SaveChangesAsync();
+            _db.RescueMissionsStatuses.Update(status);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

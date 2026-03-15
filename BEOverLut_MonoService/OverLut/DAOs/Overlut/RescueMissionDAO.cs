@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RescueMissionDAO
 {
-    public static async Task<IEnumerable<RescueMission>?> GetAllRescueMission(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description)
+    private readonly OverlutDbContext _db;
+
+    public RescueMissionDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<RescueMission>?> GetAllRescueMission(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.RescueMissions.AsQueryable();
+            
+            var query = _db.RescueMissions.AsQueryable();
 
             if (missionId.HasValue)
                 query = query.Where(x => x.MissionId == missionId.Value);
@@ -37,17 +43,17 @@ public class RescueMissionDAO
         }
     }
 
-    public static async Task<RescueMission?> CreateRescueMission(RescueMission mission)
+    public async Task<RescueMission?> CreateRescueMission(RescueMission mission)
     {
         try
         {
             if (mission == null)
                 throw new ArgumentNullException(nameof(mission));
 
-            using var db = new OverlutDbContext();
+            
             mission.AssignedAt = DateTime.UtcNow;
-            await db.RescueMissions.AddAsync(mission);
-            await db.SaveChangesAsync();
+            await _db.RescueMissions.AddAsync(mission);
+            await _db.SaveChangesAsync();
             return mission;
         }
         catch (Exception ex)
@@ -57,15 +63,15 @@ public class RescueMissionDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueMission(RescueMission mission)
+    public async Task<bool> UpdateRescueMission(RescueMission mission)
     {
         try
         {
             if (mission == null)
                 throw new ArgumentNullException(nameof(mission));
 
-            using var db = new OverlutDbContext();
-            var existingMission = await db.RescueMissions.FirstOrDefaultAsync(x => x.MissionId == mission.MissionId);
+            
+            var existingMission = await _db.RescueMissions.FirstOrDefaultAsync(x => x.MissionId == mission.MissionId);
             if (existingMission == null) return false;
 
             existingMission.RescueRequestId = mission.RescueRequestId;
@@ -73,8 +79,8 @@ public class RescueMissionDAO
             existingMission.TeamId = mission.TeamId;
             existingMission.StatusId = mission.StatusId;
 
-            db.RescueMissions.Update(existingMission);
-            await db.SaveChangesAsync();
+            _db.RescueMissions.Update(existingMission);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -84,16 +90,16 @@ public class RescueMissionDAO
         }
     }
 
-    public static async Task<bool> DeleteRescueMission(int missionId)
+    public async Task<bool> DeleteRescueMission(int missionId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var mission = await db.RescueMissions.FirstOrDefaultAsync(x => x.MissionId == missionId);
+            
+            var mission = await _db.RescueMissions.FirstOrDefaultAsync(x => x.MissionId == missionId);
             if (mission == null) return false;
 
-            db.RescueMissions.Remove(mission);
-            await db.SaveChangesAsync();
+            _db.RescueMissions.Remove(mission);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
