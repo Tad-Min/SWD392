@@ -1,48 +1,70 @@
-﻿using DAOs.OverlutStorage;
+﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutStorageEntiy;
 using DTOs;
 using DTOs.OverlutStorage;
+using Repositories.Interface.Overlut;
+using Repositories.Interface.OverlutStorage;
+using Repositories.Overlut;
+using Repositories.OverlutStorage;
 using Services.Interface;
 
 namespace Services
 {
     public class AttachmentStorageService : IAttachmentStorageService
     {
+        private readonly IAttachmentRepository _attachmentRepository;
+        private readonly IAttachmentMissionRepository _attachmentMissionRepository;
+        private readonly IAttachmentRescueRepository _attachmentRescueRepository;
+        private readonly IFileChunkRepository _fileChunkRepository;
+        public AttachmentStorageService(
+            IAttachmentRepository attachmentRepository,
+            IAttachmentMissionRepository attachmentMissionRepository,
+            IAttachmentRescueRepository attachmentRescueRepository,
+            IFileChunkRepository fileChunkRepository)
+        {
+            _attachmentRepository = attachmentRepository;
+            _attachmentMissionRepository = attachmentMissionRepository;
+            _attachmentRescueRepository = attachmentRescueRepository;
+            _fileChunkRepository = fileChunkRepository;
+        }
+
         public async Task<IEnumerable<AttachmentDTO>?> GetAllAttachments()
         {
-            var attachments = await AttachmentDAO.GetAllAttachments();
+            var attachments = await _attachmentRepository.GetAllAttachments();
+            if (attachments == null) return new List<AttachmentDTO>();
             return attachments.Select(a => MappingHandle.EntityToDTO(a)).Where(a => a != null).Cast<AttachmentDTO>();
         }
 
         public async Task<AttachmentDTO?> GetAttachmentById(Guid attachmentId)
         {
-            return MappingHandle.EntityToDTO(await AttachmentDAO.GetAttachmentById(attachmentId));
+            return MappingHandle.EntityToDTO(await _attachmentRepository.GetAttachmentById(attachmentId));
         }
 
         public async Task<AttachmentDTO?> CreateAttachment(AttachmentDTO dto)
         {
-            return MappingHandle.EntityToDTO(await AttachmentDAO.CreateAttachment(MappingHandle.DTOToEntity(dto)!));
+            return MappingHandle.EntityToDTO(await _attachmentRepository.CreateAttachment(MappingHandle.DTOToEntity(dto)!));
         }
 
         public async Task<bool> UpdateAttachment(AttachmentDTO dto)
         {
-            return await AttachmentDAO.UpdateAttachment(MappingHandle.DTOToEntity(dto)!);
+            return await _attachmentRepository.UpdateAttachment(MappingHandle.DTOToEntity(dto)!);
         }
 
         public async Task<bool> DeleteAttachment(Guid attachmentId)
         {
-            return await AttachmentDAO.DeleteAttachment(attachmentId);
+            return await _attachmentRepository.DeleteAttachment(attachmentId);
         }
 
         public async Task<Guid?> CreateAttachmentRescueAsync(int rescueRequestId, long fileSize, string fileType)
         {
             // Step 1: Create Attachment in OverlutDbStorage
             var attachmentDto = new AttachmentDTO { IsComplete = false, CreatedAt = DateTime.UtcNow };
-            var createdAttachment = await AttachmentDAO.CreateAttachment(MappingHandle.DTOToEntity(attachmentDto)!);
+            var createdAttachment = await _attachmentRepository.CreateAttachment(MappingHandle.DTOToEntity(attachmentDto)!);
             if (createdAttachment == null) return null;
 
             // Step 2: Create AttachmentRescue in Primary Database
-            var repo = new Repositories.AttachmentRescueRepository();
-            var addedRescue = await repo.AddAttachmentMissionsByMissionId(
+            
+            var addedRescue = await _attachmentRescueRepository.AddAttachmentMissionsByMissionId(
                 createdAttachment.AttachmentId, 
                 rescueRequestId, 
                 fileSize, 
@@ -57,12 +79,11 @@ namespace Services
         {
             // Step 1: Create Attachment in OverlutDbStorage
             var attachmentDto = new AttachmentDTO { IsComplete = false, CreatedAt = DateTime.UtcNow };
-            var createdAttachment = await AttachmentDAO.CreateAttachment(MappingHandle.DTOToEntity(attachmentDto)!);
+            var createdAttachment = await _attachmentRepository.CreateAttachment(MappingHandle.DTOToEntity(attachmentDto)!);
             if (createdAttachment == null) return null;
 
             // Step 2: Create AttachmentMission in Primary Database
-            var repo = new Repositories.AttachmentMissionRepository();
-            var addedMission = await repo.AddAttachmentMissionsByMissionId(
+            var addedMission = await _attachmentMissionRepository.AddAttachmentMissionsByMissionId(
                 createdAttachment.AttachmentId,
                 missionId,
                 fileSize,
@@ -76,24 +97,24 @@ namespace Services
         public async Task<bool> AddFileChunkAsync(Guid attachmentId, int sequenceNumber, byte[] data, bool isLastChunk)
         {
             // Step 3: Add chunk to FileChunk table
-            var chunk = new BusinessObject.OverlutStorageEntiy.FileChunk
+            var chunk = new FileChunk
             {
                 AttachmentId = attachmentId,
                 SequenceNumber = sequenceNumber,
                 Data = data
             };
 
-            var createdChunk = await FileChunkDAO.CreateFileChunk(chunk);
+            var createdChunk = await _fileChunkRepository.CreateFileChunk(chunk);
             if (createdChunk == null) return false;
 
             // If last chunk, mark attachment as complete
             if (isLastChunk)
             {
-                var existingAttachment = await AttachmentDAO.GetAttachmentById(attachmentId);
+                var existingAttachment = await _attachmentRepository.GetAttachmentById(attachmentId);
                 if (existingAttachment != null)
                 {
                     existingAttachment.IsComplete = true;
-                    await AttachmentDAO.UpdateAttachment(existingAttachment);
+                    await _attachmentRepository.UpdateAttachment(existingAttachment);
                 }
             }
 
@@ -102,14 +123,13 @@ namespace Services
 
         public async Task<IEnumerable<object>> GetAttachmentsByRescueRequestIdAsync(int rescueRequestId)
         {
-            var repo = new Repositories.AttachmentRescueRepository();
-            var links = await repo.GetAllAttachmentRescueWithRescueRequestId(rescueRequestId);
+            var links = await _attachmentRescueRepository.GetAllAttachmentRescueWithRescueRequestId(rescueRequestId);
             if (links == null) return new List<object>();
 
             var result = new List<object>();
             foreach (var link in links)
             {
-                var attachment = await AttachmentDAO.GetAttachmentById(link.AttachmentId);
+                var attachment = await _attachmentRepository.GetAttachmentById(link.AttachmentId);
                 result.Add(new
                 {
                     link.AttachmentId,
@@ -125,14 +145,13 @@ namespace Services
 
         public async Task<IEnumerable<object>> GetAttachmentsByMissionIdAsync(int missionId)
         {
-            var repo = new Repositories.AttachmentMissionRepository();
-            var links = await repo.GetAllAttachmentMissionsWithMissionId(missionId);
+            var links = await _attachmentMissionRepository.GetAllAttachmentMissionsWithMissionId(missionId);
             if (links == null) return new List<object>();
 
             var result = new List<object>();
             foreach (var link in links)
             {
-                var attachment = await AttachmentDAO.GetAttachmentById(link.AttachmentId);
+                var attachment = await _attachmentRepository.GetAttachmentById(link.AttachmentId);
                 result.Add(new
                 {
                     link.AttachmentId,

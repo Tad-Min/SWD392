@@ -1,4 +1,5 @@
 using BusinessObject.OverlutEntiy;
+using DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
@@ -33,12 +34,19 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetByTeamId/{id}")]
+        public async Task<IActionResult> GetRescueMissionByTeamId(int id)
+        {
+            var result = await _rescueMissionService.GetAllRescueMissionAsync(null, null, null, id, null, null);
+            return Ok(result);
+        }
+
         [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetRescueMissionById(int id)
         {
             var result = await _rescueMissionService.GetRescueMissionByIdAsync(id);
             if (result == null) return NotFound();
-            return Ok(result);
+            return Ok(MappingHandle.EntityToDTO(result));
         }
 
         [HttpPost("Add")]
@@ -62,7 +70,7 @@ namespace WebApi.Controllers
             var result = await _rescueMissionService.AddRescueMissionAsync(mission, userId);
             if (result == null) return BadRequest("Failed to create mission.");
 
-            return CreatedAtAction(nameof(GetRescueMissionById), new { id = result.MissionId }, result);
+            return CreatedAtAction(nameof(GetRescueMissionById), new { id = result.MissionId }, MappingHandle.EntityToDTO(result));
         }
 
         [HttpPut("Update")]

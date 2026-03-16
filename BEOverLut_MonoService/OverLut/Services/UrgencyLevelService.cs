@@ -1,5 +1,5 @@
 using BusinessObject.OverlutEntiy;
-using Repositories.Interface;
+using Repositories.Interface.Overlut;
 using Services.Interface;
 
 namespace Services

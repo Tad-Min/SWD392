@@ -24,13 +24,7 @@ const hourlyData = [
     { h: '12h', req: 38 }, { h: '14h', req: 55 }, { h: '16h', req: 42 },
 ];
 
-// Status colour map (StatusId from BE)
-const STATUS_MAP = {
-    1: { label: 'Hoàn thành', color: '#22c55e' },
-    2: { label: 'Đang xử lý', color: '#3b82f6' },
-    3: { label: 'Chờ xử lý', color: '#eab308' },
-    4: { label: 'Đã hủy', color: '#ef4444' },
-};
+
 
 const TEAM_STATUS = {
     1: { label: 'Đang hoạt động', cls: 'text-emerald-500 bg-emerald-500/10' },
@@ -88,29 +82,43 @@ const ManagerDashboard = () => {
 
     // ── Computed KPIs ──────────────────────────────────────────────
     const missionsTotal = missions.length;
-    const missionsDone = missions.filter(m => m.statusId === 1).length;
-    const missionsActive = missions.filter(m => m.statusId === 2).length;
+    // Missions Mapping: 
+    // 1-Assigned, 2-EnRoute, 3-Rescuing (Active)
+    // 4-Completed (Done)
+    const missionsDone = missions.filter(m => m.statusId === 4).length;
+    const missionsActive = missions.filter(m => [1, 2, 3].includes(m.statusId)).length;
 
     // Requests stats (RescueRequests)
+    // Requests Mapping:
+    // 1-New (Pending)
+    // 2-Verified, 3-Assigned, 4-EnRoute, 5-OnSite (Active)
+    // 6-Resolved (Done)
     const requestsTotal = requests.length;
-    const reqDone = requests.filter(r => (r.status === 1 || r.statusId === 1)).length;
-    const reqActive = requests.filter(r => (r.status === 2 || r.statusId === 2)).length;
-    const reqNew = requests.filter(r => (r.status === 3 || r.statusId === 3)).length;
+    const reqDone = requests.filter(r => (r.status === 6 || r.statusId === 6)).length;
+    const reqActive = requests.filter(r => [2, 3, 4, 5].includes(r.status ?? r.statusId)).length;
+    const reqNew = requests.filter(r => (r.status === 1 || r.statusId === 1)).length;
 
     const teamsActive = teams.filter(t => t.statusId === 1).length;
 
-    // Pie chart data (Missions + Requests status)
-    const pieData = Object.entries(STATUS_MAP).map(([id, info]) => {
-        const idNum = Number(id);
-        const mCount = missions.filter(m => m.statusId === idNum).length;
-        // Map request statuses similarly: 1=Done, 2=Active, 3=Pending
-        const rCount = requests.filter(r => (r.status === idNum || r.statusId === idNum)).length;
-        return {
-            name: info.label,
-            value: mCount + rCount,
-            color: info.color,
-        };
-    }).filter(d => d.value > 0);
+    // Pie chart data (Missions + Requests status combined)
+    // Since IDs mean different things, we use a unified visual mapping
+    const pieData = [
+        {
+            name: 'Hoàn thành',
+            value: missionsDone + reqDone,
+            color: '#22c55e' // emerald-500
+        },
+        {
+            name: 'Đang triển khai',
+            value: missionsActive + reqActive,
+            color: '#3b82f6' // blue-500
+        },
+        {
+            name: 'Chờ xử lý',
+            value: reqNew,
+            color: '#eab308' // amber-500
+        }
+    ].filter(d => d.value > 0);
 
     // ── Loading skeleton ────────────────────────────────────────────
     if (loading) {
@@ -266,7 +274,7 @@ const ManagerDashboard = () => {
                         {stocks.length === 0 ? (
                             <p className={`text-sm ${theme.textMuted} text-center py-8`}>Không có dữ liệu tồn kho.</p>
                         ) : stocks.slice(0, 6).map((s, i) => {
-                            const qty = s.quantity ?? s.totalQuantity ?? 0;
+                            const qty = s.currentQuantity ?? s.currentquantity ?? s.quantity ?? s.totalQuantity ?? 0;
                             const cap = s.capacity ?? 100;
                             const pct = Math.min(Math.round((qty / cap) * 100), 100);
                             const lowStock = pct < 30;

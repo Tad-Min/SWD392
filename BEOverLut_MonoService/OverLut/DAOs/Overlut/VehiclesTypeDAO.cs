@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class VehiclesTypeDAO
 {
-    public static async Task<IEnumerable<VehiclesType>?> GetAllVehiclesType(string? typeName)
+    private readonly OverlutDbContext _db;
+
+    public VehiclesTypeDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<VehiclesType>?> GetAllVehiclesType(string? typeName)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.VehiclesTypes.AsQueryable();
+            
+            var query = _db.VehiclesTypes.AsQueryable();
 
             if (!string.IsNullOrEmpty(typeName))
                 query = query.Where(x => x.TypeName.Contains(typeName) && !x.IsDeleted);
@@ -23,12 +29,12 @@ public class VehiclesTypeDAO
         }
     }
 
-    public static async Task<VehiclesType?> GetVehiclesTypeById(int id)
+    public async Task<VehiclesType?> GetVehiclesTypeById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id && !x.IsDeleted);
+            
+            return await _db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -37,7 +43,7 @@ public class VehiclesTypeDAO
         }
     }
 
-    public static async Task<VehiclesType?> CreateVehiclesType(VehiclesType vehiclesType)
+    public async Task<VehiclesType?> CreateVehiclesType(VehiclesType vehiclesType)
     {
         try
         {
@@ -47,9 +53,9 @@ public class VehiclesTypeDAO
             if (string.IsNullOrWhiteSpace(vehiclesType.TypeName))
                 throw new ArgumentException("TypeName cannot be null or empty", nameof(vehiclesType));
 
-            using var db = new OverlutDbContext();
-            await db.VehiclesTypes.AddAsync(vehiclesType);
-            await db.SaveChangesAsync();
+            
+            await _db.VehiclesTypes.AddAsync(vehiclesType);
+            await _db.SaveChangesAsync();
             return vehiclesType;
         }
         catch (Exception ex)
@@ -59,7 +65,7 @@ public class VehiclesTypeDAO
         }
     }
 
-    public static async Task<bool> UpdateVehiclesType(VehiclesType vehiclesType)
+    public async Task<bool> UpdateVehiclesType(VehiclesType vehiclesType)
     {
         try
         {
@@ -69,14 +75,14 @@ public class VehiclesTypeDAO
             if (string.IsNullOrWhiteSpace(vehiclesType.TypeName))
                 throw new ArgumentException("TypeName cannot be null or empty", nameof(vehiclesType));
 
-            using var db = new OverlutDbContext();
-            var existingType = await db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == vehiclesType.VehicleTypeId);
+            
+            var existingType = await _db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == vehiclesType.VehicleTypeId);
 
             if (existingType == null) return false;
 
             existingType.TypeName = vehiclesType.TypeName;
-            db.VehiclesTypes.Update(existingType);
-            await db.SaveChangesAsync();
+            _db.VehiclesTypes.Update(existingType);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -86,17 +92,17 @@ public class VehiclesTypeDAO
         }
     }
 
-    public static async Task<bool> DeleteVehiclesTypeById(int id)
+    public async Task<bool> DeleteVehiclesTypeById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var vehiclesType = await db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id);
+            
+            var vehiclesType = await _db.VehiclesTypes.FirstOrDefaultAsync(x => x.VehicleTypeId == id);
 
             if (vehiclesType == null) return false;
 
-            db.VehiclesTypes.Remove(vehiclesType);
-            await db.SaveChangesAsync();
+            _db.VehiclesTypes.Remove(vehiclesType);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

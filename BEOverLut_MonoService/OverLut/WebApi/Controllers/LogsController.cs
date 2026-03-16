@@ -1,3 +1,4 @@
+using DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
@@ -27,7 +28,7 @@ namespace WebApi.Controllers
                 if (logs == null || !logs.Any())
                     return NotFound(new { message = "No rescue request logs found" });
 
-                return Ok(logs);
+                return Ok(logs.Select(l => MappingHandle.EntityToDTO(l)));
             }
             catch (Exception ex)
             {
@@ -51,7 +52,7 @@ namespace WebApi.Controllers
                 if (logs == null || !logs.Any())
                     return NotFound(new { message = $"No logs found for rescue request ID {requestId}" });
 
-                return Ok(logs);
+                return Ok(logs.Select(l => MappingHandle.EntityToDTO(l)));
             }
             catch (Exception ex)
             {
@@ -72,7 +73,7 @@ namespace WebApi.Controllers
                 if (logs == null || !logs.Any())
                     return NotFound(new { message = "No mission logs found" });
 
-                return Ok(logs);
+                return Ok(logs.Select(l => MappingHandle.EntityToDTO(l)));
             }
             catch (Exception ex)
             {
@@ -96,7 +97,7 @@ namespace WebApi.Controllers
                 if (logs == null || !logs.Any())
                     return NotFound(new { message = $"No logs found for mission ID {missionId}" });
 
-                return Ok(logs);
+                return Ok(logs.Select(l => MappingHandle.EntityToDTO(l)));
             }
             catch (Exception ex)
             {

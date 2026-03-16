@@ -1,0 +1,17 @@
+[
+  {
+    "vehicleTypeId": 1,
+    "typeName": "Boat",
+    "isDeleted": false
+  },
+  {
+    "vehicleTypeId": 2,
+    "typeName": "Truck",
+    "isDeleted": false
+  },
+  {
+    "vehicleTypeId": 3,
+    "typeName": "Ambulance",
+    "isDeleted": false
+  }
+]

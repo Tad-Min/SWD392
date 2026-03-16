@@ -4,7 +4,13 @@ namespace DAOs.Overlut;
 
 public class WarehouseDAO
 {
-    public static async Task<IEnumerable<Warehouse>?> GetAllWarehouses(
+    private readonly OverlutDbContext _db;
+
+    public WarehouseDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<Warehouse>?> GetAllWarehouses(
         int? warehouseId,
         string? warehouseName,
         string? address,
@@ -12,8 +18,8 @@ public class WarehouseDAO
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.Warehouses.AsQueryable();
+            
+            var query = _db.Warehouses.AsQueryable();
 
             if (warehouseId.HasValue)
                 query = query.Where(x => x.WarehouseId == warehouseId.Value);
@@ -36,12 +42,12 @@ public class WarehouseDAO
         }
     }
 
-    public static async Task<Warehouse?> GetWarehouseById(int warehouseId)
+    public async Task<Warehouse?> GetWarehouseById(int warehouseId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouseId);
+            
+            return await _db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouseId);
         }
         catch (Exception ex)
         {
@@ -50,16 +56,16 @@ public class WarehouseDAO
         }
     }
 
-    public static async Task<Warehouse?> AddWarehouse(Warehouse warehouse)
+    public async Task<Warehouse?> AddWarehouse(Warehouse warehouse)
     {
         try
         {
             if (warehouse == null)
                 throw new ArgumentNullException(nameof(warehouse));
 
-            using var db = new OverlutDbContext();
-            await db.Warehouses.AddAsync(warehouse);
-            await db.SaveChangesAsync();
+            
+            await _db.Warehouses.AddAsync(warehouse);
+            await _db.SaveChangesAsync();
             return warehouse;
         }
         catch (Exception ex)
@@ -69,15 +75,15 @@ public class WarehouseDAO
         }
     }
 
-    public static async Task<bool> UpdateWarehouse(Warehouse warehouse)
+    public async Task<bool> UpdateWarehouse(Warehouse warehouse)
     {
         try
         {
             if (warehouse == null)
                 throw new ArgumentNullException(nameof(warehouse));
 
-            using var db = new OverlutDbContext();
-            var existingWarehouse = await db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouse.WarehouseId);
+            
+            var existingWarehouse = await _db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouse.WarehouseId);
             if (existingWarehouse == null) return false;
 
             existingWarehouse.WarehouseName = warehouse.WarehouseName;
@@ -85,8 +91,8 @@ public class WarehouseDAO
             existingWarehouse.Address = warehouse.Address;
             existingWarehouse.IsActive = warehouse.IsActive;
 
-            db.Warehouses.Update(existingWarehouse);
-            await db.SaveChangesAsync();
+            _db.Warehouses.Update(existingWarehouse);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -96,16 +102,16 @@ public class WarehouseDAO
         }
     }
 
-    public static async Task<bool> DeleteWarehouseById(int warehouseId)
+    public async Task<bool> DeleteWarehouseById(int warehouseId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var warehouse = await db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouseId);
+            
+            var warehouse = await _db.Warehouses.FirstOrDefaultAsync(x => x.WarehouseId == warehouseId);
             if (warehouse == null) return false;
 
-            db.Warehouses.Remove(warehouse);
-            await db.SaveChangesAsync();
+            _db.Warehouses.Remove(warehouse);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

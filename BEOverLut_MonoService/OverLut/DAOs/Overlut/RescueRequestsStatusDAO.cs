@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RescueRequestsStatusDAO
 {
-    public static async Task<IEnumerable<RescueRequestsStatus>?> GetAllRescueRequestsStatus(string? statusName)
+    private readonly OverlutDbContext _db;
+
+    public RescueRequestsStatusDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<RescueRequestsStatus>?> GetAllRescueRequestsStatus(string? statusName)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.RescueRequestsStatuses.AsQueryable();
+            
+            var query = _db.RescueRequestsStatuses.AsQueryable();
 
             if (!string.IsNullOrEmpty(statusName))
                 query = query.Where(x => x.StatusName.Contains(statusName) && !x.IsDeleted);
@@ -23,12 +29,12 @@ public class RescueRequestsStatusDAO
         }
     }
 
-    public static async Task<RescueRequestsStatus?> GetRescueRequestsStatusById(int id)
+    public async Task<RescueRequestsStatus?> GetRescueRequestsStatusById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id && !x.IsDeleted);
+            
+            return await _db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id && !x.IsDeleted);
         }
         catch (Exception ex)
         {
@@ -37,7 +43,7 @@ public class RescueRequestsStatusDAO
         }
     }
 
-    public static async Task<RescueRequestsStatus?> CreateRescueRequestsStatus(RescueRequestsStatus status)
+    public async Task<RescueRequestsStatus?> CreateRescueRequestsStatus(RescueRequestsStatus status)
     {
         try
         {
@@ -47,9 +53,9 @@ public class RescueRequestsStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            await db.RescueRequestsStatuses.AddAsync(status);
-            await db.SaveChangesAsync();
+            
+            await _db.RescueRequestsStatuses.AddAsync(status);
+            await _db.SaveChangesAsync();
             return status;
         }
         catch (Exception ex)
@@ -59,7 +65,7 @@ public class RescueRequestsStatusDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueRequestsStatus(RescueRequestsStatus status)
+    public async Task<bool> UpdateRescueRequestsStatus(RescueRequestsStatus status)
     {
         try
         {
@@ -69,15 +75,15 @@ public class RescueRequestsStatusDAO
             if (string.IsNullOrWhiteSpace(status.StatusName))
                 throw new ArgumentException("StatusName cannot be null or empty", nameof(status));
 
-            using var db = new OverlutDbContext();
-            var existingStatus = await db.RescueRequestsStatuses.FirstOrDefaultAsync(
+            
+            var existingStatus = await _db.RescueRequestsStatuses.FirstOrDefaultAsync(
                 x => x.RescueRequestsStatusId == status.RescueRequestsStatusId);
 
             if (existingStatus == null) return false;
 
             existingStatus.StatusName = status.StatusName;
-            db.RescueRequestsStatuses.Update(existingStatus);
-            await db.SaveChangesAsync();
+            _db.RescueRequestsStatuses.Update(existingStatus);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -87,17 +93,17 @@ public class RescueRequestsStatusDAO
         }
     }
 
-    public static async Task<bool> DeleteRescueRequestsStatusById(int id)
+    public async Task<bool> DeleteRescueRequestsStatusById(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var status = await db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id);
+            
+            var status = await _db.RescueRequestsStatuses.FirstOrDefaultAsync(x => x.RescueRequestsStatusId == id);
 
             if (status == null) return false;
 
-            db.RescueRequestsStatuses.Remove(status);
-            await db.SaveChangesAsync();
+            _db.RescueRequestsStatuses.Remove(status);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

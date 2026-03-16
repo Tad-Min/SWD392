@@ -4,12 +4,17 @@ namespace DAOs.Overlut;
 
 public class UserDAO
 {
-    public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
+    private readonly OverlutDbContext _db;
+
+    public UserDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<User?> GetUserByEmailAndPassword(string email, string password)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Users.FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
+            return await _db.Users.FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
         }
         catch (Exception ex)
         {
@@ -17,12 +22,11 @@ public class UserDAO
             return null;
         }
     }
-    public static async Task<User?> GetUserById(int userId)
+    public  async Task<User?> GetUserById(int userId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+            return await _db.Users.FirstOrDefaultAsync(x => x.UserId == userId);
         }
         catch (Exception ex)
         {
@@ -31,14 +35,13 @@ public class UserDAO
         }
     }
 
-    public static async Task<User?> GetUserByEmail(string email)
+    public  async Task<User?> GetUserByEmail(string email)
     {
         try
         {
             if (string.IsNullOrEmpty(email))
                 throw new ArgumentNullException(nameof(email));
-            using var db = new OverlutDbContext();
-            return await db.Users.FirstOrDefaultAsync(x => x.Email == email);
+            return await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
         }
         catch (Exception ex)
         {
@@ -47,12 +50,11 @@ public class UserDAO
         }
     }
 
-    public static async Task<IEnumerable<User>?> GetAllUsers(int? userId = null, int? roleId = null, string? fullName = null, string? identifyId = null, string? address = null, string? email = null, string? phone = null)
+    public async Task<IEnumerable<User>?> GetAllUsers(int? userId = null, int? roleId = null, string? fullName = null, string? identifyId = null, string? address = null, string? email = null, string? phone = null)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.Users.AsQueryable();
+            var query = _db.Users.AsQueryable();
             if (userId.HasValue) query = query.Where(x => x.UserId == userId.Value);
             if (roleId.HasValue) query = query.Where(x => x.RoleId == roleId.Value);
             if (!string.IsNullOrEmpty(fullName)) query = query.Where(x => x.FullName != null && x.FullName.Contains(fullName));
@@ -69,16 +71,15 @@ public class UserDAO
         }
     }
 
-    public static async Task<User?> CreateUser(User user)
+    public async Task<User?> CreateUser(User user)
     {
         try
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
-            using var db = new OverlutDbContext();
             user.CreatedAt = DateTime.UtcNow;
-            await db.Users.AddAsync(user);
-            await db.SaveChangesAsync();
+            await _db.Users.AddAsync(user);
+            await _db.SaveChangesAsync();
             return user;
         }
         catch (Exception ex)
@@ -88,14 +89,13 @@ public class UserDAO
         }
     }
 
-    public static async Task<bool> UpdateUser(User user)
+    public async Task<bool> UpdateUser(User user)
     {
         try
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
-            using var db = new OverlutDbContext();
-            var existingUser = await db.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId);
+            var existingUser = await _db.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId);
             if (existingUser == null)
                 throw new Exception("User not found");
             existingUser.RoleId = user.RoleId;
@@ -106,8 +106,8 @@ public class UserDAO
             existingUser.Phone = user.Phone;
             existingUser.Password = user.Password;
             existingUser.IsActive = user.IsActive;
-            db.Users.Update(existingUser);
-            await db.SaveChangesAsync();
+            _db.Users.Update(existingUser);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -117,16 +117,15 @@ public class UserDAO
         }
     }
 
-    public static async Task<bool> DeleteUser(int userId)
+    public  async Task<bool> DeleteUser(int userId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var user = await db.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.UserId == userId);
             if (user == null)
                 throw new Exception("User not found");
-            db.Users.Remove(user);
-            await db.SaveChangesAsync();
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-import { getRescueMissionApi, getRescueMissionByIdApi, createRescueMissionApi, updateRescueMissionApi } from "../api/rescueMissionApi";
+import { getRescueMissionApi, getRescueMissionByIdApi, createRescueMissionApi, updateRescueMissionApi, getRescueMissionByTeamIdApi } from "../api/rescueMissionApi";
 import { useState } from "react";
 
 export const useRescueMission = () => {
@@ -56,6 +56,7 @@ export const useCreateRescueMission = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -88,6 +89,29 @@ export const useUpdateRescueMission = () => {
         loading,
         error,
         updateRescueMission
+    }
+}
+
+export const useGetRescueMissionByTeamId = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueMissionByTeamId = async (teamId) => {
+        try {
+            setLoading(true);
+            const response = await getRescueMissionByTeamIdApi(teamId);
+            return response;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return {
+        loading,
+        error,
+        getRescueMissionByTeamId
     }
 }
 

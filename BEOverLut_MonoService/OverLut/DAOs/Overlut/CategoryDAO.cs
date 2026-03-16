@@ -4,41 +4,48 @@ namespace DAOs.Overlut;
 
 public class CategoryDAO
 {
-    public static async Task<IEnumerable<Category>> GetAllCategories()
+    private readonly OverlutDbContext _db;
+
+    public CategoryDAO(OverlutDbContext db)
     {
-        using var db = new OverlutDbContext();
-        return await db.Categories.ToListAsync();
+        _db = db;
     }
-    public static async Task<Category?> GetCategoryById(int categoryId)
+
+    public async Task<IEnumerable<Category>> GetAllCategories()
     {
-        using var db = new OverlutDbContext();
-        return await db.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
+        
+        return await _db.Categories.ToListAsync();
     }
-    public static async Task<Category?> AddCategory(string categoryName)
+    public async Task<Category?> GetCategoryById(int categoryId)
     {
-        using var db = new OverlutDbContext();
+        
+        return await _db.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
+    }
+    public async Task<Category?> AddCategory(string categoryName)
+    {
+        
         var category = new Category
         {
             CategoryName = categoryName,
         };
-        await db.Categories.AddAsync(category);
-        await db.SaveChangesAsync();
+        await _db.Categories.AddAsync(category);
+        await _db.SaveChangesAsync();
         return category;
     }
-    public static async Task<bool> UpdateCategory(int categoryId, string categoryName)
+    public async Task<bool> UpdateCategory(int categoryId, string categoryName)
     {
-        using var db = new OverlutDbContext();
-        var category = await db.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
+        
+        var category = await _db.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
         if (category == null)
         {
             return false;
         }
         category.CategoryName = categoryName;
-        return await db.SaveChangesAsync() > 0;
+        return await _db.SaveChangesAsync() > 0;
     }
-    public static async Task<bool> DeleteCategory(int categoryId)
+    public async Task<bool> DeleteCategory(int categoryId)
     {
-        using var db = new OverlutDbContext();
-        return await db.Categories.Where(x => x.CategoryId == categoryId).ExecuteDeleteAsync() > 0;
+        
+        return await _db.Categories.Where(x => x.CategoryId == categoryId).ExecuteDeleteAsync() > 0;
     }
 }

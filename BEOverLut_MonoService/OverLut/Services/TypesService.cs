@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Services.Interface;
-using Repositories.Interface;
 using DTOs;
 using DTOs.Overlut;
+using Repositories.Interface.Overlut;
 
 namespace Services
 {

@@ -29,10 +29,15 @@ namespace WebApi.Controllers
                 {
                     return BadRequest("Email already exists!");
                 }
-                return Ok(MappingHandle.EntityToDTO(await iAuthService.RegisterAsync(registerModel.Email, registerModel.Phone, registerModel.UserName, registerModel.Password)??null!));
+                var user = await iAuthService.RegisterAsync(registerModel.Email, registerModel.Phone, registerModel.UserName, registerModel.Password);
+                if (user == null) return BadRequest("Can't Create User");
+                return Ok(MappingHandle.EntityToDTO(user));
             }
-            catch {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+            catch (Exception ex)
+            {
+                // THAY ĐỔI Ở ĐÂY: Trả về lỗi chi tiết để chúng ta đọc được trên Swagger
+                var detailedError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest($"Chi tiết lỗi ngầm: {detailedError}");
             }
         }
         [HttpPost("login")]

@@ -6,7 +6,7 @@ using DTOs.Appsettings;
 
 using DTOs.Overlut;
 using Microsoft.Extensions.Options;
-using Repositories.Interface;
+using Repositories.Interface.Overlut;
 using Services.Interface;
 
 namespace Services

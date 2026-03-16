@@ -1,13 +1,13 @@
 ﻿USE master
 GO
-----DROP DB----
+----DROP _db----
 DROP DATABASE IF EXISTS OverlutDb
 GO
 DROP DATABASE IF EXISTS OverlutDb_Storage
 GO
 
 
-----CREATE DB----
+----CREATE _db----
 CREATE DATABASE OverlutDb
 GO
 CREATE DATABASE OverlutDb_Storage
@@ -208,12 +208,12 @@ GO
 
 CREATE TABLE RescueMembersRoles(
 	RescueMembersRoleID INT NOT NULL CONSTRAINT PK_RescueMembersRoles PRIMARY KEY,
-	RollName NVARCHAR(100) NOT NULL CONSTRAINT UQ_RescueMembersRoles_RollName UNIQUE
+	RoleName NVARCHAR(100) NOT NULL CONSTRAINT UQ_RescueMembersRoles_RollName UNIQUE
 );
 GO
 
 -- 0: Leader, 1: Member
-INSERT RescueMembersRoles(RescueMembersRoleID, RollName) VALUES (0,N'Leader'),(1,N'Member');
+INSERT RescueMembersRoles(RescueMembersRoleID, RoleName) VALUES (0,N'Leader'),(1,N'Member');
 
 CREATE TABLE RescueTeamMembers(
 	UserID INT NOT NULL CONSTRAINT FK_RescueTeamMembers_Users REFERENCES Users(UserID),

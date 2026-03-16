@@ -15,10 +15,11 @@ const toArr = (v) => {
 
 // Role mappings based on typical 1: Admin, 2: Coordinator, 3: Rescuer, 4: Support
 const roleConfig = {
-    1: { label: 'Quản trị viên', color: 'text-fuchsia-500', bg: 'bg-fuchsia-500/10', darkBg: 'dark:bg-fuchsia-500/20' },
-    2: { label: 'Điều phối viên', color: 'text-blue-500', bg: 'bg-blue-500/10', darkBg: 'dark:bg-blue-500/20' },
-    3: { label: 'Hiện trường', color: 'text-emerald-500', bg: 'bg-emerald-500/10', darkBg: 'dark:bg-emerald-500/20' },
-    4: { label: 'Hỗ trợ', color: 'text-slate-500', bg: 'bg-slate-500/10', darkBg: 'dark:bg-slate-500/20' },
+    1: { label: 'Công dân', color: 'text-slate-500', bg: 'bg-slate-500/10', darkBg: 'dark:bg-slate-500/20' },
+    2: { label: 'Đội Cứu Hộ', color: 'text-emerald-500', bg: 'bg-emerald-500/10', darkBg: 'dark:bg-emerald-500/20' },
+    3: { label: 'Điều Phối Viên', color: 'text-blue-500', bg: 'bg-blue-500/10', darkBg: 'dark:bg-blue-500/20' },
+    4: { label: 'Quản Lý', color: 'text-indigo-500', bg: 'bg-indigo-500/10', darkBg: 'dark:bg-indigo-500/20' },
+    5: { label: 'Quản Trị Viên', color: 'text-fuchsia-500', bg: 'bg-fuchsia-500/10', darkBg: 'dark:bg-fuchsia-500/20' },
 };
 
 // Fallback data if API returns an empty user array but we want to still show columns (Optional config)
@@ -401,11 +402,11 @@ const UserManagement = () => {
                                 className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none font-semibold ${theme.text}`}
                                 style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
                             >
-                                <option value="1">Quản trị viên (Admin)</option>
-                                <option value="2">Điều phối viên (Manager)</option>
-                                <option value="3">Hiện trường (Rescuer)</option>
-                                <option value="4">Hỗ trợ (Support)</option>
-                                <option value="5">Công dân (Citizen)</option>
+                                <option value="1">Công dân (Citizen)</option>
+                                <option value="2">Đội Cứu Hộ (RescueTeam)</option>
+                                <option value="3">Điều Phối Viên (Coordinator)</option>
+                                <option value="4">Quản Lý (Manager)</option>
+                                <option value="5">Quản Trị Viên (Admin)</option>
                             </select>
                         </div>
 
@@ -508,8 +509,8 @@ const UserManagement = () => {
                                     <option value="1">Công dân (Citizen)</option>
                                     <option value="2">Đội Cứu Hộ (RescueTeam)</option>
                                     <option value="3">Điều Phối Viên (Coordinator)</option>
-                                    <option value="4">Quản lý (Manager)</option>
-                                    <option value="5">Quản trị viên (Admin)</option>
+                                    <option value="4">Quản Lý (Manager)</option>
+                                    <option value="5">Quản Trị Viên (Admin)</option>
                                 </select>
                             </div>
 

@@ -5,16 +5,22 @@ namespace DAOs.Overlut;
 
 public class RescueRequestDAO
 {
-    public static async Task<RescueRequest?> AddRescueRequest(RescueRequest? rescueRequest)
+    private readonly OverlutDbContext _db;
+
+    public RescueRequestDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<RescueRequest?> AddRescueRequest(RescueRequest? rescueRequest)
     {
         try
         {
             if (rescueRequest == null)
                 throw new ArgumentNullException(nameof(rescueRequest));
 
-            using var db = new OverlutDbContext();
-            await db.RescueRequests.AddAsync(rescueRequest);
-            await db.SaveChangesAsync();
+            
+            await _db.RescueRequests.AddAsync(rescueRequest);
+            await _db.SaveChangesAsync();
             return rescueRequest;
         }
         catch (Exception ex)
@@ -24,12 +30,12 @@ public class RescueRequestDAO
         }
     }
 
-    public static async Task<RescueRequest?> GetRescueRequestByIdAsync(int id)
+    public async Task<RescueRequest?> GetRescueRequestByIdAsync(int id)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueRequests.FirstOrDefaultAsync(e => e.RescueRequestId == id);
+            
+            return await _db.RescueRequests.FirstOrDefaultAsync(e => e.RescueRequestId == id);
         }
         catch (Exception ex)
         {
@@ -39,7 +45,7 @@ public class RescueRequestDAO
 
 
     }
-    public static async Task<IEnumerable<RescueRequest>?> GetAllRescueRequests(
+    public async Task<IEnumerable<RescueRequest>?> GetAllRescueRequests(
         int? rescueRequestId,
         int? userReqId,
         int? requestType,
@@ -49,8 +55,8 @@ public class RescueRequestDAO
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var query = db.RescueRequests.AsQueryable();
+            
+            var query = _db.RescueRequests.AsQueryable();
 
             if (rescueRequestId.HasValue)
                 query = query.Where(x => x.RescueRequestId == rescueRequestId.Value);
@@ -79,15 +85,15 @@ public class RescueRequestDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueRequest(RescueRequest rescueRequest)
+    public async Task<bool> UpdateRescueRequest(RescueRequest rescueRequest)
     {
         try
         {
             if (rescueRequest == null)
                 throw new ArgumentNullException(nameof(rescueRequest));
 
-            using var db = new OverlutDbContext();
-            var existingRequest = await db.RescueRequests.FirstOrDefaultAsync(
+            
+            var existingRequest = await _db.RescueRequests.FirstOrDefaultAsync(
                 x => x.RescueRequestId == rescueRequest.RescueRequestId);
 
             if (existingRequest == null) return false;
@@ -102,8 +108,8 @@ public class RescueRequestDAO
             existingRequest.PeopleCount = rescueRequest.PeopleCount;
             existingRequest.Location = rescueRequest.Location;
             existingRequest.LocationText = rescueRequest.LocationText;
-            db.RescueRequests.Update(existingRequest);
-            await db.SaveChangesAsync();
+            _db.RescueRequests.Update(existingRequest);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -113,18 +119,18 @@ public class RescueRequestDAO
         }
     }
 
-    public static async Task<bool> DeleteRescueRequestById(int rescueRequestId)
+    public async Task<bool> DeleteRescueRequestById(int rescueRequestId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var rescueRequest = await db.RescueRequests.FirstOrDefaultAsync(
+            
+            var rescueRequest = await _db.RescueRequests.FirstOrDefaultAsync(
                 x => x.RescueRequestId == rescueRequestId);
 
             if (rescueRequest == null) return false;
 
-            db.RescueRequests.Remove(rescueRequest);
-            await db.SaveChangesAsync();
+            _db.RescueRequests.Remove(rescueRequest);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

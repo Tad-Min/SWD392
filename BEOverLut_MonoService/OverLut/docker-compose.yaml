@@ -1,7 +1,7 @@
 services:
-  db:
+  _db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: overlut-db
+    container_name: overlut-_db
     environment:
       SA_PASSWORD: "12345"
       ACCEPT_EULA: "Y"
@@ -15,16 +15,16 @@ services:
       timeout: 5s
       retries: 12
 
-  db-init:
+  _db-init:
     image: mcr.microsoft.com/mssql-tools
     depends_on:
-      - db
+      - _db
     entrypoint: /bin/bash -c "\
-      until /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -Q 'SELECT 1' 2>/dev/null; do \
+      until /opt/mssql-tools/bin/sqlcmd -S _db -U SA -P $${SA_PASSWORD} -Q 'SELECT 1' 2>/dev/null; do \
         echo 'Waiting for SQL Server...'; sleep 2; \
       done; \
       echo 'Running OverLut.sql...'; \
-      /opt/mssql-tools/bin/sqlcmd -S db -U SA -P $${SA_PASSWORD} -i /scripts/OverLut.sql"
+      /opt/mssql-tools/bin/sqlcmd -S _db -U SA -P $${SA_PASSWORD} -i /scripts/OverLut.sql"
     volumes:
       - ./OverLut.sql:/scripts/OverLut.sql:ro
     environment:
@@ -37,10 +37,10 @@ services:
       dockerfile: WebApi/Dockerfile
     image: overlut-webapi:latest
     depends_on:
-      - db
-      - db-init
+      - _db
+      - _db-init
     environment:
-      ConnectionStrings__DefaultConnection: "Server=db,1723;Database=OverLutDb;User Id=sa;Password=12345;"
+      ConnectionStrings__DefaultConnection: "Server=_db,1723;Database=OverLutDb;User Id=sa;Password=12345;"
       ASPNETCORE_ENVIRONMENT: "Development"
     ports:
       - "5000:8080"

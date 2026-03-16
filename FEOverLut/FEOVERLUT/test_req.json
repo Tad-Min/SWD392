@@ -1,0 +1,17 @@
+[
+  {
+    "rescueRequestsTypeId": 1,
+    "typeName": "Rescue",
+    "isDeleted": false
+  },
+  {
+    "rescueRequestsTypeId": 2,
+    "typeName": "Relief",
+    "isDeleted": false
+  },
+  {
+    "rescueRequestsTypeId": 3,
+    "typeName": "Both",
+    "isDeleted": false
+  }
+]

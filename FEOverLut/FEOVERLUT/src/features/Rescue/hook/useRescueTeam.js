@@ -1,4 +1,4 @@
-import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi } from "../api/rescueTeamApi";
+import { getRescueTeamApi, getRescueTeamByIdApi, createRescueTeamApi, updateRescueTeamApi, getRescueTeamMemberByTeamIdApi, getRescueTeamMemberByUserIdAndTeamIdApi, createRescueTeamMemberApi, getRescueTeamMemberRoleApi, getRescueTeamMemberRoleByIdApi, updateRescueTeamMemberRoleApi, deleteRescueTeamMemberRoleApi, createRescueTeamMemberRoleApi, deleteRescueTeamMemberApi, getRescueTeamByUserIdApi } from "../api/rescueTeamApi";
 import { useState } from "react";
 
 export const useRescueTeam = () => {
@@ -12,6 +12,7 @@ export const useRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -34,6 +35,7 @@ export const useRescueTeamById = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -56,6 +58,7 @@ export const useCreateRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -78,6 +81,7 @@ export const useUpdateRescueTeam = () => {
             return response;
         } catch (error) {
             setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -86,5 +90,236 @@ export const useUpdateRescueTeam = () => {
         loading,
         error,
         updateRescueTeam
+    }
+}
+
+export const useGetRescueTeamMemberByTeamId = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueTeamMemberByTeamId = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getRescueTeamMemberByTeamIdApi(id);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueTeamMemberByTeamId
+    }
+}
+
+export const useGetRescueTeamMemberByUserIdAndTeamId = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueTeamMemberByUserIdAndTeamId = async (userId, teamId) => {
+        try {
+            setLoading(true);
+            const response = await getRescueTeamMemberByUserIdAndTeamIdApi(userId, teamId);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueTeamMemberByUserIdAndTeamId
+    }
+}
+
+export const useCreateRescueTeamMember = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const createRescueTeamMember = async (data) => {
+        try {
+            setLoading(true);
+            const response = await createRescueTeamMemberApi(data);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        createRescueTeamMember
+    }
+}
+
+export const useGetRescueTeamMemberRole = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueTeamMemberRole = async () => {
+        try {
+            setLoading(true);
+            const response = await getRescueTeamMemberRoleApi();
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueTeamMemberRole
+    }
+}
+
+export const useGetRescueTeamMemberRoleById = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueTeamMemberRoleById = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getRescueTeamMemberRoleByIdApi(id);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueTeamMemberRoleById
+    }
+}
+
+export const useUpdateRescueTeamMemberRole = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const updateRescueTeamMemberRole = async (id, data) => {
+        try {
+            setLoading(true);
+            const response = await updateRescueTeamMemberRoleApi(id, data);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        updateRescueTeamMemberRole
+    }
+}
+
+export const useDeleteRescueTeamMemberRole = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const deleteRescueTeamMember = async (id) => {
+        try {
+            setLoading(true);
+            const response = await deleteRescueTeamMemberRoleApi(id);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        deleteRescueTeamMember
+    }
+}
+
+export const useCreateRescueTeamMemberRole = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const createRescueTeamMemberRole = async (data) => {
+        try {
+            setLoading(true);
+            const response = await createRescueTeamMemberRoleApi(data);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        createRescueTeamMemberRole
+    }
+}
+
+
+export const useDeleteRescueTeamMember = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const deleteRescueTeamMember = async (data) => {
+        try {
+            setLoading(true);
+            const response = await deleteRescueTeamMemberApi(data);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        deleteRescueTeamMember
+    }
+}
+
+export const useGetRescueTeamByUserId = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueTeamByUserId = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getRescueTeamByUserIdApi(id);
+            return response;
+        } catch (error) {
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueTeamByUserId
     }
 }

@@ -13,12 +13,11 @@ const toArr = (v) => {
     return [];
 };
 
-// txType map: 1=Nhập, 2=Xuất/Phân phối
+// txType map: 0=Nhập, 1=Xuất, 2=Điều chỉnh
 const TX_TYPE = {
-    1: { label: 'Nhập kho', cls: 'text-emerald-500 bg-emerald-500/10', dot: 'bg-emerald-500' },
-    2: { label: 'Xuất kho', cls: 'text-blue-500 bg-blue-500/10', dot: 'bg-blue-500' },
-    3: { label: 'Phân phối', cls: 'text-purple-500 bg-purple-500/10', dot: 'bg-purple-500' },
-    4: { label: 'Điều chỉnh', cls: 'text-amber-500 bg-amber-500/10', dot: 'bg-amber-400' },
+    0: { label: 'Nhập kho', cls: 'text-emerald-500 bg-emerald-500/10', dot: 'bg-emerald-500' },
+    1: { label: 'Xuất kho', cls: 'text-blue-500 bg-blue-500/10', dot: 'bg-blue-500' },
+    2: { label: 'Điều chỉnh', cls: 'text-amber-500 bg-amber-500/10', dot: 'bg-amber-400' },
 };
 
 const dropdownArrow = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`;
@@ -46,7 +45,7 @@ const DistributionTracking = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [form, setForm] = useState({
-        warehouseId: '', productId: '', txType: '2', quantity: '', missionId: '', note: ''
+        warehouseId: '', productId: '', txType: '1', quantity: '', missionId: '', note: ''
     });
 
     // ── Chi tiết giao dịch ────────────────────────────────────────
@@ -93,9 +92,8 @@ const DistributionTracking = () => {
     const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     // ── KPI counts ────────────────────────────────────────────────
-    const totalIn = transactions.filter(t => t.txType === 1 || t.txtype === 1).length;
-    const totalOut = transactions.filter(t => t.txType === 2 || t.txtype === 2).length;
-    const totalDist = transactions.filter(t => t.txType === 3 || t.txtype === 3).length;
+    const totalIn = transactions.filter(t => t.txType === 0 || t.txtype === 0).length;
+    const totalOut = transactions.filter(t => t.txType === 1 || t.txtype === 1).length;
 
     // ── Submit ────────────────────────────────────────────────────
     const handleSubmit = async () => {
@@ -193,7 +191,7 @@ const DistributionTracking = () => {
                 {[
                     { label: 'Tổng giao dịch', value: transactions.length, color: 'bg-blue-500/10 text-blue-500', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
                     { label: 'Nhập kho', value: totalIn, color: 'bg-emerald-500/10 text-emerald-500', icon: 'M7 16V4m0 0L3 8m4-4l4 4m6 4v8m0 0l4-4m-4 4l-4-4' },
-                    { label: 'Xuất / Phân phối', value: totalOut + totalDist, color: 'bg-purple-500/10 text-purple-500', icon: 'M5 10l7-7m0 0l7 7m-7-7v18' },
+                    { label: 'Xuất / Phân phối', value: totalOut, color: 'bg-purple-500/10 text-purple-500', icon: 'M5 10l7-7m0 0l7 7m-7-7v18' },
                 ].map((s, i) => (
                     <div key={i} className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
@@ -220,10 +218,9 @@ const DistributionTracking = () => {
                 {/* Type */}
                 <select value={filterType} onChange={e => setFilterType(e.target.value)} className={`pl-10 pr-10 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} ${theme.text} text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer transition-all shadow-sm hover:shadow-md`} style={{ backgroundImage: dropdownArrow, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25rem' }}>
                     <option value="">Tất cả loại Giao dịch</option>
-                    <option value="1">Nhập kho</option>
-                    <option value="2">Xuất kho</option>
-                    <option value="3">Phân bổ</option>
-                    <option value="4">Điều chỉnh</option>
+                    <option value="0">Nhập kho</option>
+                    <option value="1">Xuất kho</option>
+                    <option value="2">Điều chỉnh</option>
                 </select>
 
                 {/* Warehouse */}
@@ -338,11 +335,7 @@ const DistributionTracking = () => {
             {/* ── MODAL TẠO GIAO DỊCH ──────────────────────────── */}
             {isModalOpen && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-<<<<<<< Updated upstream
                     <div className={`w-full max-w-[550px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
-=======
-                    <div className={`w-full max-w-[480px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
->>>>>>> Stashed changes
                         <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
                             <h3 className={`text-lg font-bold ${theme.text}`}>Tạo Giao Dịch Mới</h3>
                             <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
@@ -415,11 +408,7 @@ const DistributionTracking = () => {
             {/* ── MODAL CHI TIẾT GIAO DỊCH ───────────────────────── */}
             {isDetailOpen && selectedTx && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-<<<<<<< Updated upstream
-                    <div className={`w-full max-w-[600px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
-=======
                     <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-3xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
->>>>>>> Stashed changes
                         <div className={`px-8 py-6 border-b ${theme.border} flex items-center justify-between`}>
                             <div>
                                 <h3 className={`text-xl font-bold ${theme.text}`}>Chi Tiết Giao Dịch</h3>

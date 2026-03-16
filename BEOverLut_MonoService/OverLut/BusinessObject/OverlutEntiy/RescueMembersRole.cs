@@ -7,7 +7,7 @@ public partial class RescueMembersRole
 {
     public int RescueMembersRoleId { get; set; }
 
-    public string RollName { get; set; } = null!;
+    public string RoleName { get; set; } = null!;
 
     public virtual ICollection<RescueTeamMember> RescueTeamMembers { get; set; } = new List<RescueTeamMember>();
 }

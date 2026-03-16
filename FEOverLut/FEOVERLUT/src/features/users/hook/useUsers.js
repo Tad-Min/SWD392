@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi, createUserApi, getUserByIdApi } from '../api/usersApi';
+import { getUsersApi, updateUserApi, changeUserRoleApi, deleteUserApi, createUserApi, getUserByIdApi, getUserRoleApi, getUserRoleByIdApi, updateUserRoleApi, deleteUserRoleApi, createUserRoleApi } from '../api/usersApi';
 
 export const useUsers = () => {
     const [isLoading, setLoading] = useState(false);
@@ -122,3 +122,132 @@ export const useUserById = () => {
     };
 };
 
+export const useUserRole = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getUserRole = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await getUserRoleApi();
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi tải vai trò người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        getUserRole
+    };
+};
+
+export const useUserRoleById = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getUserRoleById = async (id) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await getUserRoleByIdApi(id);
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi tải vai trò người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        getUserRoleById
+    };
+};
+
+export const useUpdateUserRole = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const updateUserRole = async (id, data) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await updateUserRoleApi(id, data);
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi cập nhật vai trò người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        updateUserRole
+    };
+};
+
+export const useDeleteUserRole = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const deleteUserRole = async (id) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await deleteUserRoleApi(id);
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi xóa vai trò người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        deleteUserRole
+    };
+};
+
+export const useCreateUserRole = () => {
+    const [isLoading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const createUserRole = async (data) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await createUserRoleApi(data);
+            return response;
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message || "Lỗi tạo vai trò người dùng";
+            setError(errorMsg);
+            throw errorMsg;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        isLoading,
+        error,
+        createUserRole
+    };
+};

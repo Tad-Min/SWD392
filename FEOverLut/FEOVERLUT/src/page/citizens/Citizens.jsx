@@ -112,12 +112,9 @@ function Citizens() {
             const payload = {
                 description: sosDescription || 'Yêu cầu cứu hộ khẩn cấp',
                 requestType: sosRequestType,
-                urgencyLevel: urgencyLevel,
+                urgencyLevel: 1, // Mặc định mức độ cao
                 peopleCount: sosPeopleCount,
-<<<<<<< Updated upstream
-=======
-                urgencyLevel: 1,
->>>>>>> Stashed changes
+
                 currentLocation: coords
                     ? {
                         type: 'Point',

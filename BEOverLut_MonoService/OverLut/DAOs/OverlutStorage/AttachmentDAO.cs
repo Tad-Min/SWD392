@@ -1,30 +1,35 @@
 ﻿using BusinessObject.OverlutStorageEntiy;
+using DAOs.Overlut;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAOs.OverlutStorage;
 
 public class AttachmentDAO
 {
-    public static async Task<IEnumerable<Attachment>> GetAllAttachments()
+    private readonly OverlutDbStorageContext _db;
+
+    public AttachmentDAO(OverlutDbStorageContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<Attachment>?> GetAllAttachments()
     {
         try
         {
-            using var db = new OverlutDbStorageContext();
-            return await db.Attachments.ToListAsync();
+            return await _db.Attachments.ToListAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"AttachmentDAO-GetAllAttachments: {ex.Message}");
-            return new List<Attachment>();
+            return null;
         }
     }
 
-    public static async Task<Attachment?> GetAttachmentById(Guid attachmentId)
+    public async Task<Attachment?> GetAttachmentById(Guid attachmentId)
     {
         try
         {
-            using var db = new OverlutDbStorageContext();
-            return await db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachmentId);
+            return await _db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachmentId);
         }
         catch (Exception ex)
         {
@@ -33,16 +38,15 @@ public class AttachmentDAO
         }
     }
 
-    public static async Task<Attachment?> CreateAttachment(Attachment attachment)
+    public async Task<Attachment?> CreateAttachment(Attachment attachment)
     {
         try
         {
             if (attachment == null)
                 throw new ArgumentNullException(nameof(attachment));
 
-            using var db = new OverlutDbStorageContext();
-            await db.Attachments.AddAsync(attachment);
-            await db.SaveChangesAsync();
+            await _db.Attachments.AddAsync(attachment);
+            await _db.SaveChangesAsync();
             return attachment;
         }
         catch (Exception ex)
@@ -52,21 +56,20 @@ public class AttachmentDAO
         }
     }
 
-    public static async Task<bool> UpdateAttachment(Attachment attachment)
+    public async Task<bool> UpdateAttachment(Attachment attachment)
     {
         try
         {
             if (attachment == null)
                 throw new ArgumentNullException(nameof(attachment));
 
-            using var db = new OverlutDbStorageContext();
-            var existingAttachment = await db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachment.AttachmentId);
+            var existingAttachment = await _db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachment.AttachmentId);
             if (existingAttachment == null) return false;
 
             existingAttachment.IsComplete = attachment.IsComplete;
 
-            db.Attachments.Update(existingAttachment);
-            await db.SaveChangesAsync();
+            _db.Attachments.Update(existingAttachment);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -76,16 +79,15 @@ public class AttachmentDAO
         }
     }
 
-    public static async Task<bool> DeleteAttachment(Guid attachmentId)
+    public async Task<bool> DeleteAttachment(Guid attachmentId)
     {
         try
         {
-            using var db = new OverlutDbStorageContext();
-            var attachment = await db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachmentId);
+            var attachment = await _db.Attachments.FirstOrDefaultAsync(x => x.AttachmentId == attachmentId);
             if (attachment == null) return false;
 
-            db.Attachments.Remove(attachment);
-            await db.SaveChangesAsync();
+            _db.Attachments.Remove(attachment);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

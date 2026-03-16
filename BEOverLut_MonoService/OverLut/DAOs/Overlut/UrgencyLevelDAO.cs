@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class UrgencyLevelDAO
 {
-    public static async Task<IEnumerable<UrgencyLevel>?> GetAllUrgencyLevel()
+    private readonly OverlutDbContext _db;
+
+    public UrgencyLevelDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<UrgencyLevel>?> GetAllUrgencyLevel()
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.UrgencyLevels.ToListAsync();
+            
+            return await _db.UrgencyLevels.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -18,12 +24,12 @@ public class UrgencyLevelDAO
         }
     }
 
-    public static async Task<UrgencyLevel?> GetUrgencyLevelById(int urgencyLevelId)
+    public async Task<UrgencyLevel?> GetUrgencyLevelById(int urgencyLevelId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevelId);
+            
+            return await _db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevelId);
         }
         catch (Exception ex)
         {
@@ -32,15 +38,15 @@ public class UrgencyLevelDAO
         }
     }
 
-    public static async Task<UrgencyLevel?> CreateUrgencyLevel(UrgencyLevel urgencyLevel)
+    public async Task<UrgencyLevel?> CreateUrgencyLevel(UrgencyLevel urgencyLevel)
     {
         try
         {
             if (urgencyLevel == null)
                 throw new ArgumentNullException(nameof(urgencyLevel));
-            using var db = new OverlutDbContext();
-            await db.UrgencyLevels.AddAsync(urgencyLevel);
-            await db.SaveChangesAsync();
+            
+            await _db.UrgencyLevels.AddAsync(urgencyLevel);
+            await _db.SaveChangesAsync();
             return urgencyLevel;
         }
         catch (Exception ex)
@@ -50,27 +56,27 @@ public class UrgencyLevelDAO
         }
     }
 
-    public static async Task<bool> UpdateUrgencyLevel(UrgencyLevel urgencyLevel)
+    public async Task<bool> UpdateUrgencyLevel(UrgencyLevel urgencyLevel)
     {
         try
         {
             if (urgencyLevel == null)
                 throw new ArgumentNullException(nameof(urgencyLevel));
-            using var db = new OverlutDbContext();
-            var existingLevel = await db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevel.UrgencyLevelId);
+            
+            var existingLevel = await _db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevel.UrgencyLevelId);
             if (existingLevel == null)
                 throw new Exception("UrgencyLevel not found");
             
             existingLevel.IsDeleted = true;
-            db.UrgencyLevels.Update(existingLevel);
+            _db.UrgencyLevels.Update(existingLevel);
 
             var newLevel = new UrgencyLevel
             {
                 UrgencyName = urgencyLevel.UrgencyName,
                 IsDeleted = false
             };
-            await db.UrgencyLevels.AddAsync(newLevel);
-            await db.SaveChangesAsync();
+            await _db.UrgencyLevels.AddAsync(newLevel);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -80,18 +86,18 @@ public class UrgencyLevelDAO
         }
     }
 
-    public static async Task<bool> DeleteUrgencyLevelById(int urgencyLevelId)
+    public async Task<bool> DeleteUrgencyLevelById(int urgencyLevelId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var urgencyLevel = await db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevelId);
+            
+            var urgencyLevel = await _db.UrgencyLevels.FirstOrDefaultAsync(x => x.UrgencyLevelId == urgencyLevelId);
             if (urgencyLevel == null)
                 throw new Exception("UrgencyLevel not found");
             
             urgencyLevel.IsDeleted = true;
-            db.UrgencyLevels.Update(urgencyLevel);
-            await db.SaveChangesAsync();
+            _db.UrgencyLevels.Update(urgencyLevel);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

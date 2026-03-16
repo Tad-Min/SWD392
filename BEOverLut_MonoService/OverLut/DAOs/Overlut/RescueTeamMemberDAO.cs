@@ -4,12 +4,18 @@ namespace DAOs.Overlut;
 
 public class RescueTeamMemberDAO
 {
-    public static async Task<IEnumerable<RescueTeamMember>?> GetAllRescueTeamMembersWithTeamId(int teamId)
+    private readonly OverlutDbContext _db;
+
+    public RescueTeamMemberDAO(OverlutDbContext db)
+    {
+        _db = db;
+    }
+    public async Task<IEnumerable<RescueTeamMember>?> GetAllRescueTeamMembersWithTeamId(int teamId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            return await db.RescueTeamMembers
+            
+            return await _db.RescueTeamMembers
                 .Where(x => x.TeamId == teamId)
                 .ToListAsync();
         }
@@ -20,15 +26,21 @@ public class RescueTeamMemberDAO
         }
     }
 
-    public static async Task<RescueTeamMember?> AddRescueTeamMember(RescueTeamMember rescueTeamMember)
+    public async Task<RescueTeamMember?> GetRescueTeamMemberByUserIdAndTeamId(int userId, int teamId)
+    {
+        
+        return await _db.RescueTeamMembers
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.TeamId == teamId);
+    }
+    public async Task<RescueTeamMember?> AddRescueTeamMember(RescueTeamMember rescueTeamMember)
     {
         try
         {
             if (rescueTeamMember == null)
                 throw new ArgumentNullException(nameof(rescueTeamMember));
-            using var db = new OverlutDbContext();
-            await db.RescueTeamMembers.AddAsync(rescueTeamMember);
-            await db.SaveChangesAsync();
+            
+            await _db.RescueTeamMembers.AddAsync(rescueTeamMember);
+            await _db.SaveChangesAsync();
             return rescueTeamMember;
         }
         catch (Exception ex)
@@ -38,19 +50,19 @@ public class RescueTeamMemberDAO
         }
     }
 
-    public static async Task<bool> UpdateRescueTeamMember(RescueTeamMember rescueTeamMember)
+    public async Task<bool> UpdateRescueTeamMember(RescueTeamMember rescueTeamMember)
     {
         try
         {
             if (rescueTeamMember == null)
                 throw new ArgumentNullException(nameof(rescueTeamMember));
-            using var db = new OverlutDbContext();
-            var existingMember = await db.RescueTeamMembers.FirstOrDefaultAsync(x => x.UserId == rescueTeamMember.UserId && x.TeamId == rescueTeamMember.TeamId);
+            
+            var existingMember = await _db.RescueTeamMembers.FirstOrDefaultAsync(x => x.UserId == rescueTeamMember.UserId && x.TeamId == rescueTeamMember.TeamId);
             if (existingMember == null)
                 throw new Exception("RescueTeamMember not found");
             existingMember.RoleId = rescueTeamMember.RoleId;
-            db.RescueTeamMembers.Update(existingMember);
-            await db.SaveChangesAsync();
+            _db.RescueTeamMembers.Update(existingMember);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -60,16 +72,16 @@ public class RescueTeamMemberDAO
         }
     }
 
-    public static async Task<bool> DeleteRescueTeamMember(int userId, int teamId)
+    public async Task<bool> DeleteRescueTeamMember(int userId, int teamId)
     {
         try
         {
-            using var db = new OverlutDbContext();
-            var rescueTeamMember = await db.RescueTeamMembers.FirstOrDefaultAsync(x => x.UserId == userId && x.TeamId == teamId);
+            
+            var rescueTeamMember = await _db.RescueTeamMembers.FirstOrDefaultAsync(x => x.UserId == userId && x.TeamId == teamId);
             if (rescueTeamMember == null)
                 throw new Exception("RescueTeamMember not found");
-            db.RescueTeamMembers.Remove(rescueTeamMember);
-            await db.SaveChangesAsync();
+            _db.RescueTeamMembers.Remove(rescueTeamMember);
+            await _db.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

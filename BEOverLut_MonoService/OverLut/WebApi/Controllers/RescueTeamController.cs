@@ -1,4 +1,5 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
+using DTOs;
 using DTOs.Overlut;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,7 @@ namespace WebApi.Controllers
             try
             {
                 var teams = await _rescueTeamService.GetAllRescueTeamsAsync(teamId, teamName, statusId);
+                
                 return Ok(teams);
             }
             catch (Exception ex)
@@ -34,70 +36,69 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue teams", error = ex.Message });
             }
         }
-
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetRescueTeamById(int id)
+        public async Task<IActionResult> GetRescueTeamByTeamId(int id)
         {
             try
             {
-                var teams = await _rescueTeamService.GetAllRescueTeamsAsync(id, null, null);
-                var team = teams?.FirstOrDefault();
-                if (team == null)
+                var team = await _rescueTeamService.GetRescueTeamByTeamId(id);
+                return Ok(MappingHandle.EntityToDTO(team));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team by id", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetRescueTeamByUserId/{id}")]
+        public async Task<IActionResult> GetRescueTeamByUserId(int id)
+        {
+            try
+            {
+                var teams = await _rescueTeamService.GetRescueTeamByUserId(id);
+                if (teams == null)
                     return NotFound(new { message = $"Rescue team with ID {id} not found" });
 
-                return Ok(team);
+                return Ok(teams);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team", error = ex.Message });
             }
         }
-
+        
         [HttpPost]
-        public async Task<IActionResult> CreateRescueTeam([FromBody] CreateRescueTeamModel model)
+        public async Task<IActionResult> CreateRescueTeam(CreateRescueTeamModel model)
         {
             try
             {
-                if (model == null)
-                    return BadRequest(new { message = "Rescue team data is required" });
-
-                if (!ModelState.IsValid)
-                    return BadRequest(new { message = "Invalid data", errors = ModelState });
-
-                var rescueTeam = new RescueTeam
+                var rescueTeam = await _rescueTeamService.CreateRescueTeamAsync(new RescueTeam
                 {
-                    TeamName = model.TeamName,
-                    StatusId = 1,
-                    IsActive = true
-                };
-
-                var createdTeam = await _rescueTeamService.CreateRescueTeamAsync(rescueTeam);
-                if (createdTeam == null)
+                    TeamName = model.TeamName
+                });
+                if (rescueTeam == null)
                     return BadRequest(new { message = "Failed to create rescue team" });
-
-                return CreatedAtAction(nameof(GetRescueTeamById),
-                    new { id = createdTeam.TeamId },
-                    new { message = "Rescue team created successfully", data = createdTeam });
+                return CreatedAtAction(nameof(GetRescueTeamByTeamId), new { id = rescueTeam.TeamId }, MappingHandle.EntityToDTO(rescueTeam));
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = "Error creating rescue team", error = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error create rescue team", error = ex.Message });
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRescueTeam(int id, RescueTeam rescueTeam)
+        public async Task<IActionResult> UpdateRescueTeam(int id, UpdateRescueTeam model)
         {
             try
             {
-                var teams = await _rescueTeamService.GetAllRescueTeamsAsync(id, null, null);
-                var existingTeam = teams?.FirstOrDefault();
+                var existingTeam = await _rescueTeamService.GetRescueTeamByTeamId(id);
                 if (existingTeam == null)
                     return NotFound(new { message = $"Rescue team with ID {id} not found" });
+                if (!string.IsNullOrWhiteSpace(model.TeamName))
+                    existingTeam.TeamName = model.TeamName;
+                existingTeam.StatusId = model.StatusId;
 
-                rescueTeam.TeamId = id;
-                var result = await _rescueTeamService.UpdateRescueTeamAsync(rescueTeam);
+                var result = await _rescueTeamService.UpdateRescueTeamAsync(existingTeam);
                 if (!result)
                     return BadRequest(new { message = "Failed to update rescue team" });
 
@@ -125,5 +126,94 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deleting rescue team", error = ex.Message });
             }
         }
+        [HttpGet("GetRescueTeamMembersByTeamId/{id}")]
+        public async Task<IActionResult> GetRescueTeamMembersByTeamId(int id)
+        {
+            try
+            {
+                var members = await _rescueTeamService.GetAllTeamMemberByTeamIdAsync(id);
+                if (members == null || !members.Any())
+                    return NotFound(new { message = $"No members found for rescue team with ID {id}" });
+                return Ok(members.Select(m => MappingHandle.EntityToDTO(m)));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team members", error = ex.Message });
+            }
+        }
+
+        [HttpGet("GetRescueTeamMembersByUserIdAndTeamId/{userId}_{teamId}")]
+        public async Task<IActionResult> GetRescueTeamMembersByUserIdAndTeamId(int userId, int teamId)
+        {
+            try
+            {
+                var members = await _rescueTeamService.GetRescueTeamMemberByUserIdAndTeamId(userId, teamId);
+                if (members == null)
+                    return NotFound(new { message = $"No members found for user ID {userId} in rescue team ID {teamId}" });
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team members", error = ex.Message });
+            }
+        }
+
+        [HttpPost("RescueTeamMember")]
+        public async Task<IActionResult> AddRescueTeamMember(AddRescueTeamMember model)
+        {
+            try
+            {
+                if (model == null)
+                    return BadRequest(new { message = "Rescue team data is required" });
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new { message = "Invalid data", errors = ModelState });
+
+                var createdTeamMember = await _rescueTeamService.AddTeamMemberAsync(new RescueTeamMember
+                {
+                    UserId = model.UserId,
+                    TeamId = model.TeamId,
+                    RoleId = model.RoleId,
+                });
+                if (createdTeamMember == null)
+                    return BadRequest(new { message = "Failed to create rescue team member" });
+
+                return CreatedAtAction(nameof(GetRescueTeamMembersByUserIdAndTeamId),
+                    new { userId = createdTeamMember.UserId, teamId = createdTeamMember.TeamId },
+                    new { data = createdTeamMember });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Error creating rescue team member", error = ex.Message });
+            }
+        }
+
+
+        [HttpDelete("RescueTeamMember")]
+        public async Task<IActionResult> DeleteRescueTeamMember(DeleteRescueTeamMember model)
+        {
+            try
+            {
+                if (model == null)
+                    return BadRequest(new { message = "model required" });
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new { message = "Invalid data", errors = ModelState });
+
+                var result = await _rescueTeamService.DeleteRescueTeamMember(model.UserId, model.TeamId);
+
+                if (!result)
+                    return BadRequest(new { message = "Failed to delete rescue team member" });
+
+                return Ok("Rescue team member deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Error creating rescue team member", error = ex.Message });
+            }
+        }
+
     }
 }

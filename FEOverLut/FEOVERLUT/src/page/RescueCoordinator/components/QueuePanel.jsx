@@ -21,6 +21,11 @@ function timeAgo(dateStr) {
 }
 
 export default function QueuePanel({ requests = [], userMap = {}, onDispatch }) {
+    // Only show requests that haven't been assigned yet (status 1=New, 2=Verified)
+    const pendingRequests = requests.filter(r => {
+        const status = r.status ?? r.statusId;
+        return !status || status === 1 || status === 2;
+    });
 
     return (
         <div className="absolute bottom-4 left-4 z-10 right-[22rem]">
@@ -32,18 +37,18 @@ export default function QueuePanel({ requests = [], userMap = {}, onDispatch }) 
                         <h3 className="text-sm font-bold text-white">Hàng chờ cứu hộ</h3>
                     </div>
                     <span className="text-xs text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded-full">
-                        {requests.length} yêu cầu
+                        {pendingRequests.length} yêu cầu
                     </span>
                 </div>
 
                 {/* Scrollable row */}
                 <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                    {requests.length === 0 && (
+                    {pendingRequests.length === 0 && (
                         <p className="text-xs text-slate-500 py-3 w-full text-center">
                             Không có yêu cầu nào trong hàng chờ
                         </p>
                     )}
-                    {requests.map((req) => {
+                    {pendingRequests.map((req) => {
                         const urgency = urgencyMeta[req.urgencyLevel] || { label: 'Không rõ', color: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
                         return (
                             <div

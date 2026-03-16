@@ -1,22 +1,20 @@
-﻿using System.Text;
-using System.Text.Json.Nodes;
-using BusinessObject.OverlutEntiy;
+using System.Text;
 using DAOs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
-using Repositories;
-using Repositories.Interface;
+using Repositories.Interface.Overlut;
+using Repositories.Interface.OverlutStorage;
+using Repositories.Overlut;
+using Repositories.OverlutStorage;
 using Scalar.AspNetCore;
 using Services;
 using Services.Interface;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Extensions;
 
 
@@ -26,10 +24,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Cho phép Frontend gọi API
-              .AllowAnyHeader()                     // Cho phép mọi loại header
-              .AllowAnyMethod()                     // Cho phép mọi method (GET, POST, PUT, DELETE, v.v.)
-              .AllowCredentials();                  // Nếu có xài Token/Cookie
+        policy
+            .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Type", "Authorization");
     });
 });
 
@@ -38,12 +38,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<OverlutDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection:overlutdb"),
+        builder.Configuration.GetConnectionString("overlutdb"), // Đã sửa chuẩn
         sqlOptions => sqlOptions.UseNetTopologySuite()
-
     ));
+
 builder.Services.AddDbContext<OverlutDbStorageContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection:overlutstoragedb")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("overlutstoragedb") // Đã sửa chuẩn
+    ));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -70,8 +72,10 @@ builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IWarehouseStockRepository, WarehouseStockRepository>();
 builder.Services.AddScoped<IRescueTeamRepository, RescueTeamRepository>();
 builder.Services.AddScoped<IRescueTeamMemberRepository, RescueTeamMemberRepository>();
-builder.Services.AddScoped<IRescueMembersRollRepository, RescueMembersRollRepository>();
+builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
 builder.Services.AddScoped<IUrgencyLevelRepository, UrgencyLevelRepository>();
+builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Add service scope.
 
@@ -91,12 +95,17 @@ builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionSer
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUrgencyLevelService, UrgencyLevelService>();
 builder.Services.AddScoped<IVehicleAssignmentRepository, VehicleAssignmentRepository>();
+builder.Services.AddScoped<IRolesService, RolesService>();
 // Add Status Repositories
 builder.Services.AddScoped<IRescueMissionsStatusRepository, RescueMissionsStatusRepository>();
 builder.Services.AddScoped<IRescueRequestsStatusRepository, RescueRequestsStatusRepository>();
 builder.Services.AddScoped<IRescueTeamsStatusRepository, RescueTeamsStatusRepository>();
 builder.Services.AddScoped<IVehiclesStatusRepository, VehiclesStatusRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+builder.Services.AddScoped<IAttachmentMissionRepository, AttachmentMissionRepository>();
+builder.Services.AddScoped<IAttachmentRescueRepository, AttachmentRescueRepository>();
+builder.Services.AddScoped<IFileChunkRepository, FileChunkRepository>();
+builder.Services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 // Add Types Service and Repositories
 builder.Services.AddScoped<ITypesService, TypesService>();
 builder.Services.AddScoped<IRescueRequestsTypeRepository, RescueRequestsTypeRepository>();
@@ -162,8 +171,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var app = builder.Build();
 
+var app = builder.Build();
+Console.WriteLine("===================================================");
+Console.WriteLine("=== KIỂM TRA CONNECTION STRING ĐANG CHẠY ===");
+Console.WriteLine("Environment: " + app.Environment.EnvironmentName);
+
+// In ra thử cả 2 cách gọi key xem cái nào đang có dữ liệu
+var db1 = app.Configuration.GetConnectionString("DefaultConnection:overlutdb");
+var db2 = app.Configuration.GetConnectionString("overlutdb");
+Console.WriteLine("Chuỗi kết nối (DefaultConnection:overlutdb): " + (string.IsNullOrEmpty(db1) ? "RỖNG/NULL" : db1));
+Console.WriteLine("Chuỗi kết nối (overlutdb): " + (string.IsNullOrEmpty(db2) ? "RỖNG/NULL" : db2));
+Console.WriteLine("===================================================");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -178,6 +197,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
+// CORS middleware must come BEFORE Authentication and Authorization
 app.UseCors("AllowReactApp");
 
 //app.UseHttpsRedirection();
@@ -189,6 +209,20 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Handle OPTIONS requests explicitly
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 200;
+        await context.Response.CompleteAsync();
+    }
+    else
+    {
+        await next();
+    }
+});
 
 // WebSocket endpoint for browser clients
 var wsConnections = new System.Collections.Concurrent.ConcurrentDictionary<string, System.Net.WebSockets.WebSocket>();

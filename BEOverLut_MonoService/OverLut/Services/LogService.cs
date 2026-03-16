@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessObject.OverlutEntiy;
-using Repositories.Interface;
+using Repositories.Interface.Overlut;
 using Services.Interface;
 
 namespace Services
