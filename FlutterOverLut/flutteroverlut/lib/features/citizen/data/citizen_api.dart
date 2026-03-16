@@ -1,79 +1,67 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_constants.dart';
+import '../domain/citizen_models.dart';
 
-/// API service for citizen rescue requests.
+/// Riverpod provider for CitizenApi.
+final citizenApiProvider = Provider<CitizenApi>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return CitizenApi(client);
+});
+
+/// Citizen API service — matches backend RescueRequest & User endpoints.
 class CitizenApi {
   final ApiClient _client;
 
   CitizenApi(this._client);
 
-  /// GET RescueRequest/GetAll
-  Future<List<dynamic>> getRescueRequests() async {
-    final response = await _client.dio.get(ApiEndpoints.rescueRequests);
-    final data = response.data;
-    if (data is Map && data.containsKey('data')) {
-      return (data['data'] as List?) ?? [];
-    }
-    if (data is List) return data;
-    return [];
+  /// POST RescueRequest/Add
+  Future<void> createRescueRequest(Map<String, dynamic> data) async {
+    await _client.dio.post(ApiEndpoints.rescueRequestAdd, data: data);
+  }
+
+  /// GET RescueRequest/GetAll — returns list directly (no wrapper).
+  Future<List<RescueRequestModel>> getRescueRequests({
+    int? userReqId,
+    int? status,
+    int? urgencyLevel,
+  }) async {
+    // GetAll uses request body for filtering
+    final filterBody = <String, dynamic>{};
+    if (userReqId != null) filterBody['userReqId'] = userReqId;
+    if (status != null) filterBody['status'] = status;
+    if (urgencyLevel != null) filterBody['urgencyLevel'] = urgencyLevel;
+
+    final response = await _client.dio.get(
+      ApiEndpoints.rescueRequests,
+      data: filterBody.isEmpty ? null : filterBody,
+    );
+
+    final list = response.data as List<dynamic>? ?? [];
+    return list
+        .map((e) => RescueRequestModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// GET RescueRequest/GetById/{id}
-  Future<Map<String, dynamic>> getRescueRequestById(int id) async {
+  Future<RescueRequestModel> getRescueRequestById(int id) async {
     final response = await _client.dio.get(
       '${ApiEndpoints.rescueRequestById}/$id',
     );
-    final data = response.data;
-    if (data is Map && data.containsKey('data')) {
-      return data['data'] as Map<String, dynamic>;
-    }
-    return data as Map<String, dynamic>;
+    return RescueRequestModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// POST RescueRequest/Add
-  Future<Map<String, dynamic>> createRescueRequest(
-    Map<String, dynamic> body,
-  ) async {
-    final response = await _client.dio.post(
-      ApiEndpoints.rescueRequestAdd,
-      data: body,
+  /// PUT RescueRequest/Update/{id}
+  Future<void> updateRescueRequest(int id, Map<String, dynamic> data) async {
+    await _client.dio.put(
+      '${ApiEndpoints.rescueRequestUpdate}/$id',
+      data: data,
     );
-    return response.data as Map<String, dynamic>;
   }
 
-  /// PUT RescueRequest/Update
-  Future<Map<String, dynamic>> updateRescueRequest(
-    Map<String, dynamic> body,
-  ) async {
-    final response = await _client.dio.put(
-      ApiEndpoints.rescueRequestUpdate,
-      data: body,
-    );
-    return response.data as Map<String, dynamic>;
-  }
-
-  /// GET User (current user profile)
-  Future<Map<String, dynamic>> getUserProfile(String userId) async {
-    final response = await _client.dio.get(
-      ApiEndpoints.users,
-      queryParameters: {'userId': userId},
-    );
-    final data = response.data;
-    if (data is Map && data.containsKey('data')) {
-      final list = data['data'] as List?;
-      if (list != null && list.isNotEmpty)
-        return list.first as Map<String, dynamic>;
-    }
-    if (data is List && data.isNotEmpty)
-      return data.first as Map<String, dynamic>;
-    return data as Map<String, dynamic>;
-  }
-
-  /// PUT User (update profile)
-  Future<Map<String, dynamic>> updateUserProfile(
-    Map<String, dynamic> body,
-  ) async {
-    final response = await _client.dio.put(ApiEndpoints.users, data: body);
-    return response.data as Map<String, dynamic>;
+  /// GET User/GetById/{id}
+  Future<UserProfileModel> getUserProfile(int userId) async {
+    final response = await _client.dio.get('${ApiEndpoints.userById}/$userId');
+    return UserProfileModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

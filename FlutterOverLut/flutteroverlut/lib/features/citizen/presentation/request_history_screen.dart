@@ -12,7 +12,7 @@ class RequestHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final requests = ref.watch(rescueRequestsProvider);
+    final requestsAsync = ref.watch(rescueRequestsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -23,14 +23,40 @@ class RequestHistoryScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: requests.isEmpty
-          ? _buildEmptyState(isDark)
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: requests.length,
-              itemBuilder: (context, index) =>
-                  _RequestCard(request: requests[index]),
+      body: RefreshIndicator(
+        onRefresh: () => ref.refresh(rescueRequestsProvider.future),
+        child: requestsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.red.withValues(alpha: 0.7),
+                ),
+                const SizedBox(height: 12),
+                const Text('Không thể tải dữ liệu'),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => ref.invalidate(rescueRequestsProvider),
+                  child: const Text('Thử lại'),
+                ),
+              ],
             ),
+          ),
+          data: (requests) => requests.isEmpty
+              ? _buildEmptyState(isDark)
+              : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: requests.length,
+                  itemBuilder: (context, index) =>
+                      _RequestCard(request: requests[index]),
+                ),
+        ),
+      ),
     );
   }
 
@@ -186,7 +212,7 @@ class _RequestCard extends StatelessWidget {
               children: [
                 _DetailChip(
                   icon: Icons.location_on_outlined,
-                  text: request.location ?? 'N/A',
+                  text: request.locationText ?? 'N/A',
                 ),
                 const SizedBox(width: 12),
                 _DetailChip(
@@ -195,13 +221,6 @@ class _RequestCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (request.contactPhone != null) ...[
-              const SizedBox(height: 6),
-              _DetailChip(
-                icon: Icons.phone_outlined,
-                text: request.contactPhone!,
-              ),
-            ],
           ],
         ),
       ),

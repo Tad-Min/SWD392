@@ -200,7 +200,7 @@ app.UseSwaggerUI(c =>
 // CORS middleware must come BEFORE Authentication and Authorization
 app.UseCors("AllowReactApp");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseWebSockets();
 

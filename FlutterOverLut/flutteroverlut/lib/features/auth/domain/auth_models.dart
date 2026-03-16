@@ -2,29 +2,33 @@ import '../../../core/constants/app_constants.dart';
 
 /// User model representing authenticated user data from login response.
 class UserModel {
-  final String userId;
+  final int userId;
   final int roleId;
-  final String userName;
+  final String fullName;
   final String token;
   final String refreshToken;
 
   const UserModel({
     required this.userId,
     required this.roleId,
-    required this.userName,
+    required this.fullName,
     required this.token,
     required this.refreshToken,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userId: json['userId']?.toString() ?? '',
+      userId: json['userId'] as int? ?? 0,
       roleId: json['roleId'] as int? ?? 1,
-      userName: json['userName'] as String? ?? '',
+      fullName:
+          json['fullName'] as String? ?? json['userName'] as String? ?? '',
       token: json['token'] as String? ?? '',
       refreshToken: json['refreshToken'] as String? ?? '',
     );
   }
+
+  /// Convenience getter used by UI (backward compat with old `userName` refs).
+  String get userName => fullName;
 
   AppRole get role => AppRole.fromId(roleId);
 
@@ -32,7 +36,7 @@ class UserModel {
     return {
       'userId': userId,
       'roleId': roleId,
-      'userName': userName,
+      'fullName': fullName,
       'token': token,
       'refreshToken': refreshToken,
     };

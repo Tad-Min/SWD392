@@ -20,9 +20,9 @@ class AuthRepository {
       final user = UserModel.fromJson(data);
 
       await _storage.saveAuthData(
-        userId: user.userId,
+        userId: user.userId.toString(),
         roleId: user.roleId,
-        userName: user.userName,
+        userName: user.fullName,
         token: user.token,
         refreshToken: user.refreshToken,
       );
@@ -57,7 +57,14 @@ class AuthRepository {
   /// Logout and clear local storage.
   Future<void> logout() async {
     try {
-      await _api.logout();
+      final userIdStr = await _storage.getUserId();
+      final refreshToken = await _storage.getRefreshToken();
+      if (userIdStr != null && refreshToken != null) {
+        await _api.logout(
+          userId: int.tryParse(userIdStr) ?? 0,
+          refreshToken: refreshToken,
+        );
+      }
     } catch (_) {
       // Ignore server errors on logout — still clear locally
     }
@@ -78,9 +85,9 @@ class AuthRepository {
     if (userId == null || roleId == null || token == null) return null;
 
     return UserModel(
-      userId: userId,
+      userId: int.tryParse(userId) ?? 0,
       roleId: roleId,
-      userName: userName ?? '',
+      fullName: userName ?? '',
       token: token,
       refreshToken: refreshToken ?? '',
     );

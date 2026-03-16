@@ -11,12 +11,8 @@ class VehicleStatusScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicles = ref.watch(vehiclesProvider);
+    final vehiclesAsync = ref.watch(vehiclesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final available = vehicles.where((v) => v.status == 0).length;
-    final inUse = vehicles.where((v) => v.status == 1).length;
-    final maintenance = vehicles.where((v) => v.status == 2).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -26,59 +22,94 @@ class VehicleStatusScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Column(
-        children: [
-          // ── Stats bar ──
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: (isDark ? AppColors.darkBorder : AppColors.lightBorder)
-                    .withValues(alpha: 0.5),
-              ),
-            ),
-            child: Row(
+      body: RefreshIndicator(
+        onRefresh: () => ref.refresh(vehiclesProvider.future),
+        child: vehiclesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _MiniStat(
-                  value: '${vehicles.length}',
-                  label: 'Tổng',
-                  color: AppColors.blue,
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.red.withValues(alpha: 0.7),
                 ),
-                _divider(isDark),
-                _MiniStat(
-                  value: '$available',
-                  label: 'Sẵn sàng',
-                  color: AppColors.emerald,
-                ),
-                _divider(isDark),
-                _MiniStat(
-                  value: '$inUse',
-                  label: 'Đang dùng',
-                  color: AppColors.amber,
-                ),
-                _divider(isDark),
-                _MiniStat(
-                  value: '$maintenance',
-                  label: 'Bảo trì',
-                  color: AppColors.red,
+                const SizedBox(height: 12),
+                const Text('Không thể tải dữ liệu'),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => ref.invalidate(vehiclesProvider),
+                  child: const Text('Thử lại'),
                 ),
               ],
             ),
           ),
+          data: (vehicles) {
+            final available = vehicles.where((v) => v.status == 0).length;
+            final inUse = vehicles.where((v) => v.status == 1).length;
+            final maintenance = vehicles.where((v) => v.status == 2).length;
 
-          // ── Vehicle List ──
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: vehicles.length,
-              itemBuilder: (context, index) =>
-                  _VehicleCard(vehicle: vehicles[index]),
-            ),
-          ),
-        ],
+            return Column(
+              children: [
+                // ── Stats bar ──
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          (isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder)
+                              .withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      _MiniStat(
+                        value: '${vehicles.length}',
+                        label: 'Tổng',
+                        color: AppColors.blue,
+                      ),
+                      _divider(isDark),
+                      _MiniStat(
+                        value: '$available',
+                        label: 'Sẵn sàng',
+                        color: AppColors.emerald,
+                      ),
+                      _divider(isDark),
+                      _MiniStat(
+                        value: '$inUse',
+                        label: 'Đang dùng',
+                        color: AppColors.amber,
+                      ),
+                      _divider(isDark),
+                      _MiniStat(
+                        value: '$maintenance',
+                        label: 'Bảo trì',
+                        color: AppColors.red,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Vehicle List ──
+                Expanded(
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: vehicles.length,
+                    itemBuilder: (context, index) =>
+                        _VehicleCard(vehicle: vehicles[index]),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -153,13 +184,13 @@ class _VehicleCard extends StatelessWidget {
   }
 
   IconData _typeIcon() {
-    switch (vehicle.vehicleType?.toLowerCase()) {
-      case 'canô':
+    switch (vehicle.vehicleType) {
+      case 1:
         return Icons.directions_boat_rounded;
-      case 'xuồng':
-        return Icons.kayaking_rounded;
-      case 'xe tải':
+      case 2:
         return Icons.local_shipping_rounded;
+      case 3:
+        return Icons.kayaking_rounded;
       default:
         return Icons.directions_boat_outlined;
     }
@@ -200,7 +231,7 @@ class _VehicleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle.vehicleName ?? 'Phương tiện',
+                  vehicle.vehicleCode ?? 'Phương tiện',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -210,7 +241,7 @@ class _VehicleCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      vehicle.licensePlate ?? '',
+                      vehicle.vehicleTypeName,
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark

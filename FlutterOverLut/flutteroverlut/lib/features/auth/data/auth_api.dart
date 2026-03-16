@@ -1,13 +1,13 @@
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_constants.dart';
 
-/// Auth API service — maps directly from web's authApi.js
+/// Auth API service — maps to .NET backend endpoints.
 class AuthApi {
   final ApiClient _client;
 
   AuthApi(this._client);
 
-  /// POST Auth/Login
+  /// POST Auth/login
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -40,14 +40,32 @@ class AuthApi {
     return response.data as Map<String, dynamic>;
   }
 
-  /// POST Auth/Logout
-  Future<void> logout() async {
-    await _client.dio.post(ApiEndpoints.logout);
+  /// POST Auth/Logout — requires userId + refreshToken in body.
+  Future<void> logout({
+    required int userId,
+    required String refreshToken,
+  }) async {
+    await _client.dio.post(
+      ApiEndpoints.logout,
+      data: {
+        'userId': userId,
+        'refeshToken': refreshToken, // API typo: refeshToken
+      },
+    );
   }
 
-  /// POST Auth/RefreshToken
-  Future<Map<String, dynamic>> refreshToken() async {
-    final response = await _client.dio.post(ApiEndpoints.refreshToken);
+  /// POST Auth/GetAccessToken
+  Future<Map<String, dynamic>> refreshToken({
+    required int userId,
+    required String refreshToken,
+  }) async {
+    final response = await _client.dio.post(
+      ApiEndpoints.refreshToken,
+      data: {
+        'userId': userId,
+        'refeshToken': refreshToken, // API typo: refeshToken
+      },
+    );
     return response.data as Map<String, dynamic>;
   }
 }

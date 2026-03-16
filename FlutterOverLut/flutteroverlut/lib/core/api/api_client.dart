@@ -6,8 +6,10 @@ import '../storage/secure_storage_service.dart';
 class ApiConfig {
   ApiConfig._();
 
-  // TODO: Replace with your actual backend URL
-  static const String baseUrl = 'https://your-api-url.com/api/';
+  static String get baseUrl {
+    // Hardcode 10.0.2.2 for Android Emulator temporary to ensure it works
+    return 'http://10.0.2.2:5015/api/';
+  }
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
@@ -77,25 +79,40 @@ class ApiClient {
   /// Try to refresh the access token.
   Future<bool> _tryRefreshToken() async {
     final refreshToken = await _storage.getRefreshToken();
-    if (refreshToken == null) return false;
+    final userId = await _storage.getUserId();
+    if (refreshToken == null || userId == null) return false;
 
     try {
       // Use a separate Dio instance to avoid interceptor loops
-      final refreshDio = Dio(BaseOptions(baseUrl: ApiConfig.baseUrl));
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: ApiConfig.baseUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
       final response = await refreshDio.post(
-        'Auth/RefreshToken',
-        data: {'refreshToken': refreshToken},
+        'Auth/GetAccessToken',
+        data: {
+          'userId': int.tryParse(userId) ?? 0,
+          'refeshToken': refreshToken, // API typo: refeshToken
+        },
       );
 
-      final newToken = response.data['token'] as String?;
-      final newRefreshToken = response.data['refreshToken'] as String?;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final newToken = data['token'] as String?;
+        final newRefreshToken = data['refreshToken'] as String?;
 
-      if (newToken != null) {
-        await _storage.saveToken(newToken);
-        if (newRefreshToken != null) {
-          await _storage.saveRefreshToken(newRefreshToken);
+        if (newToken != null) {
+          await _storage.saveToken(newToken);
+          if (newRefreshToken != null) {
+            await _storage.saveRefreshToken(newRefreshToken);
+          }
+          return true;
         }
-        return true;
       }
     } catch (_) {
       // Refresh failed

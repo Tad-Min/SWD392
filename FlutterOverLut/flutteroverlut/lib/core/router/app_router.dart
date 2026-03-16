@@ -13,6 +13,7 @@ import '../../features/citizen/presentation/profile_screen.dart';
 import '../../features/rescue_team/presentation/rescue_team_home_screen.dart';
 import '../../features/rescue_team/presentation/mission_detail_screen.dart';
 import '../../features/rescue_team/presentation/vehicle_status_screen.dart';
+import '../../features/rescue_team/presentation/rescue_team_profile_screen.dart';
 
 /// A Listenable that notifies GoRouter when auth state changes.
 class AuthNotifierListenable extends ChangeNotifier {
@@ -37,6 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.isAuthenticated;
 
       final isAuthRoute =
+          state.matchedLocation == '/' ||
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
           state.matchedLocation == '/splash';
@@ -52,6 +54,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/',
+        redirect: (context, state) => '/login',
+      ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
@@ -93,6 +99,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/rescue-team/vehicles',
         builder: (context, state) => const VehicleStatusScreen(),
+      ),
+      GoRoute(
+        path: '/rescue-team/profile',
+        builder: (context, state) => const RescueTeamProfileScreen(),
       ),
     ],
   );

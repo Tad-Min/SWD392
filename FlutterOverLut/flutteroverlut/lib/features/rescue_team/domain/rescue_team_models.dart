@@ -1,99 +1,114 @@
-import '../../../core/constants/app_constants.dart';
+/// Models for rescue team features, matching the backend API schemas.
 
-/// Model for a rescue mission.
 class RescueMissionModel {
-  final int? id;
-  final String? missionName;
-  final String? description;
-  final String? location;
-  final int? status;
+  final int? missionId;
+  final int? rescueRequestId;
+  final int? coordinatorUserId;
   final int? teamId;
-  final String? teamName;
-  final int? requestId;
-  final int? numberOfPeople;
-  final String? startTime;
-  final String? endTime;
-  final String? createdAt;
-  final List<VehicleModel> vehicles;
+  final int? statusId;
+  final String? assignedAt;
+  final String? description;
 
   const RescueMissionModel({
-    this.id,
-    this.missionName,
-    this.description,
-    this.location,
-    this.status,
+    this.missionId,
+    this.rescueRequestId,
+    this.coordinatorUserId,
     this.teamId,
-    this.teamName,
-    this.requestId,
-    this.numberOfPeople,
-    this.startTime,
-    this.endTime,
-    this.createdAt,
-    this.vehicles = const [],
+    this.statusId,
+    this.assignedAt,
+    this.description,
   });
 
   factory RescueMissionModel.fromJson(Map<String, dynamic> json) {
     return RescueMissionModel(
-      id: json['rescueMissionId'] ?? json['id'],
-      missionName: json['missionName'] as String?,
-      description: json['description'] as String?,
-      location: json['location'] as String?,
-      status: json['status'] as int?,
+      missionId: json['missionId'] as int?,
+      rescueRequestId: json['rescueRequestId'] as int?,
+      coordinatorUserId: json['coordinatorUserId'] as int?,
       teamId: json['teamId'] as int?,
-      teamName: json['teamName'] as String?,
-      requestId: json['requestId'] as int?,
-      numberOfPeople: json['numberOfPeople'] as int?,
-      startTime: json['startTime'] as String?,
-      endTime: json['endTime'] as String?,
-      createdAt: json['createdAt'] as String?,
+      statusId: json['statusId'] as int?,
+      assignedAt: json['assignedAt'] as String?,
+      description: json['description'] as String?,
     );
   }
 
-  MissionStatus get missionStatus => MissionStatus.fromId(status ?? 0);
-  String get statusLabel => missionStatus.label;
+  /// Legacy getters for backward compat.
+  int? get id => missionId;
+  int? get status => statusId;
+  String? get missionName => description != null && description!.length > 40
+      ? '${description!.substring(0, 40)}...'
+      : description;
 
-  String get formattedDate {
-    if (createdAt == null) return '';
-    try {
-      final date = DateTime.parse(createdAt!);
-      return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return createdAt ?? '';
+  /// Human-readable status label.
+  String get statusLabel {
+    switch (statusId) {
+      case 0:
+        return 'Chờ phân công';
+      case 1:
+        return 'Đang thực hiện';
+      case 2:
+        return 'Hoàn thành';
+      case 3:
+        return 'Đã hủy';
+      default:
+        return 'Không rõ';
     }
+  }
+
+  /// Formatted date.
+  String get formattedDate {
+    if (assignedAt == null) return '';
+    final dt = DateTime.tryParse(assignedAt!);
+    if (dt == null) return '';
+    return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Time ago string.
+  String get timeAgo {
+    if (assignedAt == null) return '';
+    final dt = DateTime.tryParse(assignedAt!);
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays} ngày trước';
+    if (diff.inHours > 0) return '${diff.inHours} giờ trước';
+    if (diff.inMinutes > 0) return '${diff.inMinutes} phút trước';
+    return 'Vừa xong';
   }
 }
 
-/// Model for a vehicle.
 class VehicleModel {
-  final int? id;
-  final String? vehicleName;
-  final String? vehicleType;
-  final String? licensePlate;
+  final int? vehicleId;
+  final String? vehicleCode;
+  final int? vehicleType;
   final int? capacity;
-  final int? status;
+  final int? statusId;
 
   const VehicleModel({
-    this.id,
-    this.vehicleName,
+    this.vehicleId,
+    this.vehicleCode,
     this.vehicleType,
-    this.licensePlate,
     this.capacity,
-    this.status,
+    this.statusId,
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
-      id: json['vehicleId'] ?? json['id'],
-      vehicleName: json['vehicleName'] as String?,
-      vehicleType: json['vehicleType'] as String?,
-      licensePlate: json['licensePlate'] as String?,
+      vehicleId: json['vehicleId'] as int?,
+      vehicleCode: json['vehicleCode'] as String?,
+      vehicleType: json['vehicleType'] as int?,
       capacity: json['capacity'] as int?,
-      status: json['status'] as int?,
+      statusId: json['statusId'] as int?,
     );
   }
 
+  /// Legacy getters for backward compat with UI.
+  int? get id => vehicleId;
+  String? get vehicleName => vehicleCode;
+  String? get licensePlate => vehicleCode;
+  int? get status => statusId;
+
+  /// Human-readable status label.
   String get statusLabel {
-    switch (status) {
+    switch (statusId) {
       case 0:
         return 'Sẵn sàng';
       case 1:
@@ -104,4 +119,97 @@ class VehicleModel {
         return 'Không rõ';
     }
   }
+
+  /// Vehicle type display name.
+  String get vehicleTypeName {
+    switch (vehicleType) {
+      case 1:
+        return 'Canô';
+      case 2:
+        return 'Xe tải';
+      case 3:
+        return 'Xuồng';
+      default:
+        return 'Phương tiện #$vehicleType';
+    }
+  }
 }
+
+/// A single member inside a rescue team.
+class TeamMemberModel {
+  final int? userId;
+  final int? teamId;
+  final int? roleId;
+  final String? fullName;
+  final String? email;
+  final String? phone;
+
+  const TeamMemberModel({
+    this.userId,
+    this.teamId,
+    this.roleId,
+    this.fullName,
+    this.email,
+    this.phone,
+  });
+
+  factory TeamMemberModel.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] as Map<String, dynamic>?;
+    return TeamMemberModel(
+      userId: json['userId'] as int?,
+      teamId: json['teamId'] as int?,
+      roleId: json['roleId'] as int? ?? user?['roleId'] as int?,
+      fullName: user?['fullName'] as String?,
+      email: user?['email'] as String?,
+      phone: user?['phone'] as String?,
+    );
+  }
+
+  String get memberRoleName {
+    switch (roleId) {
+      case 1:
+        return 'Đội trưởng';
+      case 2:
+        return 'Đội viên';
+      case 3:
+        return 'Hỗ trợ';
+      default:
+        return 'Thành viên';
+    }
+  }
+}
+
+/// A rescue team with members list.
+class RescueTeamModel {
+  final int? teamId;
+  final String? teamName;
+  final int? statusId;
+  final bool? isActive;
+  final String? createdAt;
+  final List<TeamMemberModel> members;
+
+  const RescueTeamModel({
+    this.teamId,
+    this.teamName,
+    this.statusId,
+    this.isActive,
+    this.createdAt,
+    this.members = const [],
+  });
+
+  factory RescueTeamModel.fromJson(Map<String, dynamic> json) {
+    final rawMembers =
+        json['rescueTeamMembers'] as List<dynamic>? ?? [];
+    return RescueTeamModel(
+      teamId: json['teamId'] as int?,
+      teamName: json['teamName'] as String?,
+      statusId: json['statusId'] as int?,
+      isActive: json['isActive'] as bool?,
+      createdAt: json['createdAt'] as String?,
+      members: rawMembers
+          .map((e) => TeamMemberModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
