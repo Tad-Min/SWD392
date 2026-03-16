@@ -203,7 +203,7 @@ const RoutingMachine = ({ userLocation, rescueLocation }) => {
     return null;
 };
 
-const MissionMap = ({ requestData, isNavigating, setIsNavigating }) => {
+const MissionMap = ({ requestData, isNavigating, setIsNavigating, onUserLocationChange }) => {
     const [userLocation, setUserLocation] = useState(null);
 
     // Default center (e.g. general area if no coordinates available)
@@ -224,7 +224,9 @@ const MissionMap = ({ requestData, isNavigating, setIsNavigating }) => {
             if ("geolocation" in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (position) => {
-                        setUserLocation([position.coords.latitude, position.coords.longitude]);
+                        const loc = [position.coords.latitude, position.coords.longitude];
+                        setUserLocation(loc);
+                        onUserLocationChange?.(loc);
                     },
                     (error) => {
                         console.error('Error matching location:', error);

@@ -7,7 +7,7 @@ const TeamInfo = ({ teamIdLabel, members = [], loading = false, theme }) => {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <div className="text-red-500 font-bold text-xs tracking-wider mb-1 uppercase">
-                        {teamIdLabel || 'Mã đội: RT-ALPHA-01'}
+                        {teamIdLabel || 'Mã đội: '}
                     </div>
                     <h1 className={`text-3xl font-extrabold ${theme?.textTitle || 'text-white'} tracking-tight`}>Thông tin đội</h1>
                 </div>

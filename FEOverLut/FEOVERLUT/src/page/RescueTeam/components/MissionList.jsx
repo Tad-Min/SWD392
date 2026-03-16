@@ -59,7 +59,7 @@ const MissionList = ({ onSelectMission, teamIdLabel, theme, missions, loading })
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <div className="text-red-500 font-bold text-xs tracking-wider mb-1 uppercase">
-                        {teamIdLabel || 'Mã đội: RT-ALPHA-01'}
+                        {teamIdLabel || 'Mã đội: '}
                     </div>
                     <h1 className={`text-3xl font-extrabold ${theme?.textTitle || 'text-white'} tracking-tight`}>Nhiệm Vụ Cứu Hộ Của Tôi</h1>
                 </div>
