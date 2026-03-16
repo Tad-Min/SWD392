@@ -134,7 +134,7 @@ services:
   # 3. Cổng trung gian API AI (Thư mục AIGateway chứa file main.py, requirements.txt)
   ai-gateway:
     build: 
-      context: ./AIGateway # Thư mục chứa code Python
+      context: ./llama3-3b/AIGateway
       dockerfile: Dockerfile
     container_name: overlut-ai-gateway
     depends_on:
