@@ -14,10 +14,13 @@ class RescueTeamHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final missions = ref.watch(missionsProvider);
-    final vehicles = ref.watch(vehiclesProvider);
+    final missionsAsync = ref.watch(missionsProvider);
+    final vehiclesAsync = ref.watch(vehiclesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Extract data for stats (empty lists if loading/error)
+    final missions = missionsAsync.valueOrNull ?? [];
+    final vehicles = vehiclesAsync.valueOrNull ?? [];
     final activeMissions = missions
         .where((m) => m.status == 0 || m.status == 1)
         .toList();
@@ -26,209 +29,268 @@ class RescueTeamHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.emerald, AppColors.cyan],
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        (authState.user?.userName ?? 'R')
-                            .substring(0, 1)
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await Future.wait([
+              ref.refresh(missionsProvider.future),
+              ref.refresh(vehiclesProvider.future),
+            ]);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [AppColors.emerald, AppColors.cyan],
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Xin chào 💪',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark
-                                ? AppColors.darkTextMuted
-                                : AppColors.lightTextMuted,
-                          ),
-                        ),
-                        Text(
-                          authState.user?.userName ?? 'Đội viên',
+                      child: Center(
+                        child: Text(
+                          (authState.user?.userName ?? 'R')
+                              .substring(0, 1)
+                              .toUpperCase(),
                           style: const TextStyle(
-                            fontSize: 20,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 20,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.emerald.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.circle, size: 8, color: AppColors.emerald),
-                        SizedBox(width: 6),
-                        Text(
-                          'Trực chiến',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.emerald,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // ── Stats ──
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      value: '${activeMissions.length}',
-                      label: 'Nhiệm vụ\nđang làm',
-                      icon: Icons.assignment_outlined,
-                      color: AppColors.amber,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatCard(
-                      value: '$completedCount',
-                      label: 'Hoàn\nthành',
-                      icon: Icons.check_circle_outline,
-                      color: AppColors.emerald,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatCard(
-                      value: '$availableVehicles',
-                      label: 'Phương tiện\nsẵn sàng',
-                      icon: Icons.directions_boat_outlined,
-                      color: AppColors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatCard(
-                      value:
-                          '${missions.fold<int>(0, (sum, m) => sum + (m.numberOfPeople ?? 0))}',
-                      label: 'Người\nđã cứu',
-                      icon: Icons.people_outline,
-                      color: AppColors.fuchsia,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // ── Active Missions ──
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Nhiệm vụ hiện tại',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/rescue-team/vehicles'),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.directions_boat_outlined,
-                          size: 16,
-                          color: AppColors.cyan,
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Phương tiện',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.cyan,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              if (activeMissions.isEmpty)
-                AppCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
+                    const SizedBox(width: 14),
+                    Expanded(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.assignment_outlined,
-                            size: 40,
-                            color: isDark
-                                ? AppColors.darkTextMuted
-                                : AppColors.lightTextMuted,
-                          ),
-                          const SizedBox(height: 8),
                           Text(
-                            'Không có nhiệm vụ nào',
+                            'Xin chào 💪',
                             style: TextStyle(
+                              fontSize: 13,
                               color: isDark
                                   ? AppColors.darkTextMuted
                                   : AppColors.lightTextMuted,
                             ),
                           ),
+                          Text(
+                            authState.user?.userName ?? 'Đội viên',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.emerald.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.circle, size: 8, color: AppColors.emerald),
+                          SizedBox(width: 6),
+                          Text(
+                            'Trực chiến',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.emerald,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () => context.push('/rescue-team/profile'),
+                      icon: const Icon(
+                        Icons.person_outline_rounded,
+                        size: 22,
+                        color: AppColors.cyan,
+                      ),
+                      tooltip: 'Hồ sơ cá nhân',
+                    ),
+                  ],
                 ),
-
-              ...activeMissions.map((m) => _MissionCard(mission: m)),
-
-              // ── Completed section ──
-              if (completedCount > 0) ...[
                 const SizedBox(height: 24),
-                const Text(
-                  'Đã hoàn thành',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+
+                // ── Stats ──
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        value: '${activeMissions.length}',
+                        label: 'Nhiệm vụ\nđang làm',
+                        icon: Icons.assignment_outlined,
+                        color: AppColors.amber,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _StatCard(
+                        value: '$completedCount',
+                        label: 'Hoàn\nthành',
+                        icon: Icons.check_circle_outline,
+                        color: AppColors.emerald,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _StatCard(
+                        value: '$availableVehicles',
+                        label: 'Phương tiện\nsẵn sàng',
+                        icon: Icons.directions_boat_outlined,
+                        color: AppColors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _StatCard(
+                        value: '${missions.length}',
+                        label: 'Tổng\nnhiệm vụ',
+                        icon: Icons.people_outline,
+                        color: AppColors.fuchsia,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+
+                // ── Active Missions ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Nhiệm vụ hiện tại',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.push('/rescue-team/vehicles'),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.directions_boat_outlined,
+                            size: 16,
+                            color: AppColors.cyan,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Phương tiện',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.cyan,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                ...missions
-                    .where((m) => m.status == 2)
-                    .map((m) => _MissionCard(mission: m)),
+
+                // Show missions with loading/error handling
+                missionsAsync.when(
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  error: (error, _) => AppCard(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 40,
+                              color: AppColors.red.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text('Không thể tải nhiệm vụ'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  data: (allMissions) {
+                    final active = allMissions
+                        .where((m) => m.status == 0 || m.status == 1)
+                        .toList();
+                    final completed = allMissions
+                        .where((m) => m.status == 2)
+                        .toList();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (active.isEmpty)
+                          AppCard(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.assignment_outlined,
+                                      size: 40,
+                                      color: isDark
+                                          ? AppColors.darkTextMuted
+                                          : AppColors.lightTextMuted,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Không có nhiệm vụ nào',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.darkTextMuted
+                                            : AppColors.lightTextMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ...active.map((m) => _MissionCard(mission: m)),
+                        if (completed.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Đã hoàn thành',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...completed.map((m) => _MissionCard(mission: m)),
+                        ],
+                      ],
+                    );
+                  },
+                ),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -378,7 +440,7 @@ class _MissionCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  Icons.location_on_outlined,
+                  Icons.access_time,
                   size: 14,
                   color: isDark
                       ? AppColors.darkTextMuted
@@ -386,25 +448,7 @@ class _MissionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  mission.location ?? '',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark
-                        ? AppColors.darkTextMuted
-                        : AppColors.lightTextMuted,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.people_outline,
-                  size: 14,
-                  color: isDark
-                      ? AppColors.darkTextMuted
-                      : AppColors.lightTextMuted,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${mission.numberOfPeople ?? 0} người',
+                  mission.timeAgo,
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark

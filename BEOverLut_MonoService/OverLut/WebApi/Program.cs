@@ -180,7 +180,7 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("AllowReactApp");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseWebSockets();
 

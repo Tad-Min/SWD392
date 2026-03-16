@@ -93,20 +93,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  /// Demo login to bypass API completely (FOR TESTING UI)
-  Future<void> demoLogin(int roleId, String userName) async {
-    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    await Future.delayed(const Duration(milliseconds: 500));
-    final user = UserModel(
-      userId: 'demo-user-123',
-      roleId: roleId,
-      userName: userName,
-      token: 'demo_token',
-      refreshToken: 'demo_refresh_token',
-    );
-    state = AuthState(status: AuthStatus.authenticated, user: user);
-  }
-
   /// Clear error.
   void clearError() {
     state = state.copyWith(errorMessage: null);

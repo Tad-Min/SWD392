@@ -4,8 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../data/citizen_api.dart';
+import '../domain/citizen_models.dart';
+import 'citizen_providers.dart';
 
 /// Screen for citizens to submit a new rescue request (SOS).
+/// Uses objective questions to auto-calculate UrgencyLevel.
 class RescueRequestScreen extends ConsumerStatefulWidget {
   const RescueRequestScreen({super.key});
 
@@ -20,8 +24,70 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   final _locationController = TextEditingController();
   final _phoneController = TextEditingController();
   final _peopleController = TextEditingController();
-  int _urgencyLevel = 3; // default: Cao
   bool _isSubmitting = false;
+
+  // ── Question 1: Vulnerable people ──
+  bool? _hasVulnerable; // null = chưa chọn
+
+  // ── Question 2: Water level ──
+  int? _waterLevel; // null = chưa chọn, 0 / 1 / 2
+
+  // ── Question 3: People count (from text field) ──
+  // parsed from _peopleController
+
+  // ── Computed urgency ──
+  int get _urgencyScore {
+    int score = 0;
+
+    // Q1: Có người già/trẻ em/người bệnh -> +1
+    if (_hasVulnerable == true) score += 1;
+
+    // Q2: Water level
+    if (_waterLevel == 1) {
+      score += 1; // Ngập tầng 1
+    } else if (_waterLevel == 2) {
+      score += 2; // Lên tới nóc nhà
+    }
+
+    // Q3: Trên 5 người -> +1
+    final people = int.tryParse(_peopleController.text) ?? 0;
+    if (people > 5) score += 1;
+
+    return score;
+  }
+
+  /// Map score to urgency info: (level, label, color, icon)
+  _UrgencyInfo get _urgencyInfo {
+    final score = _urgencyScore;
+    if (score >= 3) {
+      return _UrgencyInfo(
+        level: 4,
+        label: 'SOS Khẩn cấp',
+        color: AppColors.fuchsia,
+        icon: Icons.warning_amber_rounded,
+        description: 'Tình huống cực kỳ nguy hiểm, cần cứu hộ ngay!',
+      );
+    } else if (score == 2) {
+      return _UrgencyInfo(
+        level: 3,
+        label: 'Nguy hiểm',
+        color: AppColors.red,
+        icon: Icons.dangerous_outlined,
+        description: 'Tình huống nguy hiểm, ưu tiên cứu hộ sớm.',
+      );
+    } else {
+      return _UrgencyInfo(
+        level: 2,
+        label: 'Cần hỗ trợ',
+        color: AppColors.amber,
+        icon: Icons.help_outline_rounded,
+        description: 'Cần hỗ trợ, đội cứu hộ sẽ đến khi có thể.',
+      );
+    }
+  }
+
+  bool get _allQuestionsAnswered =>
+      _hasVulnerable != null && _waterLevel != null;
 
   @override
   void dispose() {
@@ -35,26 +101,60 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() => _isSubmitting = false);
+    if (!_allQuestionsAnswered) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🆘 Yêu cầu cứu trợ đã được gửi thành công!'),
-          backgroundColor: AppColors.emerald,
+          content: Text('⚠️ Vui lòng trả lời tất cả câu hỏi đánh giá'),
+          backgroundColor: AppColors.amber,
         ),
       );
-      context.pop();
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final api = ref.read(citizenApiProvider);
+      final request = RescueRequestModel(
+        description: _descController.text.trim(),
+        requestType: 1, // Default: rescue
+        urgencyLevel: _urgencyInfo.level,
+        peopleCount: int.tryParse(_peopleController.text) ?? 1,
+        locationText: _locationController.text.trim(),
+      );
+
+      await api.createRescueRequest(request.toCreateJson());
+
+      // Refresh the requests list
+      ref.invalidate(rescueRequestsProvider);
+
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🆘 Yêu cầu cứu trợ đã được gửi thành công!'),
+            backgroundColor: AppColors.emerald,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final urgency = _urgencyInfo;
 
     return Scaffold(
       appBar: AppBar(
@@ -65,6 +165,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         ),
       ),
       body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
@@ -72,64 +173,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── SOS Header ──
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.red.withValues(alpha: 0.15),
-                      AppColors.amber.withValues(alpha: 0.08),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.red.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.red.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.sos_rounded,
-                        color: AppColors.red,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Gửi yêu cầu cứu trợ khẩn cấp',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Thông tin sẽ được gửi đến đội cứu hộ gần nhất',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.darkTextMuted
-                                  : AppColors.lightTextMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildSOSHeader(isDark),
               const SizedBox(height: 24),
 
               // ── Location ──
@@ -143,30 +187,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
               ),
               const SizedBox(height: 16),
 
-              // ── Description ──
-              AppTextField(
-                label: 'Mô tả tình trạng',
-                hint: 'VD: Nước dâng cao, 5 người mắc kẹt tầng 2...',
-                controller: _descController,
-                prefixIcon: Icons.description_outlined,
-                validator: (v) => (v == null || v.isEmpty)
-                    ? 'Vui lòng mô tả tình trạng'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              // ── Number of people ──
-              AppTextField(
-                label: 'Số người cần cứu trợ',
-                hint: 'VD: 5',
-                controller: _peopleController,
-                keyboardType: TextInputType.number,
-                prefixIcon: Icons.people_outline,
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Vui lòng nhập số người' : null,
-              ),
-              const SizedBox(height: 16),
-
               // ── Phone ──
               AppTextField(
                 label: 'Số điện thoại liên lạc',
@@ -177,50 +197,131 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Vui lòng nhập SĐT' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // ── Urgency Level ──
+              // ── Description ──
+              AppTextField(
+                label: 'Mô tả thêm (tuỳ chọn)',
+                hint: 'VD: Nhà bị ngập, cần hỗ trợ di chuyển...',
+                controller: _descController,
+                prefixIcon: Icons.description_outlined,
+              ),
+              const SizedBox(height: 28),
+
+              // ══════════════════════════════════════════════════════
+              // ── ĐÁNH GIÁ TÌNH TRẠNG (Objective Questions) ──
+              // ══════════════════════════════════════════════════════
+              _buildSectionTitle(
+                icon: Icons.fact_check_outlined,
+                title: 'Đánh giá tình trạng',
+                isDark: isDark,
+              ),
+              const SizedBox(height: 6),
               Text(
-                'Mức độ khẩn cấp',
+                'Trả lời các câu hỏi sau để hệ thống tự đánh giá mức khẩn cấp',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : AppColors.lightTextMuted,
                 ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  _UrgencyChip(
-                    label: 'Thấp',
-                    color: AppColors.emerald,
-                    selected: _urgencyLevel == 1,
-                    onTap: () => setState(() => _urgencyLevel = 1),
-                  ),
-                  const SizedBox(width: 8),
-                  _UrgencyChip(
-                    label: 'Trung bình',
-                    color: AppColors.blue,
-                    selected: _urgencyLevel == 2,
-                    onTap: () => setState(() => _urgencyLevel = 2),
-                  ),
-                  const SizedBox(width: 8),
-                  _UrgencyChip(
-                    label: 'Cao',
-                    color: AppColors.amber,
-                    selected: _urgencyLevel == 3,
-                    onTap: () => setState(() => _urgencyLevel = 3),
-                  ),
-                  const SizedBox(width: 8),
-                  _UrgencyChip(
-                    label: 'Khẩn cấp',
-                    color: AppColors.red,
-                    selected: _urgencyLevel == 4,
-                    onTap: () => setState(() => _urgencyLevel = 4),
-                  ),
-                ],
+              const SizedBox(height: 16),
+
+              // ── Q1: Người dễ tổn thương ──
+              _buildQuestionCard(
+                isDark: isDark,
+                questionNumber: 1,
+                question: 'Có người già, trẻ em hoặc người bệnh không?',
+                icon: Icons.elderly_rounded,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _AnswerChip(
+                        label: 'Có',
+                        icon: Icons.check_circle_outline,
+                        color: AppColors.red,
+                        selected: _hasVulnerable == true,
+                        onTap: () => setState(() => _hasVulnerable = true),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _AnswerChip(
+                        label: 'Không',
+                        icon: Icons.cancel_outlined,
+                        color: AppColors.emerald,
+                        selected: _hasVulnerable == false,
+                        onTap: () => setState(() => _hasVulnerable = false),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
+
+              // ── Q2: Mức nước ──
+              _buildQuestionCard(
+                isDark: isDark,
+                questionNumber: 2,
+                question: 'Mức nước hiện tại ở đâu?',
+                icon: Icons.water_rounded,
+                child: Column(
+                  children: [
+                    _WaterLevelOption(
+                      label: 'Đến gối',
+                      subtitle: 'Nước ngập thấp, vẫn di chuyển được',
+                      emoji: '🌊',
+                      color: AppColors.emerald,
+                      selected: _waterLevel == 0,
+                      onTap: () => setState(() => _waterLevel = 0),
+                    ),
+                    const SizedBox(height: 8),
+                    _WaterLevelOption(
+                      label: 'Đang ngập tầng 1',
+                      subtitle: 'Phải di chuyển lên tầng trên',
+                      emoji: '🏠',
+                      color: AppColors.amber,
+                      selected: _waterLevel == 1,
+                      onTap: () => setState(() => _waterLevel = 1),
+                    ),
+                    const SizedBox(height: 8),
+                    _WaterLevelOption(
+                      label: 'Lên tới nóc nhà / Không còn chỗ đứng',
+                      subtitle: 'Tình huống cực kỳ nguy hiểm',
+                      emoji: '🆘',
+                      color: AppColors.red,
+                      selected: _waterLevel == 2,
+                      onTap: () => setState(() => _waterLevel = 2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // ── Q3: Số người ──
+              _buildQuestionCard(
+                isDark: isDark,
+                questionNumber: 3,
+                question: 'Số lượng người cần cứu trợ?',
+                icon: Icons.people_rounded,
+                child: AppTextField(
+                  hint: 'VD: 5',
+                  controller: _peopleController,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: Icons.groups_outlined,
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'Vui lòng nhập số người'
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Urgency Result ──
+              if (_allQuestionsAnswered) _buildUrgencyResult(isDark, urgency),
+
+              const SizedBox(height: 24),
 
               // ── Submit ──
               AppButton(
@@ -236,16 +337,260 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       ),
     );
   }
+
+  // ─────────────────────────────────────────────────────────────────
+  // ── Helper Builders ──
+  // ─────────────────────────────────────────────────────────────────
+
+  Widget _buildSOSHeader(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.red.withValues(alpha: 0.15),
+            AppColors.amber.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.red.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.red.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.sos_rounded,
+              color: AppColors.red,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Gửi yêu cầu cứu trợ khẩn cấp',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Trả lời nhanh các câu hỏi – hệ thống sẽ tự đánh giá mức độ khẩn cấp',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark
+                        ? AppColors.darkTextMuted
+                        : AppColors.lightTextMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle({
+    required IconData icon,
+    required String title,
+    required bool isDark,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.cyan),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionCard({
+    required bool isDark,
+    required int questionNumber,
+    required String question,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkCard.withValues(alpha: 0.7)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: (isDark ? AppColors.darkBorder : AppColors.lightBorder)
+              .withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.cyan.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    '$questionNumber',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.cyan,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Icon(icon, size: 18, color: AppColors.cyan),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  question,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUrgencyResult(bool isDark, _UrgencyInfo info) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            info.color.withValues(alpha: 0.18),
+            info.color.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: info.color.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(info.icon, color: info.color, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                'Mức khẩn cấp:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : AppColors.lightTextMuted,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            info.label,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: info.color,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            info.description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark
+                  ? AppColors.darkTextMuted
+                  : AppColors.lightTextMuted,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Score detail
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: info.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'Tổng điểm: $_urgencyScore',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: info.color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _UrgencyChip extends StatelessWidget {
+// ═══════════════════════════════════════════════════════════════════
+// ── Supporting Widgets ──
+// ═══════════════════════════════════════════════════════════════════
+
+class _UrgencyInfo {
+  final int level;
   final String label;
+  final Color color;
+  final IconData icon;
+  final String description;
+
+  const _UrgencyInfo({
+    required this.level,
+    required this.label,
+    required this.color,
+    required this.icon,
+    required this.description,
+  });
+}
+
+/// A selectable chip for Yes/No answers.
+class _AnswerChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
 
-  const _UrgencyChip({
+  const _AnswerChip({
     required this.label,
+    required this.icon,
     required this.color,
     required this.selected,
     required this.onTap,
@@ -253,30 +598,134 @@ class _UrgencyChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? color.withValues(alpha: 0.2) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: selected ? color : color.withValues(alpha: 0.3),
-              width: selected ? 1.5 : 1,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? color : color.withValues(alpha: 0.3),
+            width: selected ? 1.8 : 1,
           ),
-          child: Center(
-            child: Text(
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected ? color : color.withValues(alpha: 0.5),
+            ),
+            const SizedBox(width: 6),
+            Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected ? color : color.withValues(alpha: 0.7),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A selectable option for water level with emoji + text.
+class _WaterLevelOption extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final String emoji;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _WaterLevelOption({
+    required this.label,
+    required this.subtitle,
+    required this.emoji,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? color.withValues(alpha: 0.12)
+              : (isDark
+                    ? AppColors.darkInput.withValues(alpha: 0.5)
+                    : AppColors.lightInput),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? color : Colors.transparent,
+            width: selected ? 1.8 : 1,
           ),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected ? color : null,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected
+                    ? color
+                    : (isDark
+                          ? AppColors.darkBorder.withValues(alpha: 0.5)
+                          : AppColors.lightBorder),
+                border: Border.all(
+                  color: selected
+                      ? color
+                      : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+          ],
         ),
       ),
     );

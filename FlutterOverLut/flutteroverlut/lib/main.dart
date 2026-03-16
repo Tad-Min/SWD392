@@ -24,6 +24,28 @@ class OverLutApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      scrollBehavior: const _NoStretchScrollBehavior(),
     );
+  }
+}
+
+/// Custom [ScrollBehavior] that disables the Android 12+ stretch overscroll
+/// effect globally, preventing UI distortion when over-scrolling.
+class _NoStretchScrollBehavior extends ScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const ClampingScrollPhysics();
+  }
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // Return child directly – no glow / no stretch
+    return child;
   }
 }

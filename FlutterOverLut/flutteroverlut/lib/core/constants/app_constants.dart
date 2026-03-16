@@ -42,10 +42,10 @@ enum MissionStatus {
 
 /// Request urgency levels.
 enum RequestUrgency {
-  low(1, 'Thấp'),
-  medium(2, 'Trung bình'),
-  high(3, 'Cao'),
-  critical(4, 'Khẩn cấp');
+  needSupport(1, 'Cần hỗ trợ'),
+  dangerous(2, 'Nguy hiểm'),
+  critical(3, 'Khẩn cấp'),
+  sos(4, 'SOS');
 
   const RequestUrgency(this.id, this.label);
   final int id;
@@ -54,7 +54,7 @@ enum RequestUrgency {
   static RequestUrgency fromId(int id) {
     return RequestUrgency.values.firstWhere(
       (u) => u.id == id,
-      orElse: () => RequestUrgency.low,
+      orElse: () => RequestUrgency.needSupport,
     );
   }
 }
@@ -64,13 +64,14 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Auth
-  static const String login = 'Auth/Login';
+  static const String login = 'Auth/login';
   static const String register = 'Auth/Register';
   static const String logout = 'Auth/Logout';
-  static const String refreshToken = 'Auth/RefreshToken';
+  static const String refreshToken = 'Auth/GetAccessToken';
 
   // Users
   static const String users = 'User';
+  static const String userById = 'User/GetById'; // + /{id}
   static const String userRole = 'User/role';
 
   // Rescue Missions
@@ -84,14 +85,22 @@ class ApiEndpoints {
   static const String rescueRequestById = 'RescueRequest/GetById'; // + /{id}
   static const String rescueRequestAdd = 'RescueRequest/Add';
   static const String rescueRequestUpdate = 'RescueRequest/Update';
+  static const String rescueRequestUpdateLocation =
+      'RescueRequest/UpdateLocation'; // + /{id}
 
   // Rescue Teams
-  static const String rescueTeams = 'RescueTeam/GetAll';
-  static const String rescueTeamById = 'RescueTeam/GetById'; // + /{id}
+  static const String rescueTeams = 'RescueTeam';
+  static const String rescueTeamById = 'RescueTeam'; // + /{id}
 
   // Vehicles
   static const String vehicles = 'Vehicle';
-  static const String vehicleAssign = 'Vehicle/Assign';
+  static const String vehicleAssign = 'Vehicle/AssignVehicle';
+
+  // Status
+  static const String statusVehicles = 'Status/Vehicles';
+  static const String statusRescueRequests = 'Status/RescueRequests';
+  static const String statusRescueMissions = 'Status/RescueMissions';
+  static const String statusRescueTeams = 'Status/RescueTeams';
 
   // Products & Inventory
   static const String products = 'Product';
@@ -100,7 +109,7 @@ class ApiEndpoints {
   static const String warehouseStock = 'WareHouse/Stock';
 
   // Transactions
-  static const String transactions = 'Transaction';
+  static const String transactions = 'InventoryTransaction';
 }
 
 /// Secure storage keys.

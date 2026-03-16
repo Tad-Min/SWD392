@@ -1,135 +1,144 @@
-import '../../../core/constants/app_constants.dart';
+/// Models for citizen-related features, matching the backend API schemas.
 
-/// Model for a rescue request.
 class RescueRequestModel {
-  final int? id;
-  final String? description;
-  final String? location;
-  final double? latitude;
-  final double? longitude;
+  final int? rescueRequestId;
+  final int? userReqId;
+  final int? requestType;
   final int? urgencyLevel;
   final int? status;
-  final int? numberOfPeople;
-  final String? contactPhone;
+  final String? description;
+  final int? peopleCount;
+  final Map<String, dynamic>? location; // GeoJSON Point
+  final String? locationText;
   final String? createdAt;
-  final String? updatedAt;
-  final int? userId;
 
   const RescueRequestModel({
-    this.id,
-    this.description,
-    this.location,
-    this.latitude,
-    this.longitude,
+    this.rescueRequestId,
+    this.userReqId,
+    this.requestType,
     this.urgencyLevel,
     this.status,
-    this.numberOfPeople,
-    this.contactPhone,
+    this.description,
+    this.peopleCount,
+    this.location,
+    this.locationText,
     this.createdAt,
-    this.updatedAt,
-    this.userId,
   });
 
+  /// Parse from API JSON response.
   factory RescueRequestModel.fromJson(Map<String, dynamic> json) {
     return RescueRequestModel(
-      id: json['rescueRequestId'] ?? json['id'],
-      description: json['description'] as String?,
-      location: json['location'] as String?,
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      rescueRequestId: json['rescueRequestId'] as int?,
+      userReqId: json['userReqId'] as int?,
+      requestType: json['requestType'] as int?,
       urgencyLevel: json['urgencyLevel'] as int?,
-      status: json['status'] ?? json['requestStatus'],
-      numberOfPeople: json['numberOfPeople'] as int?,
-      contactPhone: json['contactPhone'] as String?,
+      status: json['status'] as int?,
+      description: json['description'] as String?,
+      peopleCount: json['peopleCount'] as int?,
+      location: json['location'] as Map<String, dynamic>?,
+      locationText: json['locationText'] as String?,
       createdAt: json['createdAt'] as String?,
-      updatedAt: json['updatedAt'] as String?,
-      userId: json['userId'] as int?,
     );
   }
 
-  Map<String, dynamic> toCreateJson() {
+  /// Legacy getter for backward compatibility with ID references.
+  int? get id => rescueRequestId;
+
+  /// Build JSON for CreateRescueRequestModel (POST /api/RescueRequest/Add).
+  Map<String, dynamic> toCreateJson({double? latitude, double? longitude}) {
     return {
-      'description': description,
-      'location': location,
-      'latitude': latitude,
-      'longitude': longitude,
-      'urgencyLevel': urgencyLevel,
-      'numberOfPeople': numberOfPeople,
-      'contactPhone': contactPhone,
+      'description': description ?? '',
+      'requestType': requestType ?? 1,
+      'urgencyLevel': urgencyLevel ?? 1,
+      'peopleCount': peopleCount ?? 1,
+      'currentlocation': {
+        'type': 'Point',
+        'coordinates': [longitude ?? 0.0, latitude ?? 0.0],
+      },
+      'locationText': locationText ?? '',
     };
   }
 
-  String get urgencyLabel => RequestUrgency.fromId(urgencyLevel ?? 1).label;
+  /// Human-readable urgency label.
+  String get urgencyLabel {
+    switch (urgencyLevel) {
+      case 1:
+        return 'Cần hỗ trợ';
+      case 2:
+        return 'Nguy hiểm';
+      case 3:
+        return 'Khẩn cấp';
+      case 4:
+        return 'SOS';
+      default:
+        return 'Chưa đánh giá';
+    }
+  }
+
+  /// Human-readable status label.
   String get statusLabel {
     switch (status) {
       case 0:
-        return 'Chờ xử lý';
+        return 'Chờ duyệt';
       case 1:
         return 'Đang xử lý';
       case 2:
         return 'Hoàn thành';
       case 3:
-        return 'Hủy bỏ';
+        return 'Đã hủy';
       default:
         return 'Không rõ';
     }
   }
 
+  /// Time ago string.
   String get timeAgo {
     if (createdAt == null) return '';
-    try {
-      final date = DateTime.parse(createdAt!);
-      final diff = DateTime.now().difference(date);
-      if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
-      if (diff.inHours < 24) return '${diff.inHours} giờ trước';
-      if (diff.inDays < 7) return '${diff.inDays} ngày trước';
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (_) {
-      return createdAt ?? '';
-    }
+    final dt = DateTime.tryParse(createdAt!);
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays} ngày trước';
+    if (diff.inHours > 0) return '${diff.inHours} giờ trước';
+    if (diff.inMinutes > 0) return '${diff.inMinutes} phút trước';
+    return 'Vừa xong';
   }
+
+  /// Convenience: get numberOfPeople alias.
+  int? get numberOfPeople => peopleCount;
 }
 
-/// Model for a user profile.
+/// User profile model matching backend User schema.
 class UserProfileModel {
-  final int? userId;
+  final int userId;
+  final int roleId;
   final String? fullName;
+  final String? identifyId;
+  final String? address;
   final String? email;
   final String? phone;
-  final int? roleId;
-  final bool? isActive;
-  final String? address;
 
   const UserProfileModel({
-    this.userId,
+    required this.userId,
+    required this.roleId,
     this.fullName,
+    this.identifyId,
+    this.address,
     this.email,
     this.phone,
-    this.roleId,
-    this.isActive,
-    this.address,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
-      userId: json['userId'] as int?,
-      fullName: json['fullName'] ?? json['userName'] as String?,
+      userId: json['userId'] as int? ?? 0,
+      roleId: json['roleId'] as int? ?? 1,
+      fullName: json['fullName'] as String?,
+      identifyId: json['identifyId'] as String?,
+      address: json['address'] as String?,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
-      roleId: json['roleId'] as int?,
-      isActive: json['isActive'] as bool?,
-      address: json['address'] as String?,
     );
   }
 
-  String get initials {
-    if (fullName == null || fullName!.isEmpty) return 'U';
-    final parts = fullName!.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-    }
-    return fullName![0].toUpperCase();
-  }
-
-  String get roleName => AppRole.fromId(roleId ?? 1).nameVi;
+  /// Backward-compatible getter.
+  String get userName => fullName ?? 'Người dùng';
 }

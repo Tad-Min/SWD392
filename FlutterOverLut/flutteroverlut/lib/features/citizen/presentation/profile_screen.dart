@@ -107,9 +107,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: AppColors.cyan.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text(
-                'Người dân',
-                style: TextStyle(
+              child: Text(
+                _getRoleName(authState.user?.roleId),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.cyan,
@@ -156,40 +156,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Stats ──
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Hoạt động',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _StatItem(
-                        value: '4',
-                        label: 'Yêu cầu\nđã gửi',
-                        color: AppColors.blue,
-                      ),
-                      _statDivider(isDark),
-                      _StatItem(
-                        value: '2',
-                        label: 'Đã hoàn\nthành',
-                        color: AppColors.emerald,
-                      ),
-                      _statDivider(isDark),
-                      _StatItem(
-                        value: '1',
-                        label: 'Đang\nxử lý',
-                        color: AppColors.amber,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+
 
             if (_isEditing) ...[
               const SizedBox(height: 20),
@@ -241,6 +208,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  String _getRoleName(int? roleId) {
+    if (roleId == null) return 'Người dùng';
+    switch (roleId) {
+      case 1:
+        return 'Quản trị viên';
+      case 2:
+        return 'Đội cứu hộ';
+      case 3:
+        return 'Điều phối viên';
+      case 4:
+        return 'Lực lượng vũ trang';
+      case 5:
+        return 'Trung tâm y tế';
+      default:
+        return 'Người dân';
+    }
+  }
+
   Widget _divider(bool isDark) {
     return Divider(
       height: 1,
@@ -250,15 +235,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _statDivider(bool isDark) {
-    return Container(
-      width: 1,
-      height: 40,
-      color: (isDark ? AppColors.darkBorder : AppColors.lightBorder).withValues(
-        alpha: 0.5,
-      ),
-    );
-  }
+
 }
 
 class _ProfileField extends StatelessWidget {
@@ -337,44 +314,4 @@ class _ProfileField extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final String value;
-  final String label;
-  final Color color;
 
-  const _StatItem({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark
-                  ? AppColors.darkTextMuted
-                  : AppColors.lightTextMuted,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
