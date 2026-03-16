@@ -121,7 +121,7 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E092105A51").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E0DB728485").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(100);
@@ -182,11 +182,11 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E398CD70E85");
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E392455FC9A");
 
             entity.ToTable("RefreshToken");
 
-            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F817E87C09F5").IsUnique();
+            entity.HasIndex(e => e.Token, "UQ__RefreshT__1EB4F8175D3536C7").IsUnique();
 
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(255)
@@ -426,9 +426,7 @@ public partial class OverlutDbContext : DbContext
         {
             entity.HasKey(e => new { e.MissionId, e.VehicleId });
 
-            entity.Property(e => e.MissionId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("MissionID");
+            entity.Property(e => e.MissionId).HasColumnName("MissionID");
             entity.Property(e => e.VehicleId).HasColumnName("VehicleID");
             entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
 

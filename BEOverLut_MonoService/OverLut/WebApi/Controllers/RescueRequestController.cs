@@ -61,7 +61,21 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescuerequest", error = ex.Message });
             }
         }
+        [HttpGet("userid/{id}")]
+        public async Task<IActionResult> GetRescueRequestByUserId(int id)
+        {
+            try
+            {
+                var rescueRequest = await iRescueRequestService.GetAllRescueRequestsAsync(null, id, null, null, null, null);
+                return Ok(rescueRequest);
 
+            }
+            catch(Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescuerequest", error = ex.Message });
+
+            }
+        }
         //[Authorize]
         [HttpPost("Add")]
         public async Task<IActionResult> AddRescueRequest(CreateRescueRequestModel model)
