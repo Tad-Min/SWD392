@@ -67,7 +67,7 @@ services:
     networks:
       - overlut-net
 
-# Frontend (React)
+  # Frontend (React)
   frontend:
     build:
       context: ./FEOverLut/FEOVERLUT
@@ -84,7 +84,7 @@ services:
     restart: always
     networks:
       - overlut-net
-              
+
   # Mobile Web (Flutter)
   mobile-web:
     build:
@@ -100,8 +100,57 @@ services:
     networks:
       - overlut-net
 
+  # ---------------- THÊM VÀO CHO AI ----------------
+
+  # 1. Engine chạy mô hình AI
+  ollama:
+    image: ollama/ollama:latest
+    container_name: overlut-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - overlut-net
+    restart: always
+
+  # 2. Tự động tải Llama3.2-3B khi khởi động lần đầu
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: overlut-ollama-init
+    depends_on:
+      - ollama
+    networks:
+      - overlut-net
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama to start...'
+        sleep 10
+        echo 'Pulling llama3.2:3b model...'
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"llama3.2:3b\"}'
+        echo 'Model pulled successfully!'
+      "
+
+  # 3. Cổng trung gian API AI (Thư mục AIGateway chứa file main.py, requirements.txt)
+  ai-gateway:
+    build: 
+      context: ./AIGateway # Thư mục chứa code Python
+      dockerfile: Dockerfile
+    container_name: overlut-ai-gateway
+    depends_on:
+      - ollama
+      - webapi
+    ports:
+      - "8000:8000"
+    networks:
+      - overlut-net
+    restart: always
+
+# ---------------- GOM CHUNG VOLUMES VÀ NETWORKS XUỐNG DƯỚI CÙNG ----------------
+
 volumes:
   overlut-db-volume:
+  ollama_data: 
 
 networks:
   overlut-net:

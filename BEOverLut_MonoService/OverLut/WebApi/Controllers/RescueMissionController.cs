@@ -1,5 +1,6 @@
 using BusinessObject.OverlutEntiy;
 using DTOs;
+using DTOs.Overlut;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
@@ -73,9 +74,9 @@ namespace WebApi.Controllers
             return CreatedAtAction(nameof(GetRescueMissionById), new { id = result.MissionId }, MappingHandle.EntityToDTO(result));
         }
 
-        [HttpPut("Update")]
+        [HttpPut("Update/{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateRescueMission( UpdateRescueMisstionModel model)
+        public async Task<IActionResult> UpdateRescueMission(int id, UpdateRescueMisstionModel model)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdString, out int userId))
@@ -83,17 +84,18 @@ namespace WebApi.Controllers
                 return Unauthorized();
             }
 
-            var mission = new RescueMission
+            if(await _rescueMissionService.GetRescueMissionByIdAsync(id) == null) return BadRequest("Mission not found.");
+
+            var rescueMission = new RescueMissionDTO
             {
-                MissionId = model.MissionId,
+                MissionId = id,
                 RescueRequestId = model.RescueRequestId,
                 TeamId = model.TeamId,
-                StatusId = model.StatusId,
                 Description = model.Description,
-                CoordinatorUserId = userId 
+                StatusId = model.StatusId
             };
 
-            var result = await _rescueMissionService.UpdateRescueMissionAsync(mission, userId);
+            var result = await _rescueMissionService.UpdateRescueMissionAsync(rescueMission, userId, id);
             if (!result) return BadRequest("Failed to update mission or mission not found.");
 
             return Ok(result);

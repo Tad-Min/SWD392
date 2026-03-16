@@ -43,6 +43,19 @@ public class RescueMissionDAO
         }
     }
 
+    public async Task<RescueMission?> GetRescueMissionById(int id)
+    {
+        try
+        {
+            return await _db.RescueMissions.FirstOrDefaultAsync(e => e.MissionId == id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"RescueMissionDAO-GetRescueMissionById: {ex.Message}");
+            return null;
+        }
+    }
+
     public async Task<RescueMission?> CreateRescueMission(RescueMission mission)
     {
         try
