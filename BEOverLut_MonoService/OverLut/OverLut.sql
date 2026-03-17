@@ -299,16 +299,16 @@ GO
 -- RoleID mapping: 1=Citizen, 2=RescueTeam, 3=Coordinator, 4=Manager, 5=Admin
 -- ==========================================
 INSERT INTO Users (RoleID, FullName, IdentifyID, [Address], Email, Phone, [Password], IsActive) VALUES 
-(5, N'Admin Nguyễn Văn A', '001099123456', N'Hà Nội', '1@5', '0901234567', 'Abc@1234', 1),
-(4, N'Manager Lê Thị B', '002099123457', N'Hải Phòng', '1@4', '0901234568', 'Abc@1234', 1),
-(3, N'Coord Trần Văn C', '003099123458', N'Đà Nẵng', '1@3', '0901234569', 'Abc@1234', 1),
-(3, N'Coord Phạm Thị D', '004099123459', N'Huế', 'coord2@overlut.com', '0901234570', 'hashed_pwd_4', 1),
-(2, N'Team Lead Hoàng E', '005099123460', N'Nghệ An', '1l@2', '0901234571', 'Abc@1234', 1),
-(2, N'Team Member Đỗ F', '006099123461', N'Hà Tĩnh', '1m@2', '0901234572', 'Abc@1234', 1),
-(1, N'Citizen Ngô G', '007099123462', N'Quảng Bình', '1m@1', '0901234573', 'Abc@1234', 1),
-(1, N'Citizen Vũ H', '008099123463', N'Quảng Trị', 'citizen2@overlut.com', '0901234574', 'hashed_pwd_8', 1),
-(1, N'Citizen Đặng I', '009099123464', N'TP HCM', 'citizen3@overlut.com', '0901234575', 'hashed_pwd_9', 1),
-(1, N'Citizen Bùi K', '010099123465', N'Cần Thơ', 'citizen4@overlut.com', '0901234576', 'hashed_pwd_10', 1);
+(5, N'Admin Nguyễn Văn A', '001099123456', N'Hà Nội', '1@5', '0901234567', 'Giahuy123@', 1),
+(4, N'Manager Lê Thị B', '002099123457', N'Hải Phòng', '1@4', '0901234568', 'Giahuy123@', 1),
+(3, N'Coord Trần Văn C', '003099123458', N'Đà Nẵng', '1@3', '0901234569', 'Giahuy123@', 1),
+(3, N'Coord Phạm Thị D', '004099123459', N'Huế', 'coord2@overlut.com', '0901234570', 'Giahuy123@', 1),
+(2, N'Team Lead Hoàng E', '005099123460', N'Nghệ An', '1@2', '0901234571', 'Giahuy123@', 1),
+(2, N'Team Member Đỗ F', '006099123461', N'Hà Tĩnh', '1m@2', '0901234572', 'Giahuy123@', 1),
+(1, N'Citizen Ngô G', '007099123462', N'Quảng Bình', '1@1', '0901234573', 'Giahuy123@', 1),
+(1, N'Citizen Vũ H', '008099123463', N'Quảng Trị', 'citizen2@overlut.com', '0901234574', 'Giahuy123@', 1),
+(1, N'Citizen Đặng I', '009099123464', N'TP HCM', 'citizen3@overlut.com', '0901234575', 'Giahuy123@', 1),
+(1, N'Citizen Bùi K', '010099123465', N'Cần Thơ', 'citizen4@overlut.com', '0901234576', 'Giahuy123@', 1);
 GO
 
 -- ==========================================

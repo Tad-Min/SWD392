@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Navigation, MapPin, Clock, Send, CheckCircle, XCircle, ArrowLeft, Users, AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useRescueRequestById, useUpdateRescueRequest } from '../../../features/Rescue/hook/useRescueRequest';
 import { useUpdateRescueMission } from '../../../features/Rescue/hook/useRescueMission';
+import { useAssignVehicleByVehicleMission, useUpdateAssignVehicle } from '../../../features/Vehicle/hook/useAssignVehicle';
+import { useVehicleById, useUpdateVehicle } from '../../../features/Vehicle/hook/useVehicle';
+import { useUpdateRescueTeam } from '../../../features/Rescue/hook/useRescueTeam';
 import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
 import { toast } from 'react-toastify';
 import MissionMap from './MissionMap';
@@ -109,10 +112,11 @@ const StatusStepper = ({ currentStep, isFailed }) => {
 };
 
 
-const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
+const MissionDetail = ({ mission, onBack, teamIdLabel, theme, onMissionUpdate }) => {
     const { loading: requestLoading, getRescueRequestById } = useRescueRequestById();
     const { updateRescueMission } = useUpdateRescueMission();
     const { updateRescueRequest } = useUpdateRescueRequest();
+    const { updateRescueTeam } = useUpdateRescueTeam();
 
     const [requestData, setRequestData] = useState(null);
     const [requestTypes, setRequestTypes] = useState({});
@@ -123,6 +127,15 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
     const [isFailed, setIsFailed] = useState(false);
     const [updating, setUpdating] = useState(false);
     const hasAutoTransitioned = useRef({ enroute: false, rescuing: false });
+
+    // Vehicle state
+    const { fetchAssignVehicleByVehicleMission } = useAssignVehicleByVehicleMission();
+    const { updateAssignVehicle } = useUpdateAssignVehicle();
+    const { fetchVehicleById } = useVehicleById();
+    const { updateVehicle } = useUpdateVehicle();
+    const [assignedVehicle, setAssignedVehicle] = useState(null);
+    // Track assignment record explicitly
+    const [assignedVehicleRecordId, setAssignedVehicleRecordId] = useState(null);
 
     // User location from MissionMap (shared via callback)
     const [userLocation, setUserLocation] = useState(null);
@@ -151,6 +164,30 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
                 }
             } catch (err) {
                 console.error("Failed to fetch request types", err);
+            }
+
+            // Fetch assigned vehicle
+            if (mission?.missionId || mission?.MissionId || mission?.id || mission?.rescueMissionId) {
+                const mid = mission?.missionId || mission?.MissionId || mission?.id || mission?.rescueMissionId;
+                try {
+                    const assignData = await fetchAssignVehicleByVehicleMission(mid);
+                    const assignments = assignData?.data || assignData;
+                    // It returns a list or a single object. If it's a list, we take the first unreleased one or just the first.
+                    if (Array.isArray(assignments) && assignments.length > 0) {
+                        const assignment = assignments[0]; // the active one
+                        if (assignment && assignment.vehicleId) {
+                            setAssignedVehicleRecordId(assignment.id ?? assignment.assignVehicleId ?? assignment.assignId ?? assignment.vehicleAssignmentId);
+                            const vehicleData = await fetchVehicleById(assignment.vehicleId);
+                            setAssignedVehicle(vehicleData?.data || vehicleData);
+                        }
+                    } else if (assignments && assignments.vehicleId) {
+                        setAssignedVehicleRecordId(assignments.id ?? assignments.assignVehicleId ?? assignments.assignId ?? assignments.vehicleAssignmentId);
+                        const vehicleData = await fetchVehicleById(assignments.vehicleId);
+                        setAssignedVehicle(vehicleData?.data || vehicleData);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch assigned vehicle:", err);
+                }
             }
         };
         fetchDetails();
@@ -204,6 +241,19 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
                     createdAt: requestData.createdAt,
                 });
             }
+
+            // Update Team Status when Completed or Failed
+            const isTerminal = newMissionStatusId === 4 || newMissionStatusId === 5;
+            if (isTerminal && (mission.teamId || mission.TeamId)) {
+                await updateRescueTeam(mission.teamId || mission.TeamId, {
+                    statusId: 1 // Back to available
+                });
+            }
+
+            if (onMissionUpdate) {
+                onMissionUpdate(missionId, newMissionStatusId);
+            }
+
             return true;
         } catch (err) {
             console.error('Failed to update status:', err);
@@ -212,7 +262,7 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
         } finally {
             setUpdating(false);
         }
-    }, [mission, missionId, requestData, requestId, updateRescueMission, updateRescueRequest]);
+    }, [mission, missionId, requestData, requestId, updateRescueMission, updateRescueRequest, updateRescueTeam, onMissionUpdate]);
 
     // ── Auto transition: Assigned → EnRoute when user starts navigating ─
     useEffect(() => {
@@ -268,6 +318,29 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
         if (success) {
             setCurrentStatusId(4);
             setIsNavigating(false);
+
+            const vId = assignedVehicle?.vehicleId || assignedVehicle?.id;
+            // Release vehicle if assigned
+            if (vId) {
+                try {
+                    await updateAssignVehicle(vId);
+                } catch (e) {
+                    console.error("Failed to release vehicle", e);
+                }
+            }
+
+            // Update Vehicle status to available
+            if (vId) {
+                try {
+                    await updateVehicle(vId, {
+                        ...assignedVehicle,
+                        statusId: 1
+                    });
+                } catch (e) {
+                    console.error("Failed to update vehicle status", e);
+                }
+            }
+
             toast.success('✅ Nhiệm vụ hoàn thành!');
         }
     };
@@ -280,6 +353,29 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
             setCurrentStatusId(5);
             setIsFailed(true);
             setIsNavigating(false);
+
+            const vId = assignedVehicle?.vehicleId || assignedVehicle?.id;
+            // Release vehicle if assigned
+            if (vId) {
+                try {
+                    await updateAssignVehicle(vId);
+                } catch (e) {
+                    console.error("Failed to release vehicle", e);
+                }
+            }
+
+            // Update Vehicle status to available
+            if (vId) {
+                try {
+                    await updateVehicle(vId, {
+                        ...assignedVehicle,
+                        statusId: 1
+                    });
+                } catch (e) {
+                    console.error("Failed to update vehicle status", e);
+                }
+            }
+
             toast.error('Nhiệm vụ thất bại');
         }
     };
@@ -416,6 +512,14 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme }) => {
                             <AlertTriangle size={16} className="text-orange-500" />
                             <span>Phụ trách: <span className="font-bold">{teamIdLabel.replace('MÃ ĐỘI: ', '')}</span></span>
                         </div>
+                        {assignedVehicle && (
+                            <div className={`flex items-center gap-2 ${theme?.text || 'text-slate-300'} text-sm font-medium`}>
+                                <div className="text-purple-500 w-4 h-4 flex items-center justify-center">🚐</div>
+                                <span>Phương tiện: <span className="font-bold">{assignedVehicle.vehicleCode || assignedVehicle.name}</span>
+                                    {assignedVehicle.note && <span className="text-slate-500 italic ml-2">- {assignedVehicle.note}</span>}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <p className={`text-sm leading-relaxed mb-6 ${theme?.textMuted || 'text-slate-400'}`}>

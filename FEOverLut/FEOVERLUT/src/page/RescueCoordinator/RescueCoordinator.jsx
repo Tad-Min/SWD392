@@ -13,6 +13,7 @@ import { useRescueRequest, useUpdateRescueRequest } from '../../features/Rescue/
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
+import { useCreateAssignVehicle } from '../../features/Vehicle/hook/useAssignVehicle';
 import { useRescueRequestStatus } from '../../features/status/hook/useRescueRequestStatus';
 import { getUserByIdApi } from '../../features/users/api/usersApi';
 
@@ -24,6 +25,7 @@ export default function RescueCoordinator() {
     const { loading: missionLoading, createRescueMission } = useCreateRescueMission();
     const { fetchVehicle } = useVehicle();
     const { updateVehicle } = useUpdateVehicle();
+    const { createAssignVehicle } = useCreateAssignVehicle();
     const { getRescueRequestStatus } = useRescueRequestStatus();
 
     const [requests, setRequests] = useState([]);
@@ -99,7 +101,9 @@ export default function RescueCoordinator() {
         try {
             const { rescueRequestId, teamId, vehicleId, description } = missionData;
             const payload = { rescueRequestId, teamId, description };
-            await createRescueMission(payload);
+            const missionRes = await createRescueMission(payload);
+            console.log("Create Mission Response:", missionRes);
+            const missionId = missionRes?.data?.missionId ?? missionRes?.missionId ?? missionRes?.id ?? missionRes;
 
             // Update RescueRequest Status to Assigned (3)
             if (rescueRequestId) {
@@ -140,13 +144,18 @@ export default function RescueCoordinator() {
                     const vehicle = vehicles?.find(v => v.vehicleId === vehicleId);
                     if (vehicle) {
                         await updateVehicle(vehicleId, {
-                            vehicleId: vehicleId,
-                            vehicleCode: vehicle.vehicleCode,
-                            vehicleType: vehicle.vehicleType,
-                            capacity: vehicle.capacity,
+                            ...vehicle,
                             statusId: 2, // In Use
-                            note: vehicle.note ?? '',
                         });
+
+                        if (missionId) {
+                            await createAssignVehicle({
+                                missionId: missionId,
+                                vehicleId: vehicleId,
+                            });
+                        } else {
+                            console.warn('Cannot assign vehicle: missionId is missing from createRescueMission response', missionRes);
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to change vehicle status:', e?.response?.status, e?.response?.data, e);

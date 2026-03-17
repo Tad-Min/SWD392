@@ -78,7 +78,16 @@ function TaskBar({ isDarkMode = true }) {
           {/* Left side - Logo */}
           <div
             className={`${btnBase} ${btnHover}`}
-            onClick={() => navigate('/Citizens')}
+            onClick={() => {
+              const homeRoutes = {
+                1: '/Citizens',
+                2: '/RescueTeam',
+                3: '/RescueCoordinator',
+                4: '/manager',
+                5: '/admin'
+              };
+              navigate(homeRoutes[roleId] || '/Citizens');
+            }}
           >
             <div className="relative w-10 h-10 bg-[#1c2638] rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.15)] z-10 flex-shrink-0">
               <svg className="w-5 h-5 text-[#22d3ee]" fill="currentColor" viewBox="0 0 24 24">
@@ -162,6 +171,24 @@ function TaskBar({ isDarkMode = true }) {
                   </div>
                   <span className="text-sm font-semibold">Xem Profile</span>
                 </button>
+
+                {/* Xem Lịch sử cứu hộ (Only for Citizen) */}
+                {roleId === 1 && (
+                  <button
+                    onClick={() => { setIsDropdownOpen(false); navigate('/rescue-history'); }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200 group ${isDarkMode
+                      ? 'text-gray-300 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-shadow duration-200">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-semibold">Lịch sử cứu hộ</span>
+                  </button>
+                )}
 
                 {/* Đăng xuất */}
                 <button

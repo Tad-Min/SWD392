@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getRescueRequestApi, getRescueRequestByIdApi, createRescueRequestApi, updateRescueRequestApi } from "../api/rescueRequestApi";
+import { getRescueRequestApi, getRescueRequestByIdApi, createRescueRequestApi, updateRescueRequestApi, getRescueRequestByUserIdApi } from "../api/rescueRequestApi";
 
 export const useRescueRequest = () => {
     const [loading, setLoading] = useState(false);
@@ -88,5 +88,27 @@ export const useUpdateRescueRequest = () => {
         loading,
         error,
         updateRescueRequest
+    }
+}
+
+export const useRescueRequestByUserId = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const getRescueRequestByUserId = async (userId) => {
+        try {
+            setLoading(true);
+            const response = await getRescueRequestByUserIdApi(userId);
+            return response;
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    return {
+        loading,
+        error,
+        getRescueRequestByUserId
     }
 }
