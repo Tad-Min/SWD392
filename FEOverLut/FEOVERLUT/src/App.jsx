@@ -5,6 +5,9 @@ import Register from './page/auth/Register.jsx'
 import ClickSpark from './components/ClickSpark.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
+import Profile from './page/profile/Profile.jsx';
+import RescueHistory from './page/citizens/RescueHistory.jsx';
+
 // Import Test pages
 import TestSocket from './page/testsocket/TestSocket.jsx';
 import TestAttachment from './page/testsocket/TestAttachment.jsx';
@@ -49,6 +52,9 @@ function App() {
 
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
+            <Route path="/rescue-history" element={<ProtectedRoute><RescueHistory /></ProtectedRoute>} />
+            {/* Profile Route */}
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* RescueTeam Routes */}
             <Route path="/RescueTeam" element={<ProtectedRoute><RescueTeam /></ProtectedRoute>} />
             {/* RescueCoordinator Routes */}

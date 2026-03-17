@@ -96,7 +96,7 @@ export default function DispatchModal({
     const availableVehicles = vehicles.filter(v => {
         const sid = v.statusId ?? v.vehiclesStatusId;
         const statusName = vehicleStatusMap[sid] || '';
-        return statusName.toLowerCase() === 'available' || statusName.toLowerCase() === 'sẵn sàng';
+        return sid === 1 || statusName.toLowerCase() === 'available' || statusName.toLowerCase() === 'sẵn sàng';
     });
 
     const handleSubmit = () => {
