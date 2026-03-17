@@ -11,7 +11,7 @@ class VehicleStatusScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehiclesAsync = ref.watch(vehiclesProvider);
+    final vehiclesAsync = ref.watch(teamVehiclesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -23,7 +23,7 @@ class VehicleStatusScreen extends ConsumerWidget {
         ),
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.refresh(vehiclesProvider.future),
+        onRefresh: () => ref.refresh(teamVehiclesProvider.future),
         child: vehiclesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
@@ -46,9 +46,38 @@ class VehicleStatusScreen extends ConsumerWidget {
             ),
           ),
           data: (vehicles) {
-            final available = vehicles.where((v) => v.status == 0).length;
-            final inUse = vehicles.where((v) => v.status == 1).length;
-            final maintenance = vehicles.where((v) => v.status == 2).length;
+            if (vehicles.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.directions_boat_outlined,
+                      size: 56,
+                      color: AppColors.darkTextMuted.withValues(alpha: 0.4),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Chưa có phương tiện nào được phân công',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Điều phối viên chưa chỉ định phương tiện\ncho các nhiệm vụ của đội bạn.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.darkTextMuted,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            final available = vehicles.where((v) => v.statusId == 1).length;
+            final inUse = vehicles.where((v) => v.statusId == 2).length;
+            final maintenance = vehicles.where((v) => v.statusId == 3).length;
 
             return Column(
               children: [
@@ -171,12 +200,12 @@ class _VehicleCard extends StatelessWidget {
   const _VehicleCard({required this.vehicle});
 
   Color _statusColor() {
-    switch (vehicle.status) {
-      case 0:
-        return AppColors.emerald;
+    switch (vehicle.statusId) {
       case 1:
-        return AppColors.amber;
+        return AppColors.emerald;
       case 2:
+        return AppColors.amber;
+      case 3:
         return AppColors.red;
       default:
         return AppColors.darkTextMuted;
