@@ -13,7 +13,7 @@ namespace Services.Interface
 
         Task<IEnumerable<VehicleAssignmentDTO>?> GetVehicleAssignmentByMissionId(int id);
         Task<VehicleAssignmentDTO?> CreateAssignVehicle(VehicleAssignmentDTO dto);
-        Task<bool> ReleseAssignVehicle(VehicleAssignmentDTO dto);
+        Task<bool> ReleseAssignVehicle(int id);
         #endregion
 
         #region Vehicle

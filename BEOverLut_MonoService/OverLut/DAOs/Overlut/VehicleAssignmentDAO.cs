@@ -98,6 +98,25 @@ public class VehicleAssignmentDAO
         }
     }
 
+    public async Task<bool> ReleasedVehicleAssignmentByVehicleId(int vehicleId)
+    {
+        try
+        {
+            
+            var vehicleAssignment = await _db.VehicleAssignments.FirstOrDefaultAsync(x => x.VehicleId == vehicleId && x.ReleasedAt == null);
+            if (vehicleAssignment == null)
+                throw new Exception("VehicleAssignment not found");
+            vehicleAssignment.ReleasedAt = DateTime.UtcNow;
+            _db.VehicleAssignments.Update(vehicleAssignment);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"VehicleAssignmentDAO-ReleasedVehicleAssignmentById: {ex.Message}");
+            return false;
+        }
+    }
     public async Task<bool> DeleteVehicleAssignmentById(int missionId, int vehicleId)
     {
         try

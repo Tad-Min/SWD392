@@ -103,7 +103,7 @@ namespace WebApi.Controllers
                 if (existingAssignment == null)
                     return NotFound(new { message = $"Assignment with ID {id} not found" });
 
-                var result = await _vehicleService.ReleseAssignVehicle(existingAssignment);
+                var result = await _vehicleService.ReleseAssignVehicle(id);
                 if (!result)
                     return BadRequest(new { message = "Failed to release vehicle assignment" });
 
