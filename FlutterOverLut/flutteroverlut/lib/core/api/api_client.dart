@@ -8,7 +8,7 @@ class ApiConfig {
 
   static String get baseUrl {
     // Android emulator: 10.0.2.2 maps to host machine's localhost.
-    // Backend is now running on port 5000.
+    // Backend is running on port 5000.
     return 'http://10.0.2.2:5000/api/';
   }
 

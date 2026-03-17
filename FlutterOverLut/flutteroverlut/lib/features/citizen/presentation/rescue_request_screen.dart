@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -25,6 +26,27 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   final _phoneController = TextEditingController();
   final _peopleController = TextEditingController();
   bool _isSubmitting = false;
+
+  // ── GPS state ──
+  double? _currentLat;
+  double? _currentLng;
+  bool _isLocating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill phone from user profile after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final profile = await ref.read(userProfileProvider.future);
+        if (mounted && profile?.phone != null && profile!.phone!.isNotEmpty) {
+          setState(() => _phoneController.text = profile.phone!);
+        }
+      } catch (_) {
+        // Ignore API failures — user can manually type phone
+      }
+    });
+  }
 
   // ── Question 1: Vulnerable people ──
   bool? _hasVulnerable; // null = chưa chọn
@@ -98,6 +120,44 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     super.dispose();
   }
 
+  /// Fetch GPS coordinates and reverse-geocode to an address string.
+  Future<void> _fetchGps() async {
+    setState(() => _isLocating = true);
+    try {
+      final svc = ref.read(locationServiceProvider);
+      final result = await svc.getCurrentLocation();
+      setState(() {
+        _currentLat = result.latitude;
+        _currentLng = result.longitude;
+        if (result.address != null && result.address!.isNotEmpty) {
+          _locationController.text = result.address!;
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '✅ Vị trí: ${result.latitude.toStringAsFixed(5)}, ${result.longitude.toStringAsFixed(5)}',
+            ),
+            backgroundColor: AppColors.emerald,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ $e'),
+            backgroundColor: AppColors.amber,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -123,7 +183,12 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         locationText: _locationController.text.trim(),
       );
 
-      await api.createRescueRequest(request.toCreateJson());
+      await api.createRescueRequest(
+        request.toCreateJson(
+          latitude: _currentLat,
+          longitude: _currentLng,
+        ),
+      );
 
       // Refresh the requests list
       ref.invalidate(rescueRequestsProvider);
@@ -176,15 +241,81 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
               _buildSOSHeader(isDark),
               const SizedBox(height: 24),
 
-              // ── Location ──
-              AppTextField(
-                label: 'Vị trí hiện tại',
-                hint: 'VD: 123 Nguyễn Văn Linh, Quận 7',
-                controller: _locationController,
-                prefixIcon: Icons.location_on_outlined,
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Vui lòng nhập vị trí' : null,
+              // ── Location with GPS button ──
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      label: 'Vị trí hiện tại',
+                      hint: 'VD: 123 Nguyễn Văn Linh, Quận 7',
+                      controller: _locationController,
+                      prefixIcon: Icons.location_on_outlined,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Vui lòng nhập vị trí' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 22),
+                    child: Tooltip(
+                      message: 'Lấy vị trí GPS tự động',
+                      child: Material(
+                        color: _currentLat != null
+                            ? AppColors.emerald.withValues(alpha: 0.15)
+                            : AppColors.blue.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: _isLocating ? null : _fetchGps,
+                          child: Container(
+                            width: 52,
+                            height: 52,
+                            alignment: Alignment.center,
+                            child: _isLocating
+                                ? SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: AppColors.blue,
+                                    ),
+                                  )
+                                : Icon(
+                                    _currentLat != null
+                                        ? Icons.my_location_rounded
+                                        : Icons.gps_fixed_rounded,
+                                    color: _currentLat != null
+                                        ? AppColors.emerald
+                                        : AppColors.blue,
+                                    size: 24,
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              if (_currentLat != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 4),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          size: 12, color: AppColors.emerald),
+                      const SizedBox(width: 4),
+                      Text(
+                        'GPS: ${_currentLat!.toStringAsFixed(4)}°N, ${_currentLng!.toStringAsFixed(4)}°E',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.emerald,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 16),
 
               // ── Phone ──

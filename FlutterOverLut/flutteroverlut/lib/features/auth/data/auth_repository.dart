@@ -96,10 +96,16 @@ class AuthRepository {
   /// Parse DioException into user-friendly error message.
   /// Handles .NET validation errors like the web does.
   String _handleDioError(DioException e) {
+    final statusCode = e.response?.statusCode;
     final data = e.response?.data;
 
+    // Handle plain string response (e.g., "User not found!")
+    if (data is String && data.isNotEmpty) {
+      return data;
+    }
+
     if (data is Map<String, dynamic>) {
-      // .NET validation errors
+      // .NET validation errors: { "errors": { "Email": ["..."] } }
       if (data.containsKey('errors')) {
         final errors = data['errors'] as Map<String, dynamic>;
         final firstKey = errors.keys.first;
@@ -108,10 +114,25 @@ class AuthRepository {
           return list.first.toString();
         }
       }
-      // Simple message
-      if (data.containsKey('message')) {
-        return data['message'].toString();
+      // Simple message or ProblemDetails (title/detail/message keys)
+      for (final key in ['message', 'title', 'detail']) {
+        if (data.containsKey(key) && data[key] != null) {
+          return data[key].toString();
+        }
       }
+    }
+
+    switch (statusCode) {
+      case 400:
+        return 'Thông tin đăng nhập không hợp lệ.';
+      case 401:
+        return 'Sai email hoặc mật khẩu.';
+      case 403:
+        return 'Bạn không có quyền truy cập.';
+      case 404:
+        return 'Không tìm thấy tài khoản.';
+      case 500:
+        return 'Lỗi máy chủ. Vui lòng thử lại sau.';
     }
 
     switch (e.type) {
@@ -121,7 +142,8 @@ class AuthRepository {
       case DioExceptionType.connectionError:
         return 'Không thể kết nối đến máy chủ.';
       default:
-        return e.message ?? 'Đã xảy ra lỗi. Vui lòng thử lại.';
+        return 'Đã xảy ra lỗi. Vui lòng thử lại.';
     }
   }
 }
+

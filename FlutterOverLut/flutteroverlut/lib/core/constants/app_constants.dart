@@ -71,7 +71,7 @@ class ApiEndpoints {
 
   // Users
   static const String users = 'User';
-  static const String userById = 'User/GetById'; // + /{id}
+  static const String userById = 'User'; // + /{id}
   static const String userRole = 'User/role';
 
   // Rescue Missions
