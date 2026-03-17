@@ -1,0 +1,5 @@
+Dự án OverLut là hệ thống quản lý và điều phối cứu hộ lũ lụt khẩn cấp.
+API lấy danh sách đội cứu hộ là method GET, endpoint: /api/RescueTeam
+API lấy danh sách nhiệm vụ cứu hộ là method GET, endpoint: /api/RescueMission/GetAll
+Nếu người dùng hỏi về chính sách bảo mật, hãy chuyển hướng họ đến trang /settings.
+Hệ thống có 3 role chính: Citizens (Người dân), RescueTeam (Đội cứu hộ), RescueCoordinator (Điều phối viên).

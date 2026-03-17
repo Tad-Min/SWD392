@@ -15,6 +15,7 @@ import AdminDashboard from './page/admin/AdminDashboard.jsx';
 import UserManagement from './page/admin/UserManagement.jsx';
 import SystemConfig from './page/admin/SystemConfig.jsx';
 import AdminProductManagement from './page/admin/AdminProductManagement.jsx';
+
 // Import Manager layout & pages
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
@@ -32,6 +33,8 @@ import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
 
 // Import RescueTeam
 import RescueTeam from './page/RescueTeam/RescueTeam.jsx';
+
+import ChatBot from './components/ChatBot.jsx';
 
 function App() {
 
@@ -79,6 +82,7 @@ function App() {
               <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>
+          <ChatBot />
         </Router>
       </ClickSpark>
     </>

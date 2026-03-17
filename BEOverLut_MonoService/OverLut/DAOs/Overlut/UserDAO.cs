@@ -78,6 +78,7 @@ public class UserDAO
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
             user.CreatedAt = DateTime.UtcNow;
+            user.IsActive = true;
             await _db.Users.AddAsync(user);
             await _db.SaveChangesAsync();
             return user;

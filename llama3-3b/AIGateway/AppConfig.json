@@ -1,8 +1,9 @@
 {
     "DomainSettings": {
         "FontEnd": "http://localhost:3000",
-        "BackEnd": "http://localhost:5000"
-    },
+        "BackEnd": "http://localhost:5000",
+        "OllamaHost": "http://localhost:11434"
+    },  
     "FontEndSettings": {
         "Login": { "path": "/", "Authorize": [] },
         "Register": { "path": "/Register", "Authorize": [] },

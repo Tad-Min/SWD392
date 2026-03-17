@@ -3,3 +3,5 @@ uvicorn
 requests
 ollama
 pydantic
+chromadb
+sentence-transformers
