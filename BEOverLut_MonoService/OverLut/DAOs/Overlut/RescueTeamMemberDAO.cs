@@ -1,4 +1,4 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 
@@ -16,6 +16,7 @@ public class RescueTeamMemberDAO
         {
             
             return await _db.RescueTeamMembers
+                .Include(x => x.User)
                 .Where(x => x.TeamId == teamId)
                 .ToListAsync();
         }

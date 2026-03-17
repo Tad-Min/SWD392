@@ -7,8 +7,9 @@ class ApiConfig {
   ApiConfig._();
 
   static String get baseUrl {
-    // Hardcode 10.0.2.2 for Android Emulator temporary to ensure it works
-    return 'http://10.0.2.2:5015/api/';
+    // Android emulator: 10.0.2.2 maps to host machine's localhost.
+    // Backend is now running on port 5000.
+    return 'http://10.0.2.2:5000/api/';
   }
 
   static const Duration connectTimeout = Duration(seconds: 15);

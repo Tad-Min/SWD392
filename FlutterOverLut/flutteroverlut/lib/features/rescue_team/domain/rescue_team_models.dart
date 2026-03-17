@@ -106,14 +106,14 @@ class VehicleModel {
   String? get licensePlate => vehicleCode;
   int? get status => statusId;
 
-  /// Human-readable status label.
+  /// Human-readable status label (API statusId is 1-based).
   String get statusLabel {
     switch (statusId) {
-      case 0:
-        return 'Sẵn sàng';
       case 1:
-        return 'Đang sử dụng';
+        return 'Sẵn sàng';
       case 2:
+        return 'Đang sử dụng';
+      case 3:
         return 'Bảo trì';
       default:
         return 'Không rõ';
@@ -132,6 +132,34 @@ class VehicleModel {
       default:
         return 'Phương tiện #$vehicleType';
     }
+  }
+}
+
+/// Vehicle assignment linking a vehicle to a mission.
+class VehicleAssignmentModel {
+  final int? missionId;
+  final int? vehicleId;
+  final DateTime? assignedAt;
+  final DateTime? releasedAt;
+
+  const VehicleAssignmentModel({
+    this.missionId,
+    this.vehicleId,
+    this.assignedAt,
+    this.releasedAt,
+  });
+
+  factory VehicleAssignmentModel.fromJson(Map<String, dynamic> json) {
+    return VehicleAssignmentModel(
+      missionId: json['missionId'] as int?,
+      vehicleId: json['vehicleId'] as int?,
+      assignedAt: json['assignedAt'] == null
+          ? null
+          : DateTime.tryParse(json['assignedAt'].toString()),
+      releasedAt: json['releasedAt'] == null
+          ? null
+          : DateTime.tryParse(json['releasedAt'].toString()),
+    );
   }
 }
 
@@ -159,9 +187,22 @@ class TeamMemberModel {
       userId: json['userId'] as int?,
       teamId: json['teamId'] as int?,
       roleId: json['roleId'] as int? ?? user?['roleId'] as int?,
-      fullName: user?['fullName'] as String?,
-      email: user?['email'] as String?,
-      phone: user?['phone'] as String?,
+      fullName: json['fullName'] as String? ?? user?['fullName'] as String?,
+      email: json['email'] as String? ?? user?['email'] as String?,
+      phone: json['phone'] as String? ?? user?['phone'] as String?,
+    );
+  }
+
+  /// Parse a FLAT DTO where fullName/email/phone are top-level fields
+  /// (returned by GetRescueTeamMembersByTeamId with .Include(User)).
+  factory TeamMemberModel.fromFlatJson(Map<String, dynamic> json) {
+    return TeamMemberModel(
+      userId: json['userId'] as int?,
+      teamId: json['teamId'] as int?,
+      roleId: json['roleId'] as int?,
+      fullName: json['fullName'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
     );
   }
 
