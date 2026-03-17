@@ -211,7 +211,10 @@ namespace DTOs
             {
                 UserId = entity.UserId,
                 TeamId = entity.TeamId,
-                RoleId = entity.RoleId
+                RoleId = entity.RoleId,
+                FullName = entity.User?.FullName,
+                Email = entity.User?.Email,
+                Phone = entity.User?.Phone
             };
         }
 

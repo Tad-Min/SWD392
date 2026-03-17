@@ -91,10 +91,14 @@ class ApiEndpoints {
   // Rescue Teams
   static const String rescueTeams = 'RescueTeam';
   static const String rescueTeamById = 'RescueTeam'; // + /{id}
+  static const String rescueTeamByUserId = 'RescueTeam/GetRescueTeamByUserId'; // + /{userId}
+  static const String rescueTeamMembersByTeamId = 'RescueTeam/GetRescueTeamMembersByTeamId'; // + /{teamId}
 
-  // Vehicles
-  static const String vehicles = 'Vehicle';
+  // Vehicles — base is 'Vehicle', actual vehicle list is 'Vehicle/Vehicle'
+  static const String vehicleAll = 'Vehicle/Vehicle'; // GET all vehicles
+  static const String vehicleById = 'Vehicle/Vehicle'; // + /{id}
   static const String vehicleAssign = 'Vehicle/AssignVehicle';
+  static const String vehicleAssignByMission = 'Vehicle/AssignVehicle/MissionId'; // + /{missionId}
 
   // Status
   static const String statusVehicles = 'Status/Vehicles';
