@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRescueRequestByUserId } from '../../features/Rescue/hook/useRescueRequest';
+import { useRescueRequestStatus } from '../../features/status/hook/useRescueRequestStatus';
 import TaskBar from '../../components/TaskBar';
 
 function RescueHistory() {
     const { getRescueRequestByUserId, loading, error } = useRescueRequestByUserId();
+    const { getRescueRequestStatus } = useRescueRequestStatus();
     const [history, setHistory] = useState([]);
+    const [statusMapAPI, setStatusMapAPI] = useState({});
     const userId = localStorage.getItem('userId');
     const isDarkMode = true;
 
@@ -17,6 +20,19 @@ function RescueHistory() {
                 })
                 .catch(err => console.error(err));
         }
+
+        getRescueRequestStatus()
+            .then(data => {
+                const statusList = Array.isArray(data) ? data : (data?.data ?? []);
+                const map = {};
+                statusList.forEach(s => {
+                    const id = s.id || s.rescueRequestsStatusId || s.rescueRequestStatusId || s.statusId || s.Id;
+                    const name = s.statusName || s.name || s.StatusName || s.Name;
+                    if (id != null && name) map[id] = name;
+                });
+                setStatusMapAPI(map);
+            })
+            .catch(err => console.error(err));
     }, [userId]);
 
     const theme = {
@@ -37,11 +53,15 @@ function RescueHistory() {
 
     const statusMap = {
         'New': { label: 'Mới', class: 'bg-blue-500/20 text-blue-400' },
+        'Verified': { label: 'Đã xác minh', class: 'bg-indigo-500/20 text-indigo-400' },
         'Assigned': { label: 'Đã phân công', class: 'bg-yellow-500/20 text-yellow-400' },
+        'EnRoute': { label: 'Đang di chuyển', class: 'bg-orange-500/20 text-orange-400' },
+        'OnSite': { label: 'Tại hiện trường', class: 'bg-cyan-500/20 text-cyan-400' },
         'In Progress': { label: 'Đang xử lý', class: 'bg-cyan-500/20 text-cyan-400' },
         'Resolved': { label: 'Đã giải quyết', class: 'bg-green-500/20 text-green-400' },
         'Completed': { label: 'Hoàn thành', class: 'bg-green-600/20 text-green-500' },
-        'Cancelled': { label: 'Đã hủy', class: 'bg-red-500/20 text-red-400' }
+        'Cancelled': { label: 'Đã hủy', class: 'bg-red-500/20 text-red-400' },
+        'DuplicateMerged': { label: 'Bị trùng', class: 'bg-slate-500/20 text-slate-400' }
     };
 
     const getVal = (obj, keys, defaultVal = '') => {
@@ -115,7 +135,7 @@ function RescueHistory() {
                                             </tr>
                                         ) : (
                                             history.map((req, idx) => {
-                                                const fullName = getVal(req, ['fullName', 'FullName', 'userName', 'UserName', 'requesterName']) || req?.user?.fullName || req?.User?.FullName || 'Chưa rõ';
+                                                const reqUserId = getVal(req, ['userId', 'UserId', 'user_id']) || userId || 'Chưa rõ';
                                                 const urgency = getVal(req, ['urgencyLevel', 'UrgencyLevel'], 1);
                                                 const status = getVal(req, ['status', 'Status'], 'New');
                                                 const peopleCount = getVal(req, ['peopleCount', 'PeopleCount'], 1);
@@ -124,11 +144,12 @@ function RescueHistory() {
                                                 const createdAt = getVal(req, ['createdAt', 'CreatedAt', 'created_at']);
 
                                                 const urgInfo = urgencyMeta[urgency] || urgencyMeta[1];
-                                                const statusInfo = statusMap[status] || { label: status, class: 'bg-gray-500/20 text-gray-400' };
+                                                let statusName = statusMapAPI[status] || status;
+                                                const statusInfo = statusMap[statusName] || { label: statusName, class: 'bg-gray-500/20 text-gray-400' };
 
                                                 return (
                                                     <tr key={req.id || req.Id || idx} className={`border-b border-white/5 transition-colors ${theme.tableRow}`}>
-                                                        <td className="p-4 text-sm font-medium">{fullName}</td>
+                                                        <td className="p-4 text-sm font-medium">{reqUserId}</td>
                                                         <td className="p-4 text-sm">
                                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${urgInfo.color}`}>
                                                                 {urgInfo.label}

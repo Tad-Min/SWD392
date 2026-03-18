@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import Profile from './page/profile/Profile.jsx';
 import RescueHistory from './page/citizens/RescueHistory.jsx';
+import About from './page/citizens/About.jsx';
 
 // Import Test pages
 import TestSocket from './page/testsocket/TestSocket.jsx';
@@ -60,6 +61,8 @@ function App() {
             {/* RescueCoordinator Routes */}
             <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
 
+            {/* About Page */}
+            <Route path="/about" element={<About />} />
 
             {/* Test Routes */}
             <Route path="/testsocket" element={<TestSocket />} />

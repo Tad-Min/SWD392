@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 // Role display names
@@ -13,6 +13,7 @@ const ROLE_NAMES = {
 
 function TaskBar({ isDarkMode = true }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -75,34 +76,46 @@ function TaskBar({ isDarkMode = true }) {
       <div className="h-[56px] w-full" aria-hidden="true"></div>
       <div className={`fixed top-4 left-4 right-4 sm:left-6 sm:right-6 mx-auto max-w-5xl ${barBg} border ${barBorder} ${glassEffect} rounded-full z-50 transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0 pointer-events-none'}`}>
         <div className="flex items-center justify-between px-2 py-2">
-          {/* Left side - Logo */}
-          <div
-            className={`${btnBase} ${btnHover}`}
-            onClick={() => {
-              const homeRoutes = {
-                1: '/Citizens',
-                2: '/RescueTeam',
-                3: '/RescueCoordinator',
-                4: '/manager',
-                5: '/admin'
-              };
-              navigate(homeRoutes[roleId] || '/Citizens');
-            }}
-          >
-            <div className="relative w-10 h-10 bg-[#1c2638] rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.15)] z-10 flex-shrink-0">
-              <svg className="w-5 h-5 text-[#22d3ee]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.69l5.66 5.66a8 8 0 11-11.32 0z" />
-                <path d="M9.5 16a3.5 3.5 0 003.5 1.5" fill="none" stroke="#1c2638" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
+          {/* Left side - Logo & Links */}
+          <div className="flex items-center gap-2">
+            <div
+              className={`${btnBase} ${btnHover}`}
+              onClick={() => {
+                const homeRoutes = {
+                  1: '/Citizens',
+                  2: '/RescueTeam',
+                  3: '/RescueCoordinator',
+                  4: '/manager',
+                  5: '/admin'
+                };
+                navigate(homeRoutes[roleId] || '/Citizens');
+              }}
+            >
+              <div className="relative w-10 h-10 bg-[#1c2638] rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.15)] z-10 flex-shrink-0">
+                <svg className="w-5 h-5 text-[#22d3ee]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 11-11.32 0z" />
+                  <path d="M9.5 16a3.5 3.5 0 003.5 1.5" fill="none" stroke="#1c2638" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="flex flex-col ml-2">
+                <h1 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} leading-tight transition-colors`}>
+                  Cứu Hộ Lũ Lụt
+                </h1>
+                <p className={`text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-slate-500'} font-medium transition-colors`}>
+                  Chúng tôi luôn sẵn sàng
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col ml-2">
-              <h1 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} leading-tight transition-colors`}>
-                Cứu Hộ Lũ Lụt
-              </h1>
-              <p className={`text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-slate-500'} font-medium transition-colors`}>
-                Chúng tôi luôn sẵn sàng
-              </p>
-            </div>
+
+            {/* About Link */}
+            {!location.pathname.toLowerCase().includes('/rescuecoordinator') && (
+              <div
+                className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer text-sm font-semibold ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-black'}`}
+                onClick={() => navigate('/about')}
+              >
+                <span>Về chúng tôi</span>
+              </div>
+            )}
           </div>
 
           {/* Right side - User icon with Dropdown */}
