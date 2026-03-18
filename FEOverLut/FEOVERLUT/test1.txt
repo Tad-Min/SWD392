@@ -1,7 +1,0 @@
-Types/Vehicles: vehicleTypeId, typeName, isDeleted
-Types/RescueRequests: rescueRequestsTypeId, typeName, isDeleted
-Status/Vehicles: vehiclesStatusId, statusName, isDeleted
-Status/RescueTeams: rescueTeamsStatusId, statusName, isDeleted
-Status/RescueRequests: rescueRequestsStatusId, statusName, isDeleted
-Status/RescueMissions: rescueMissionsStatusId, statusName, isDeleted
-UrgencyLevel: urgencyLevelId, urgencyName, isDeleted, rescueRequests
