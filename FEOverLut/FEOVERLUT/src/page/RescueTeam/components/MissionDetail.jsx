@@ -273,8 +273,8 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme, onMissionUpdate })
         ) {
             hasAutoTransitioned.current.enroute = true;
             (async () => {
-                // Mission: Assigned(1) → EnRoute(2), Request: Assigned → EnRoute(2)
-                const success = await updateBothStatuses(2, 2);
+                // Mission: Assigned(1) → EnRoute(2), Request: Assigned(3) → EnRoute(4)
+                const success = await updateBothStatuses(2, 4);
                 if (success) {
                     setCurrentStatusId(2);
                     toast.success('Trạng thái: Đang di chuyển đến vị trí cứu hộ');
@@ -300,8 +300,8 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme, onMissionUpdate })
         if (distance <= ARRIVAL_THRESHOLD_METERS) {
             hasAutoTransitioned.current.rescuing = true;
             (async () => {
-                // Mission: EnRoute(2) → Rescuing(3), Request: EnRoute → OnSite(3)
-                const success = await updateBothStatuses(3, 3);
+                // Mission: EnRoute(2) → Rescuing(3), Request: EnRoute(4) → OnSite(5)
+                const success = await updateBothStatuses(3, 5);
                 if (success) {
                     setCurrentStatusId(3);
                     toast.success('🎯 Đã đến nơi! Trạng thái: Đang cứu hộ');
@@ -313,8 +313,8 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme, onMissionUpdate })
     // ── Manual final status handlers ─────────────────────────────────────
     const handleComplete = async () => {
         if (updating) return;
-        // Mission: → Completed(4), Request: → Resolved(4)
-        const success = await updateBothStatuses(4, 4);
+        // Mission: → Completed(4), Request: → Resolved(6)
+        const success = await updateBothStatuses(4, 6);
         if (success) {
             setCurrentStatusId(4);
             setIsNavigating(false);
@@ -347,8 +347,8 @@ const MissionDetail = ({ mission, onBack, teamIdLabel, theme, onMissionUpdate })
 
     const handleFailed = async () => {
         if (updating) return;
-        // Mission: → Failed(5), Request: → Cancelled(5)
-        const success = await updateBothStatuses(5, 5);
+        // Mission: → Failed(5), Request: → Cancelled(7)
+        const success = await updateBothStatuses(5, 7);
         if (success) {
             setCurrentStatusId(5);
             setIsFailed(true);

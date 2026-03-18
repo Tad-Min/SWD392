@@ -95,7 +95,25 @@ export default function RescueCoordinator() {
     }, []);
 
     // Dispatch handler
-    const handleDispatch = (request) => setDispatchTarget(request);
+    const handleDispatch = async (request) => {
+        setDispatchTarget(request);
+        const currentStatus = request.status ?? request.statusId;
+        if (!currentStatus || currentStatus === 1) {
+            try {
+                await updateRescueRequest(request.id ?? request.rescueRequestId, {
+                    ...request,
+                    status: 2 // Verified
+                });
+                setRequests(prev => prev.map(r =>
+                    (r.id ?? r.rescueRequestId) === (request.id ?? request.rescueRequestId)
+                        ? { ...r, status: 2 }
+                        : r
+                ));
+            } catch (err) {
+                console.error('Failed to auto-update request to Verified:', err);
+            }
+        }
+    };
 
     const handleConfirmDispatch = async (missionData) => {
         try {
