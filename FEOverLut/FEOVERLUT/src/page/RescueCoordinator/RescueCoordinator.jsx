@@ -9,16 +9,18 @@ import DispatchModal from './components/DispatchModal';
 import MissionManagerModal from './components/MissionManagerModal';
 import { Briefcase } from 'lucide-react';
 
-import { useRescueRequest, useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
+import { useRealtimeRescueRequests } from '../useRealtimeRescueRequests.jsx';
+import { useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
 import { useCreateAssignVehicle } from '../../features/Vehicle/hook/useAssignVehicle';
 import { useRescueRequestStatus } from '../../features/status/hook/useRescueRequestStatus';
-import { getUserByIdApi } from '../../features/users/api/usersApi';
 
 export default function RescueCoordinator() {
-    const { getRescueRequest } = useRescueRequest();
+    // 🔴 Realtime rescue requests — auto-polls every 10s + WebSocket + toast notifications
+    const { requests, setRequests, userMap } = useRealtimeRescueRequests();
+
     const { updateRescueRequest } = useUpdateRescueRequest();
     const { getRescueTeam } = useRescueTeam();
     const { updateRescueTeam } = useUpdateRescueTeam();
@@ -28,43 +30,15 @@ export default function RescueCoordinator() {
     const { createAssignVehicle } = useCreateAssignVehicle();
     const { getRescueRequestStatus } = useRescueRequestStatus();
 
-    const [requests, setRequests] = useState([]);
     const [teams, setTeams] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [dispatchTarget, setDispatchTarget] = useState(null);
-    const [userMap, setUserMap] = useState({});
     const [requestStatusMap, setRequestStatusMap] = useState({});
     const [isMissionModalOpen, setIsMissionModalOpen] = useState(false);
 
-    // Fetch data from API on mount
+    // Fetch teams, vehicles, statuses on mount
     useEffect(() => {
         (async () => {
-            try {
-                const reqData = await getRescueRequest();
-                const reqs = reqData ?? [];
-                setRequests(reqs);
-
-                // Fetch user info for each unique userReqId
-                const uniqueUserIds = [...new Set(reqs.map((r) => r.userReqId).filter(Boolean))];
-                const newMap = {};
-                await Promise.all(
-                    uniqueUserIds.map(async (uid) => {
-                        try {
-                            const res = await getUserByIdApi(uid);
-                            const user = res?.data ?? res;
-                            if (user) {
-                                newMap[uid] = user.fullName || user.userName || user.email || 'Người dân';
-                            }
-                        } catch (err) {
-                            console.error(`Failed to fetch user ${uid}:`, err);
-                        }
-                    })
-                );
-                setUserMap(newMap);
-            } catch (err) {
-                console.error('Failed to fetch rescue requests:', err);
-                setRequests([]);
-            }
             try {
                 const teamData = await getRescueTeam();
                 setTeams(teamData ?? []);
