@@ -28,7 +28,8 @@ function Login() {
             navigate(roleHomeMap[roleId] || '/Citizens');
             toast.success('Đăng nhập thành công');
         } catch (error) {
-            toast.error(error);
+            toast.error("Sai tài khoản hoặc mật khẩu");
+            console.log(error);
         }
     };
 
