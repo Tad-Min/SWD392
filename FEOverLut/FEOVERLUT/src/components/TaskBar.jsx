@@ -116,6 +116,16 @@ function TaskBar({ isDarkMode = true }) {
                 <span>Về chúng tôi</span>
               </div>
             )}
+
+            {/* Contract Link - Citizens only */}
+            {roleId === 1 && (
+              <div
+                className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer text-sm font-semibold ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-black'}`}
+                onClick={() => navigate('/contract')}
+              >
+                <span>Hợp đồng</span>
+              </div>
+            )}
           </div>
 
           {/* Right side - User icon with Dropdown */}
