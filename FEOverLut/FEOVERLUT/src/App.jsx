@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Profile from './page/profile/Profile.jsx';
 import RescueHistory from './page/citizens/RescueHistory.jsx';
 import About from './page/citizens/About.jsx';
+import Contract from './page/citizens/Contract.jsx';
 
 // Import Test pages
 import TestSocket from './page/testsocket/TestSocket.jsx';
@@ -54,6 +55,7 @@ function App() {
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
             <Route path="/rescue-history" element={<ProtectedRoute><RescueHistory /></ProtectedRoute>} />
+            <Route path="/contract" element={<ProtectedRoute allowedRoles={[1]}><Contract /></ProtectedRoute>} />
             {/* Profile Route */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* RescueTeam Routes */}
