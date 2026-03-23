@@ -167,9 +167,9 @@ function Login() {
                                 <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} transition-colors duration-500`}>
                                     Mật khẩu
                                 </label>
-                                <a href="#" className="text-xs font-semibold text-cyan-500 hover:text-cyan-400 transition-colors">
+                                {/* <a href="#" className="text-xs font-semibold text-cyan-500 hover:text-cyan-400 transition-colors">
                                     Quên mật khẩu?
-                                </a>
+                                </a> */}
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

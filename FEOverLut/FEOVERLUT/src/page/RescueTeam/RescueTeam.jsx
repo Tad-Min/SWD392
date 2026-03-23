@@ -6,8 +6,8 @@ import TeamInfo from './components/TeamInfo';
 import MyProfileModal from '../../components/MyProfileModal';
 import NotificationBell from '../../components/NotificationBell';
 import { useRescueTeamById, useGetRescueTeamMemberByTeamId, useGetRescueTeamMemberRoleById } from '../../features/Rescue/hook/useRescueTeam';
-import { useGetRescueMissionByTeamId } from '../../features/Rescue/hook/useRescueMission';
 import { useUserById } from '../../features/users/hook/useUsers';
+import { useRealtimeRescueMissions } from './WebSocket/useRealtimeRescueMissions.jsx';
 
 const RescueTeam = () => {
     // State for navigation
@@ -40,20 +40,24 @@ const RescueTeam = () => {
     // Team data state
     const [teamData, setTeamData] = useState(null); // { teamId, teamName, statusId, ... }
     const [teamMembers, setTeamMembers] = useState([]); // [{ userId, teamId, roleId, userName, roleName }]
-    const [missions, setMissions] = useState([]);
-    const [dataLoading, setDataLoading] = useState(true);
+    const [resolvedTeamId, setResolvedTeamId] = useState(null);
+    const [teamLoading, setTeamLoading] = useState(true);
+
+    // Realtime missions hook – automatically polls & listens for new assignments
+    const { missions, setMissions, loading: missionsLoading, refetch: refetchMissions } = useRealtimeRescueMissions(resolvedTeamId);
+
+    const dataLoading = teamLoading || missionsLoading;
 
     // Hooks
     const { getRescueTeamById } = useRescueTeamById();
     const { getRescueTeamMemberByTeamId } = useGetRescueTeamMemberByTeamId();
     const { getRescueTeamMemberRoleById } = useGetRescueTeamMemberRoleById();
     const { getUserById } = useUserById();
-    const { getRescueMissionByTeamId } = useGetRescueMissionByTeamId();
 
     useEffect(() => {
         const fetchTeamData = async () => {
             try {
-                setDataLoading(true);
+                setTeamLoading(true);
                 const userId = localStorage.getItem('userId');
                 if (!userId) return;
 
@@ -103,31 +107,16 @@ const RescueTeam = () => {
 
                 setTeamMembers(enriched);
 
-                // Step 4: Fetch missions for the team
-                console.log('--- DEBUG TEAM ---', team);
+                // Step 4: Set the resolved team ID so the realtime hook kicks in
                 const actualTeamId = team.teamId || team.id || team[0]?.teamId || team[0]?.id;
-                console.log('--- DEBUG actualTeamId ---', actualTeamId);
-
                 if (actualTeamId) {
-                    const missionData = await getRescueMissionByTeamId(actualTeamId);
-                    console.log('--- DEBUG missionData ---', missionData);
-                    if (missionData && missionData.$values) {
-                        setMissions(missionData.$values);
-                    } else if (missionData && missionData.data) {
-                        setMissions(missionData.data);
-                    } else if (Array.isArray(missionData)) {
-                        setMissions(missionData);
-                    } else if (missionData && Array.isArray(missionData.result)) {
-                        setMissions(missionData.result);
-                    } else {
-                        console.warn("Could not extract missions array from:", missionData);
-                    }
+                    setResolvedTeamId(actualTeamId);
                 }
 
             } catch (err) {
                 console.error('Error fetching team data:', err);
             } finally {
-                setDataLoading(false);
+                setTeamLoading(false);
             }
         };
 
