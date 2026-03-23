@@ -188,7 +188,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Storage */}
-                <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm group`}>
+                {/* <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 shadow-sm group`}>
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-fuchsia-500/10 text-fuchsia-500 rounded-xl group-hover:scale-110 transition-transform">
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
                     </div>
                     <h4 className={`text-3xl font-bold ${theme.text}`}>3.2<span className="text-lg">GB</span></h4>
                     <p className={`text-[13px] font-medium ${theme.textMuted} mt-1`}>Overlut_Storage Database</p>
-                </div>
+                </div> */}
             </div>
 
             {/* Charts Section */}
