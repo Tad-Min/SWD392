@@ -1,0 +1,189 @@
+{
+    "DomainSettings": {
+        "FontEnd": "http://localhost:3000",
+        "BackEnd": "http://localhost:5000",
+        "OllamaHost": "http://localhost:11434"
+    },  
+    "FontEndSettings": {
+        "Login": { "path": "/", "Authorize": [] },
+        "Register": { "path": "/Register", "Authorize": [] },
+        "Citizens": { "path": "/Citizens", "Authorize": [1] },
+        "RescueHistory": { "path": "/rescue-history", "Authorize": [1] },
+        "Profile": { "path": "/profile", "Authorize": [1, 2, 3, 4, 5] },
+        "About": { "path": "/about", "Authorize": [] },
+        "RescueTeam": { "path": "/RescueTeam", "Authorize": [2] },
+        "RescueCoordinator": { "path": "/RescueCoordinator", "Authorize": [3] },
+        "TestSocket": { "path": "/testsocket", "Authorize": [] },
+        "TestAttachment": { "path": "/testattachment", "Authorize": [] },
+        "AdminLayout": { "path": "/admin", "Authorize": [5] },
+        "AdminDashboard": { "path": "/admin/dashboard", "Authorize": [5] },
+        "UserManagement": { "path": "/admin/users", "Authorize": [5] },
+        "AdminProductManagement": { "path": "/admin/products", "Authorize": [5] },
+        "SystemConfig": { "path": "/admin/settings", "Authorize": [5] },
+        "ManagerLayout": { "path": "/manager", "Authorize": [4] },
+        "ManagerDashboard": { "path": "/manager/dashboard", "Authorize": [4] },
+        "InventoryManagement": { "path": "/manager/inventory", "Authorize": [4] },
+        "WarehouseConfig": { "path": "/manager/warehouses", "Authorize": [4] },
+        "TransactionHistory": { "path": "/manager/transactions", "Authorize": [4] },
+        "DistributionTracking": { "path": "/manager/distribution", "Authorize": [4] },
+        "ProductManagement": { "path": "/manager/products", "Authorize": [4] },
+        "RescueTeamManagement": { "path": "/manager/rescue-teams", "Authorize": [4] },
+        "VehicleManagement": { "path": "/manager/vehicles", "Authorize": [4] },
+        "ManagerReports": { "path": "/manager/reports", "Authorize": [4] }
+    },
+    "BackendSettings": {
+        "AuthAPI": {
+            "register": { "path": "/api/Auth/Register", "method": "POST", "Authorize": [] },
+            "login": { "path": "/api/Auth/login", "method": "POST", "Authorize": [] },
+            "logout": { "path": "/api/Auth/Logout", "method": "POST", "Authorize": [] },
+            "getAccessToken": { "path": "/api/Auth/GetAccessToken", "method": "POST", "Authorize": [] }
+        },
+        "AttachmentAPI": {
+            "getAll": { "path": "/api/Attachment", "method": "GET", "Authorize": [1, 2, 3, 4, 5] },
+            "create": { "path": "/api/Attachment", "method": "POST", "Authorize": [1, 2, 3, 4, 5] },
+            "getById": { "path": "/api/Attachment/{id}", "method": "GET", "Authorize": [1, 2, 3, 4, 5] },
+            "update": { "path": "/api/Attachment/{id}", "method": "PUT", "Authorize": [1, 2, 3, 4, 5] },
+            "delete": { "path": "/api/Attachment/{id}", "method": "DELETE", "Authorize": [5] },
+            "createRescue": { "path": "/api/Attachment/rescue/create-attachment", "method": "POST", "Authorize": [1, 2, 3] },
+            "createMission": { "path": "/api/Attachment/mission/create-attachment", "method": "POST", "Authorize": [2, 3] },
+            "chunk": { "path": "/api/Attachment/chunk", "method": "POST", "Authorize": [1, 2, 3, 4, 5] },
+            "getByRescueId": { "path": "/api/Attachment/rescue/{rescueId}", "method": "GET", "Authorize": [1, 2, 3] },
+            "getByMissionId": { "path": "/api/Attachment/mission/{missionId}", "method": "GET", "Authorize": [2, 3] }
+        },
+        "CategoryAPI": {
+            "getAll": { "path": "/api/Category", "method": "GET", "Authorize": [4, 5] },
+            "create": { "path": "/api/Category", "method": "POST", "Authorize": [4, 5] },
+            "getById": { "path": "/api/Category/{id}", "method": "GET", "Authorize": [4, 5] },
+            "update": { "path": "/api/Category/{id}", "method": "PUT", "Authorize": [4, 5] },
+            "delete": { "path": "/api/Category/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "InventoryTransactionAPI": {
+            "getAll": { "path": "/api/InventoryTransaction", "method": "GET", "Authorize": [4, 5] },
+            "create": { "path": "/api/InventoryTransaction", "method": "POST", "Authorize": [4] },
+            "getById": { "path": "/api/InventoryTransaction/{id}", "method": "GET", "Authorize": [4, 5] }
+        },
+        "LogsAPI": {
+            "getRescueRequest": { "path": "/api/Logs/rescue-request", "method": "GET", "Authorize": [3, 5] },
+            "getRescueRequestById": { "path": "/api/Logs/rescue-request/{requestId}", "method": "GET", "Authorize": [3, 5] },
+            "getMission": { "path": "/api/Logs/mission", "method": "GET", "Authorize": [3, 5] },
+            "getMissionById": { "path": "/api/Logs/mission/{missionId}", "method": "GET", "Authorize": [3, 5] }
+        },
+        "ProductAPI": {
+            "getAll": { "path": "/api/Product", "method": "GET", "Authorize": [4, 5] },
+            "create": { "path": "/api/Product", "method": "POST", "Authorize": [4, 5] },
+            "getById": { "path": "/api/Product/{id}", "method": "GET", "Authorize": [4, 5] },
+            "update": { "path": "/api/Product/{id}", "method": "PUT", "Authorize": [4, 5] },
+            "delete": { "path": "/api/Product/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "RescueMissionAPI": {
+            "getAll": { "path": "/api/RescueMission/GetAll", "method": "GET", "Authorize": [2, 3, 5] },
+            "getByTeamId": { "path": "/api/RescueMission/GetByTeamId/{id}", "method": "GET", "Authorize": [2, 3] },
+            "getById": { "path": "/api/RescueMission/GetById/{id}", "method": "GET", "Authorize": [2, 3] },
+            "add": { "path": "/api/RescueMission/Add", "method": "POST", "Authorize": [3] },
+            "update": { "path": "/api/RescueMission/Update", "method": "PUT", "Authorize": [2, 3] }
+        },
+        "RescueRequestAPI": {
+            "getAll": { "path": "/api/RescueRequest/GetAll", "method": "GET", "Authorize": [3, 5] },
+            "getById": { "path": "/api/RescueRequest/GetById/{id}", "method": "GET", "Authorize": [1, 3, 5] },
+            "add": { "path": "/api/RescueRequest/Add", "method": "POST", "Authorize": [1] },
+            "update": { "path": "/api/RescueRequest/Update/{id}", "method": "PUT", "Authorize": [3] },
+            "updateLocation": { "path": "/api/RescueRequest/UpdateLocation/{id}", "method": "PATCH", "Authorize": [1] }
+        },
+        "RescueTeamAPI": {
+            "getAll": { "path": "/api/RescueTeam", "method": "GET", "Authorize": [3, 4, 5] },
+            "create": { "path": "/api/RescueTeam", "method": "POST", "Authorize": [4, 5] },
+            "getById": { "path": "/api/RescueTeam/{id}", "method": "GET", "Authorize": [2, 3, 4, 5] },
+            "update": { "path": "/api/RescueTeam/{id}", "method": "PUT", "Authorize": [4, 5] },
+            "delete": { "path": "/api/RescueTeam/{id}", "method": "DELETE", "Authorize": [5] },
+            "getByUserId": { "path": "/api/RescueTeam/GetRescueTeamByUserId/{id}", "method": "GET", "Authorize": [2, 3, 4] },
+            "getMembersByTeamId": { "path": "/api/RescueTeam/GetRescueTeamMembersByTeamId/{id}", "method": "GET", "Authorize": [2, 3, 4] },
+            "getMembersByUserAndTeamId": { "path": "/api/RescueTeam/GetRescueTeamMembersByUserIdAndTeamId/{userId}_{teamId}", "method": "GET", "Authorize": [2, 3, 4] },
+            "addMember": { "path": "/api/RescueTeam/RescueTeamMember", "method": "POST", "Authorize": [4, 5] },
+            "removeMember": { "path": "/api/RescueTeam/RescueTeamMember", "method": "DELETE", "Authorize": [4, 5] }
+        },
+        "RolesAPI": {
+            "getUserRoles": { "path": "/api/Roles/UserRole", "method": "GET", "Authorize": [5] },
+            "addUserRole": { "path": "/api/Roles/UserRole", "method": "POST", "Authorize": [5] },
+            "getUserRoleById": { "path": "/api/Roles/UserRole/{id}", "method": "GET", "Authorize": [5] },
+            "updateUserRole": { "path": "/api/Roles/UserRole/{id}", "method": "PUT", "Authorize": [5] },
+            "deleteUserRole": { "path": "/api/Roles/UserRole/{id}", "method": "DELETE", "Authorize": [5] },
+            "getRescueMemberRoles": { "path": "/api/Roles/RescueMemberRole", "method": "GET", "Authorize": [4, 5] },
+            "addRescueMemberRole": { "path": "/api/Roles/RescueMemberRole", "method": "POST", "Authorize": [5] },
+            "getRescueMemberRoleById": { "path": "/api/Roles/RescueMemberRole/{id}", "method": "GET", "Authorize": [4, 5] },
+            "updateRescueMemberRole": { "path": "/api/Roles/RescueMemberRole/{id}", "method": "PUT", "Authorize": [5] },
+            "deleteRescueMemberRole": { "path": "/api/Roles/RescueMemberRole/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "StatusAPI": {
+            "getRescueMissions": { "path": "/api/Status/RescueMissions", "method": "GET", "Authorize": [2, 3, 5] },
+            "addRescueMissions": { "path": "/api/Status/RescueMissions", "method": "POST", "Authorize": [5] },
+            "updateRescueMissions": { "path": "/api/Status/RescueMissions", "method": "PUT", "Authorize": [5] },
+            "getRescueMissionsById": { "path": "/api/Status/RescueMissions/{id}", "method": "GET", "Authorize": [2, 3, 5] },
+            "deleteRescueMissions": { "path": "/api/Status/RescueMissions/{id}", "method": "DELETE", "Authorize": [5] },
+            "getRescueRequests": { "path": "/api/Status/RescueRequests", "method": "GET", "Authorize": [1, 3, 5] },
+            "addRescueRequests": { "path": "/api/Status/RescueRequests", "method": "POST", "Authorize": [5] },
+            "updateRescueRequests": { "path": "/api/Status/RescueRequests", "method": "PUT", "Authorize": [5] },
+            "getRescueRequestsById": { "path": "/api/Status/RescueRequests/{id}", "method": "GET", "Authorize": [1, 3, 5] },
+            "deleteRescueRequests": { "path": "/api/Status/RescueRequests/{id}", "method": "DELETE", "Authorize": [5] },
+            "getRescueTeams": { "path": "/api/Status/RescueTeams", "method": "GET", "Authorize": [2, 3, 4, 5] },
+            "addRescueTeams": { "path": "/api/Status/RescueTeams", "method": "POST", "Authorize": [5] },
+            "updateRescueTeams": { "path": "/api/Status/RescueTeams", "method": "PUT", "Authorize": [5] },
+            "getRescueTeamsById": { "path": "/api/Status/RescueTeams/{id}", "method": "GET", "Authorize": [2, 3, 4, 5] },
+            "deleteRescueTeams": { "path": "/api/Status/RescueTeams/{id}", "method": "DELETE", "Authorize": [5] },
+            "getVehicles": { "path": "/api/Status/Vehicles", "method": "GET", "Authorize": [3, 4, 5] },
+            "addVehicles": { "path": "/api/Status/Vehicles", "method": "POST", "Authorize": [5] },
+            "updateVehicles": { "path": "/api/Status/Vehicles", "method": "PUT", "Authorize": [5] },
+            "getVehiclesById": { "path": "/api/Status/Vehicles/{id}", "method": "GET", "Authorize": [3, 4, 5] },
+            "deleteVehicles": { "path": "/api/Status/Vehicles/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "TypesAPI": {
+            "getRescueRequests": { "path": "/api/Types/RescueRequests", "method": "GET", "Authorize": [1, 3, 5] },
+            "addRescueRequests": { "path": "/api/Types/RescueRequests", "method": "POST", "Authorize": [5] },
+            "updateRescueRequests": { "path": "/api/Types/RescueRequests", "method": "PUT", "Authorize": [5] },
+            "getRescueRequestsById": { "path": "/api/Types/RescueRequests/{id}", "method": "GET", "Authorize": [1, 3, 5] },
+            "deleteRescueRequests": { "path": "/api/Types/RescueRequests/{id}", "method": "DELETE", "Authorize": [5] },
+            "getVehicles": { "path": "/api/Types/Vehicles", "method": "GET", "Authorize": [3, 4, 5] },
+            "addVehicles": { "path": "/api/Types/Vehicles", "method": "POST", "Authorize": [5] },
+            "updateVehicles": { "path": "/api/Types/Vehicles", "method": "PUT", "Authorize": [5] },
+            "getVehiclesById": { "path": "/api/Types/Vehicles/{id}", "method": "GET", "Authorize": [3, 4, 5] },
+            "deleteVehicles": { "path": "/api/Types/Vehicles/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "UrgencyLevelAPI": {
+            "getAll": { "path": "/api/UrgencyLevel", "method": "GET", "Authorize": [1, 3, 5] },
+            "create": { "path": "/api/UrgencyLevel", "method": "POST", "Authorize": [5] },
+            "getById": { "path": "/api/UrgencyLevel/{id}", "method": "GET", "Authorize": [1, 3, 5] },
+            "update": { "path": "/api/UrgencyLevel/{id}", "method": "PUT", "Authorize": [5] },
+            "delete": { "path": "/api/UrgencyLevel/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "UserAPI": {
+            "getAll": { "path": "/api/User", "method": "GET", "Authorize": [5] },
+            "update": { "path": "/api/User", "method": "PUT", "Authorize": [1, 2, 3, 4, 5] },
+            "getById": { "path": "/api/User/{id}", "method": "GET", "Authorize": [1, 2, 3, 4, 5] },
+            "delete": { "path": "/api/User/{id}", "method": "DELETE", "Authorize": [5] },
+            "getByEmail": { "path": "/api/User/email/{email}", "method": "GET", "Authorize": [5] },
+            "updateRole": { "path": "/api/User/role", "method": "PUT", "Authorize": [5] }
+        },
+        "VehicleAPI": {
+            "getAssignVehicle": { "path": "/api/Vehicle/AssignVehicle", "method": "GET", "Authorize": [3, 4, 5] },
+            "addAssignVehicle": { "path": "/api/Vehicle/AssignVehicle", "method": "POST", "Authorize": [3] },
+            "getAssignVehicleById": { "path": "/api/Vehicle/AssignVehicle/{id}", "method": "GET", "Authorize": [3, 4, 5] },
+            "getAssignVehicleByMissionId": { "path": "/api/Vehicle/AssignVehicle/MissionId/{id}", "method": "GET", "Authorize": [2, 3, 4] },
+            "releaseVehicle": { "path": "/api/Vehicle/AssignVehicle/Release{id}", "method": "PUT", "Authorize": [3, 4] },
+            "getVehicle": { "path": "/api/Vehicle/Vehicle", "method": "GET", "Authorize": [3, 4, 5] },
+            "addVehicle": { "path": "/api/Vehicle/Vehicle", "method": "POST", "Authorize": [4, 5] },
+            "getVehicleById": { "path": "/api/Vehicle/Vehicle/{id}", "method": "GET", "Authorize": [3, 4, 5] },
+            "updateVehicle": { "path": "/api/Vehicle/Vehicle/{id}", "method": "PUT", "Authorize": [4, 5] },
+            "deleteVehicle": { "path": "/api/Vehicle/Vehicle/{id}", "method": "DELETE", "Authorize": [5] }
+        },
+        "WareHouseAPI": {
+            "getAll": { "path": "/api/WareHouse", "method": "GET", "Authorize": [4, 5] },
+            "create": { "path": "/api/WareHouse", "method": "POST", "Authorize": [4, 5] },
+            "getById": { "path": "/api/WareHouse/{id}", "method": "GET", "Authorize": [4, 5] },
+            "update": { "path": "/api/WareHouse/{id}", "method": "PUT", "Authorize": [4, 5] },
+            "delete": { "path": "/api/WareHouse/{id}", "method": "DELETE", "Authorize": [5] },
+            "getStock": { "path": "/api/WareHouse/Stock", "method": "GET", "Authorize": [4, 5] },
+            "addStock": { "path": "/api/WareHouse/Stock", "method": "POST", "Authorize": [4] },
+            "updateStock": { "path": "/api/WareHouse/Stock", "method": "PUT", "Authorize": [4] },
+            "deleteStock": { "path": "/api/WareHouse/Stock/{warehouseId}/{productId}", "method": "DELETE", "Authorize": [4, 5] }
+        }
+    }
+}

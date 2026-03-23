@@ -24,6 +24,8 @@ namespace Repositories.Overlut
 
         public async Task<bool> UpdateVehicleAssignment(VehicleAssignment vehicleAssignment) => await _vehicleAssignmentDAO.UpdateVehicleAssignment(vehicleAssignment);
 
+        public async Task<bool> ReleasedVehicleAssignmentByVehicleId(int vehicleId) => await _vehicleAssignmentDAO.ReleasedVehicleAssignmentByVehicleId(vehicleId);
+
         public async Task<bool> DeleteVehicleAssignment(int missionId, int vehicleId) => await _vehicleAssignmentDAO.DeleteVehicleAssignmentById(missionId, vehicleId);
         
         public async Task<bool> IsVehicleRelease(int vehicleId) => await _vehicleAssignmentDAO.IsVehicleRelease(vehicleId);

@@ -142,6 +142,23 @@ const RescueTeam = () => {
         ? `MÃ ĐỘI: ${teamData.teamName || 'Team'}-${teamData.teamId || teamData.id || '01'}`
         : 'MÃ ĐỘI: RT-ALPHA-01';
 
+    const updateMissionStatus = (missionId, newStatusId) => {
+        setMissions(prevMissions => prevMissions.map(m => {
+            const id = m.missionId || m.MissionId || m.id || m.rescueMissionId;
+            if (id === missionId) {
+                return { ...m, statusId: newStatusId, StatusId: newStatusId };
+            }
+            return m;
+        }));
+
+        if (selectedMission) {
+            const id = selectedMission.missionId || selectedMission.MissionId || selectedMission.id || selectedMission.rescueMissionId;
+            if (id === missionId) {
+                setSelectedMission({ ...selectedMission, statusId: newStatusId, StatusId: newStatusId });
+            }
+        }
+    };
+
     // Render content based on active tab and selected mission
     const renderContent = () => {
         if (activeTab === 'missions') {
@@ -152,6 +169,7 @@ const RescueTeam = () => {
                         onBack={() => setSelectedMission(null)}
                         teamIdLabel={teamIdLabel}
                         theme={theme}
+                        onMissionUpdate={updateMissionStatus}
                     />
                 );
             }

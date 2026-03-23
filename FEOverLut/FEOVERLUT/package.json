@@ -12,7 +12,10 @@
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@tailwindcss/vite": "^4.1.18",
+    "@use-gesture/react": "^10.3.1",
+    "all": "^0.0.0",
     "axios": "^1.13.6",
+    "framer-motion": "^12.38.0",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
@@ -28,6 +31,7 @@
     "recharts": "^3.7.0",
     "tailwindcss": "^4.1.18",
     "toast": "^0.5.4",
+    "use-gesture": "^1.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

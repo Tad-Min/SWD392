@@ -17,5 +17,5 @@ export const createAssignVehicleApi = (data) => {
 }
 
 export const updateAssignVehicleApi = (id) => {
-    return api.put(`Vehicle/AssignVehicle/Release/${id}`);
+    return api.put(`Vehicle/AssignVehicle/Release${id}`);
 }

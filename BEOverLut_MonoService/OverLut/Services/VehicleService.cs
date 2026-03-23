@@ -50,10 +50,10 @@ namespace Services
             return MappingHandle.EntityToDTO(await _vehicleAssignmentRepository.AddVehicleAssignment(MappingHandle.DTOToEntity(dto)!));
         }
 
-        public async Task<bool> ReleseAssignVehicle(VehicleAssignmentDTO dto)
+        public async Task<bool> ReleseAssignVehicle(int id)
         {
-            dto.ReleasedAt = DateTime.UtcNow;
-            return await _vehicleAssignmentRepository.UpdateVehicleAssignment(MappingHandle.DTOToEntity(dto)!);
+            
+            return await _vehicleAssignmentRepository.ReleasedVehicleAssignmentByVehicleId(id);
         }
         #endregion
 

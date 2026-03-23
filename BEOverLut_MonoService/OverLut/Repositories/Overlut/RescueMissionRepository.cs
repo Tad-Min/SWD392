@@ -18,6 +18,7 @@ namespace Repositories.Overlut
         }
         public async Task<IEnumerable<RescueMission>?> GetAllRescueMission(int? missionId, int? rescueRequestId, int? coordinatorUserId, int? teamId, int? statusId, string? description) => await _rescueMissionDAO.GetAllRescueMission(missionId, rescueRequestId, coordinatorUserId, teamId, statusId, description);
 
+        public async Task<RescueMission?> GetRescueMissionById(int id) => await _rescueMissionDAO.GetRescueMissionById(id);
         public async Task<RescueMission?> CreateRescueMission(RescueMission mission) => await _rescueMissionDAO.CreateRescueMission(mission);
 
         public async Task<bool> UpdateRescueMission(RescueMission mission) => await _rescueMissionDAO.UpdateRescueMission(mission);

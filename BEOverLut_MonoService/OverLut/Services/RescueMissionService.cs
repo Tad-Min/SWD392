@@ -75,39 +75,31 @@ namespace Services
 
         public Task<RescueMission?> GetRescueMissionByIdAsync(int id)
         {
-
-            return _rescueMissionRepository.GetAllRescueMission(id, null, null, null, null, null)
-                .ContinueWith(t => t.Result?.FirstOrDefault());
+            return _rescueMissionRepository.GetRescueMissionById(id);
         }
 
-        public async Task<bool> UpdateRescueMissionAsync(RescueMission rescueMission, int updatedByUserId)
+        public async Task<bool> UpdateRescueMissionAsync(RescueMissionDTO rescueMission, int updatedByUserId, int rescueMissionId)
         {
             // Need to get old mission for log
-            var oldMissions = await _rescueMissionRepository.GetAllRescueMission(rescueMission.MissionId, null, null, null, null, null);
-            var oldMission = oldMissions?.FirstOrDefault();
-            
-            if (oldMission == null) return false;
+            var oldMissions = await _rescueMissionRepository.GetRescueMissionById(rescueMissionId);
+            if (oldMissions == null) return false;
 
-            string oldData = JsonSerializer.Serialize(oldMission);
+            string oldData = JsonSerializer.Serialize(MappingHandle.EntityToDTO(oldMissions));
 
-            
-            oldMission.StatusId = rescueMission.StatusId;
-            oldMission.Description = rescueMission.Description;
-            oldMission.TeamId = rescueMission.TeamId;
-
-            var result = await _rescueMissionRepository.UpdateRescueMission(oldMission);
-            
-            if (result)
+            var log = new MissionLog
             {
-                var log = new MissionLog
-                {
-                    MissionId = rescueMission.MissionId,
-                    OldRescueMissions = oldData,
-                    ChangedByUserId = updatedByUserId,
-                    ChangedAt = DateTime.UtcNow
-                };
-                await _missionLogRepository.AddMissionLog(log);
-            }
+                MissionId = rescueMission.MissionId,
+                OldRescueMissions = oldData,
+                ChangedByUserId = updatedByUserId,
+                ChangedAt = DateTime.UtcNow
+            };
+            await _missionLogRepository.AddMissionLog(log);
+            oldMissions.RescueRequestId = rescueMission.RescueRequestId;
+            oldMissions.StatusId = rescueMission.StatusId;
+            oldMissions.Description = rescueMission.Description;
+            oldMissions.TeamId = rescueMission.TeamId;
+
+            var result = await _rescueMissionRepository.UpdateRescueMission(oldMissions);
 
             return result;
         }

@@ -9,60 +9,36 @@ import DispatchModal from './components/DispatchModal';
 import MissionManagerModal from './components/MissionManagerModal';
 import { Briefcase } from 'lucide-react';
 
-import { useRescueRequest, useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
+import { useRealtimeRescueRequests } from '../useRealtimeRescueRequests.jsx';
+import { useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
+import { useCreateAssignVehicle } from '../../features/Vehicle/hook/useAssignVehicle';
 import { useRescueRequestStatus } from '../../features/status/hook/useRescueRequestStatus';
-import { getUserByIdApi } from '../../features/users/api/usersApi';
 
 export default function RescueCoordinator() {
-    const { getRescueRequest } = useRescueRequest();
+    // 🔴 Realtime rescue requests — auto-polls every 10s + WebSocket + toast notifications
+    const { requests, setRequests, userMap } = useRealtimeRescueRequests();
+
     const { updateRescueRequest } = useUpdateRescueRequest();
     const { getRescueTeam } = useRescueTeam();
     const { updateRescueTeam } = useUpdateRescueTeam();
     const { loading: missionLoading, createRescueMission } = useCreateRescueMission();
     const { fetchVehicle } = useVehicle();
     const { updateVehicle } = useUpdateVehicle();
+    const { createAssignVehicle } = useCreateAssignVehicle();
     const { getRescueRequestStatus } = useRescueRequestStatus();
 
-    const [requests, setRequests] = useState([]);
     const [teams, setTeams] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [dispatchTarget, setDispatchTarget] = useState(null);
-    const [userMap, setUserMap] = useState({});
     const [requestStatusMap, setRequestStatusMap] = useState({});
     const [isMissionModalOpen, setIsMissionModalOpen] = useState(false);
 
-    // Fetch data from API on mount
+    // Fetch teams, vehicles, statuses on mount
     useEffect(() => {
         (async () => {
-            try {
-                const reqData = await getRescueRequest();
-                const reqs = reqData ?? [];
-                setRequests(reqs);
-
-                // Fetch user info for each unique userReqId
-                const uniqueUserIds = [...new Set(reqs.map((r) => r.userReqId).filter(Boolean))];
-                const newMap = {};
-                await Promise.all(
-                    uniqueUserIds.map(async (uid) => {
-                        try {
-                            const res = await getUserByIdApi(uid);
-                            const user = res?.data ?? res;
-                            if (user) {
-                                newMap[uid] = user.fullName || user.userName || user.email || 'Người dân';
-                            }
-                        } catch (err) {
-                            console.error(`Failed to fetch user ${uid}:`, err);
-                        }
-                    })
-                );
-                setUserMap(newMap);
-            } catch (err) {
-                console.error('Failed to fetch rescue requests:', err);
-                setRequests([]);
-            }
             try {
                 const teamData = await getRescueTeam();
                 setTeams(teamData ?? []);
@@ -93,13 +69,33 @@ export default function RescueCoordinator() {
     }, []);
 
     // Dispatch handler
-    const handleDispatch = (request) => setDispatchTarget(request);
+    const handleDispatch = async (request) => {
+        setDispatchTarget(request);
+        const currentStatus = request.status ?? request.statusId;
+        if (!currentStatus || currentStatus === 1) {
+            try {
+                await updateRescueRequest(request.id ?? request.rescueRequestId, {
+                    ...request,
+                    status: 2 // Verified
+                });
+                setRequests(prev => prev.map(r =>
+                    (r.id ?? r.rescueRequestId) === (request.id ?? request.rescueRequestId)
+                        ? { ...r, status: 2 }
+                        : r
+                ));
+            } catch (err) {
+                console.error('Failed to auto-update request to Verified:', err);
+            }
+        }
+    };
 
     const handleConfirmDispatch = async (missionData) => {
         try {
             const { rescueRequestId, teamId, vehicleId, description } = missionData;
             const payload = { rescueRequestId, teamId, description };
-            await createRescueMission(payload);
+            const missionRes = await createRescueMission(payload);
+            console.log("Create Mission Response:", missionRes);
+            const missionId = missionRes?.data?.missionId ?? missionRes?.missionId ?? missionRes?.id ?? missionRes;
 
             // Update RescueRequest Status to Assigned (3)
             if (rescueRequestId) {
@@ -140,13 +136,18 @@ export default function RescueCoordinator() {
                     const vehicle = vehicles?.find(v => v.vehicleId === vehicleId);
                     if (vehicle) {
                         await updateVehicle(vehicleId, {
-                            vehicleId: vehicleId,
-                            vehicleCode: vehicle.vehicleCode,
-                            vehicleType: vehicle.vehicleType,
-                            capacity: vehicle.capacity,
+                            ...vehicle,
                             statusId: 2, // In Use
-                            note: vehicle.note ?? '',
                         });
+
+                        if (missionId) {
+                            await createAssignVehicle({
+                                missionId: missionId,
+                                vehicleId: vehicleId,
+                            });
+                        } else {
+                            console.warn('Cannot assign vehicle: missionId is missing from createRescueMission response', missionRes);
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to change vehicle status:', e?.response?.status, e?.response?.data, e);

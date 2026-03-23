@@ -5,6 +5,11 @@ import Register from './page/auth/Register.jsx'
 import ClickSpark from './components/ClickSpark.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
+import Profile from './page/profile/Profile.jsx';
+import RescueHistory from './page/citizens/RescueHistory.jsx';
+import About from './page/citizens/About.jsx';
+import Contract from './page/citizens/Contract.jsx';
+
 // Import Test pages
 import TestSocket from './page/testsocket/TestSocket.jsx';
 import TestAttachment from './page/testsocket/TestAttachment.jsx';
@@ -15,6 +20,7 @@ import AdminDashboard from './page/admin/AdminDashboard.jsx';
 import UserManagement from './page/admin/UserManagement.jsx';
 import SystemConfig from './page/admin/SystemConfig.jsx';
 import AdminProductManagement from './page/admin/AdminProductManagement.jsx';
+
 // Import Manager layout & pages
 import ManagerLayout from './components/ManagerLayout.jsx';
 import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
@@ -33,6 +39,8 @@ import RescueCoordinator from './page/RescueCoordinator/RescueCoordinator.jsx';
 // Import RescueTeam
 import RescueTeam from './page/RescueTeam/RescueTeam.jsx';
 
+import ChatBot from './components/ChatBot.jsx';
+
 function App() {
 
   return (
@@ -46,11 +54,17 @@ function App() {
 
             {/* Citizen Routes */}
             <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
+            <Route path="/rescue-history" element={<ProtectedRoute><RescueHistory /></ProtectedRoute>} />
+            <Route path="/contract" element={<ProtectedRoute allowedRoles={[1]}><Contract /></ProtectedRoute>} />
+            {/* Profile Route */}
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* RescueTeam Routes */}
             <Route path="/RescueTeam" element={<ProtectedRoute><RescueTeam /></ProtectedRoute>} />
             {/* RescueCoordinator Routes */}
             <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
 
+            {/* About Page */}
+            <Route path="/about" element={<About />} />
 
             {/* Test Routes */}
             <Route path="/testsocket" element={<TestSocket />} />
@@ -79,6 +93,7 @@ function App() {
               <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>
+          <ChatBot />
         </Router>
       </ClickSpark>
     </>

@@ -28,7 +28,8 @@ function Login() {
             navigate(roleHomeMap[roleId] || '/Citizens');
             toast.success('Đăng nhập thành công');
         } catch (error) {
-            toast.error(error);
+            toast.error("Sai tài khoản hoặc mật khẩu");
+            console.log(error);
         }
     };
 
@@ -217,7 +218,7 @@ function Login() {
                                 Chưa có tài khoản?{' '}
                             </span>
                             <a href="/Register" className="text-xs font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
-                                Đăng ký cứu trợ
+                                Đăng ký
                             </a>
                         </div>
                     </form>

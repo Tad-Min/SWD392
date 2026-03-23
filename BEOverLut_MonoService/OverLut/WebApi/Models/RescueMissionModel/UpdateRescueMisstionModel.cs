@@ -3,10 +3,7 @@
 namespace WebApi.Models.RescueMissionModel
 {
     public class UpdateRescueMisstionModel
-    {
-        [Required(ErrorMessage = "Must have MissionId")]
-        public int MissionId { get; set; }
-        
+    {        
         [Required(ErrorMessage = "Must have RescueRequestId")]
         public int RescueRequestId { get; set; }
         
