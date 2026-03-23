@@ -219,7 +219,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final urgency = _urgencyInfo;
 
     return Scaffold(
       appBar: AppBar(
@@ -449,9 +448,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
               ),
               const SizedBox(height: 24),
 
-              // ── Urgency Result ──
-              if (_allQuestionsAnswered) _buildUrgencyResult(isDark, urgency),
-
               const SizedBox(height: 24),
 
               // ── Submit ──
@@ -608,71 +604,8 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       ),
     );
   }
-
-  Widget _buildUrgencyResult(bool isDark, _UrgencyInfo info) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            info.color.withValues(alpha: 0.18),
-            info.color.withValues(alpha: 0.06),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: info.color.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(info.icon, color: info.color, size: 24),
-              const SizedBox(width: 10),
-              Text(
-                'Mức khẩn cấp:',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark
-                      ? AppColors.darkTextMuted
-                      : AppColors.lightTextMuted,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            info.label,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: info.color,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            info.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark
-                  ? AppColors.darkTextMuted
-                  : AppColors.lightTextMuted,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
+
 
 // ═══════════════════════════════════════════════════════════════════
 // ── Supporting Widgets ──
