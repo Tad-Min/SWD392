@@ -20,7 +20,8 @@ function Register() {
             navigate('/');
             toast.success('Đăng ký thành công');
         } catch (error) {
-            toast.error(error);
+            toast.error("Số điện thoại, mật khẩu hoặc email đã tồn tại");
+            console.log(error);
         }
     };
 

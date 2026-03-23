@@ -30,8 +30,11 @@ function Citizens() {
     const [checkingActive, setCheckingActive] = useState(true);
 
     // Statuses that mean the request is still being processed (not finished)
-    // 1=New, 2=Verified, 3=Assigned, 4=EnRoute, 5=OnSite, 6=InProgress
-    const ACTIVE_STATUSES = [1, 2, 3, 4, 5, 6];
+    // Numeric IDs: 1=New, 2=Verified, 3=Assigned, 4=EnRoute, 5=OnSite
+    const ACTIVE_STATUSES = [1, 2, 3, 4, 5];
+    // String names that mean the request is FINISHED (no longer active)
+    const FINISHED_STATUS_NAMES = ['resolved', 'completed', 'cancelled', 'duplicatemerged', 'failed',
+        'đã giải quyết', 'hoàn thành', 'đã hủy', 'bị trùng', 'thất bại'];
 
     const activeStatusLabels = {
         1: 'Mới gửi',
@@ -39,7 +42,6 @@ function Citizens() {
         3: 'Đã phân công',
         4: 'Đang di chuyển',
         5: 'Tại hiện trường',
-        6: 'Đang xử lý',
     };
 
     // Check if user has an active (unfinished) rescue request
@@ -55,8 +57,17 @@ function Citizens() {
             const arr = Array.isArray(requests) ? requests : [];
             // Find any request with an active status
             const active = arr.find(r => {
-                const status = r.status ?? r.statusId ?? r.Status;
-                return ACTIVE_STATUSES.includes(Number(status));
+                const statusRaw = r.status ?? r.statusId ?? r.Status;
+                // If it's a number (or numeric string), check against active IDs
+                const statusNum = Number(statusRaw);
+                if (!isNaN(statusNum) && statusNum > 0) {
+                    return ACTIVE_STATUSES.includes(statusNum);
+                }
+                // If it's a string name, check it's NOT a finished status
+                if (typeof statusRaw === 'string' && statusRaw.trim()) {
+                    return !FINISHED_STATUS_NAMES.includes(statusRaw.trim().toLowerCase());
+                }
+                return false;
             });
             setActiveRequest(active || null);
         } catch (err) {
@@ -360,7 +371,7 @@ function Citizens() {
                     {/* ═══════════ SOS Confirmation Modal ═══════════ */}
                     {showSOSModal && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
-                            <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl border overflow-y-auto max-h-[90vh] ${isDarkMode ? 'bg-[#1e253c] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+                            <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl border overflow-y-auto max-h-[90vh] custom-scrollbar ${isDarkMode ? 'bg-[#1e253c] border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
                                 {/* Header */}
                                 <div className="flex items-center gap-3 mb-5">
                                     <div className="w-11 h-11 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">

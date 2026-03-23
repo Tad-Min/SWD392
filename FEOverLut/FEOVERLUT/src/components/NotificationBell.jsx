@@ -109,6 +109,21 @@ const NotificationBell = ({ theme }) => {
         };
     }, []);
 
+    // Listen for mission notifications dispatched by useRealtimeRescueMissions
+    useEffect(() => {
+        const handleMissionNotification = (event) => {
+            const notif = event.detail;
+            if (notif) {
+                setNotifications(prev => [notif, ...prev]);
+                setUnreadCount(prev => prev + 1);
+            }
+        };
+        window.addEventListener('new-mission-notification', handleMissionNotification);
+        return () => {
+            window.removeEventListener('new-mission-notification', handleMissionNotification);
+        };
+    }, []);
+
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
         if (!isOpen && unreadCount > 0) {
