@@ -668,23 +668,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                   : AppColors.lightTextMuted,
             ),
           ),
-          const SizedBox(height: 10),
-          // Score detail
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: info.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Tổng điểm: $_urgencyScore',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: info.color,
-              ),
-            ),
-          ),
         ],
       ),
     );

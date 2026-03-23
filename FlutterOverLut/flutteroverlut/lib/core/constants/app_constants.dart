@@ -97,8 +97,10 @@ class ApiEndpoints {
   // Vehicles — base is 'Vehicle', actual vehicle list is 'Vehicle/Vehicle'
   static const String vehicleAll = 'Vehicle/Vehicle'; // GET all vehicles
   static const String vehicleById = 'Vehicle/Vehicle'; // + /{id}
+  static const String vehicleUpdate = 'Vehicle/Vehicle'; // PUT /{id}
   static const String vehicleAssign = 'Vehicle/AssignVehicle';
   static const String vehicleAssignByMission = 'Vehicle/AssignVehicle/MissionId'; // + /{missionId}
+  static const String vehicleAssignRelease = 'Vehicle/AssignVehicle/Release'; // PUT /{vehicleId}
 
   // Status
   static const String statusVehicles = 'Status/Vehicles';

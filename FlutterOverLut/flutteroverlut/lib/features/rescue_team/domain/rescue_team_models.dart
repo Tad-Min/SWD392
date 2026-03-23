@@ -38,17 +38,19 @@ class RescueMissionModel {
       ? '${description!.substring(0, 40)}...'
       : description;
 
-  /// Human-readable status label.
+  /// Human-readable status label (DB: 1=Assigned, 2=EnRoute, 3=Rescuing, 4=Completed, 5=Failed).
   String get statusLabel {
     switch (statusId) {
-      case 0:
-        return 'Chờ phân công';
       case 1:
-        return 'Đang thực hiện';
+        return 'Đã phân công';
       case 2:
-        return 'Hoàn thành';
+        return 'Đang di chuyển';
       case 3:
-        return 'Đã hủy';
+        return 'Đang cứu hộ';
+      case 4:
+        return 'Hoàn thành';
+      case 5:
+        return 'Thất bại';
       default:
         return 'Không rõ';
     }
@@ -62,12 +64,16 @@ class RescueMissionModel {
     return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
-  /// Time ago string.
+  /// Time ago string — backend stores UTC without 'Z' suffix, so we add it.
   String get timeAgo {
     if (assignedAt == null) return '';
-    final dt = DateTime.tryParse(assignedAt!);
+    // Append 'Z' so Dart parses as UTC → correct local-time diff
+    final raw = assignedAt!.contains('Z') || assignedAt!.contains('+')
+        ? assignedAt!
+        : '${assignedAt!}Z';
+    final dt = DateTime.tryParse(raw);
     if (dt == null) return '';
-    final diff = DateTime.now().difference(dt);
+    final diff = DateTime.now().difference(dt.toLocal());
     if (diff.inDays > 0) return '${diff.inDays} ngày trước';
     if (diff.inHours > 0) return '${diff.inHours} giờ trước';
     if (diff.inMinutes > 0) return '${diff.inMinutes} phút trước';

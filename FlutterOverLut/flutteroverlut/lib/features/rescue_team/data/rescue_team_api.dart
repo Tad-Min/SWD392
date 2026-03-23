@@ -48,6 +48,39 @@ class RescueTeamApi {
     await _client.dio.put(ApiEndpoints.rescueMissionUpdate, data: data);
   }
 
+  /// PUT RescueTeam/{teamId} — updates the team's StatusId.
+  /// e.g. statusId=1 (Available) when mission completes/fails.
+  Future<void> updateTeamStatus(int teamId, int statusId) async {
+    await _client.dio.put(
+      '${ApiEndpoints.rescueTeamById}/$teamId',
+      data: {'statusId': statusId},
+    );
+  }
+
+  /// PUT Vehicle/AssignVehicle/Release{vehicleId}
+  /// Sets ReleasedAt = now on the vehicle's active assignment record.
+  Future<void> releaseVehicleAssignment(int vehicleId) async {
+    await _client.dio.put(
+      '${ApiEndpoints.vehicleAssignRelease}$vehicleId',
+    );
+  }
+
+  /// PUT Vehicle/Vehicle/{vehicleId}
+  /// Updates vehicle status to Available (statusId=1) after mission ends.
+  /// Requires a full VehicleDTO — pass the existing vehicle so other fields stay unchanged.
+  Future<void> updateVehicleStatusToAvailable(VehicleModel vehicle) async {
+    await _client.dio.put(
+      '${ApiEndpoints.vehicleUpdate}/${vehicle.vehicleId}',
+      data: {
+        'vehicleId': vehicle.vehicleId,
+        'vehicleCode': vehicle.vehicleCode ?? '',
+        'vehicleType': vehicle.vehicleType ?? 1,
+        'capacity': vehicle.capacity,
+        'statusId': 1, // Available
+      },
+    );
+  }
+
   /// GET Vehicle/Vehicle — correct endpoint for all vehicles list.
   /// Response: {"value": [...], "Count": N}
   Future<List<VehicleModel>> getVehicles() async {

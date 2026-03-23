@@ -24,7 +24,7 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final missionsAsync = ref.watch(missionsProvider);
+    final missionsAsync = ref.watch(teamMissionsProvider);
     final id = int.tryParse(widget.missionId);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -51,7 +51,7 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
               const Text('Không thể tải dữ liệu'),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => ref.invalidate(missionsProvider),
+                onPressed: () => ref.invalidate(teamMissionsProvider),
                 child: const Text('Thử lại'),
               ),
             ],
@@ -137,8 +137,8 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // ── Update Status ──
-                if (mission.statusId != 2 && mission.statusId != 3) ...[
+                // Only show update section when mission is still active (not Completed=4 or Failed=5)
+                if (mission.statusId != 4 && mission.statusId != 5) ...[
                   const Text(
                     'Cập nhật trạng thái',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -148,27 +148,39 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (mission.statusId == 0)
+                      // Show EnRoute (2) only if currently Assigned (1)
+                      if (mission.statusId == 1)
                         _StatusChip(
-                          label: 'Bắt đầu thực hiện',
-                          statusValue: 1,
+                          label: 'Đang di chuyển',
+                          statusValue: 2,
                           color: AppColors.blue,
-                          selected: _newStatus == 1,
-                          onTap: () => setState(() => _newStatus = 1),
+                          selected: _newStatus == 2,
+                          onTap: () => setState(() => _newStatus = 2),
                         ),
+                      // Show Rescuing (3) if Assigned or EnRoute
+                      if ((mission.statusId ?? 0) <= 2)
+                        _StatusChip(
+                          label: 'Đang cứu hộ',
+                          statusValue: 3,
+                          color: AppColors.amber,
+                          selected: _newStatus == 3,
+                          onTap: () => setState(() => _newStatus = 3),
+                        ),
+                      // Completed (4) always available for active missions
                       _StatusChip(
                         label: 'Hoàn thành',
-                        statusValue: 2,
+                        statusValue: 4,
                         color: AppColors.emerald,
-                        selected: _newStatus == 2,
-                        onTap: () => setState(() => _newStatus = 2),
+                        selected: _newStatus == 4,
+                        onTap: () => setState(() => _newStatus = 4),
                       ),
+                      // Failed (5) always available for active missions
                       _StatusChip(
-                        label: 'Hủy bỏ',
-                        statusValue: 3,
+                        label: 'Thất bại',
+                        statusValue: 5,
                         color: AppColors.red,
-                        selected: _newStatus == 3,
-                        onTap: () => setState(() => _newStatus = 3),
+                        selected: _newStatus == 5,
+                        onTap: () => setState(() => _newStatus = 5),
                       ),
                     ],
                   ),
@@ -186,30 +198,18 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
                   ),
                 ],
 
-                if (mission.statusId == 2)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.emerald.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.emerald.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.check_circle, color: AppColors.emerald),
-                        SizedBox(width: 12),
-                        Text(
-                          'Nhiệm vụ đã hoàn thành',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.emerald,
-                          ),
-                        ),
-                      ],
-                    ),
+                // Show completed/failed footer
+                if (mission.statusId == 4)
+                  _buildFinishedBanner(
+                    color: AppColors.emerald,
+                    icon: Icons.check_circle,
+                    label: 'Nhiệm vụ đã hoàn thành',
+                  ),
+                if (mission.statusId == 5)
+                  _buildFinishedBanner(
+                    color: AppColors.red,
+                    icon: Icons.cancel,
+                    label: 'Nhiệm vụ thất bại',
                   ),
 
                 const SizedBox(height: 24),
@@ -227,6 +227,8 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
 
     try {
       final api = ref.read(rescueTeamApiProvider);
+
+      // 1. Update mission status
       await api.updateMission({
         'missionId': mission.missionId,
         'rescueRequestId': mission.rescueRequestId,
@@ -234,16 +236,73 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
         'statusId': _newStatus,
         'description': mission.description ?? '',
       });
-      ref.invalidate(missionsProvider);
+
+      // 2. If mission is Completed (4) or Failed (5):
+      //    • Release vehicle assignments (set ReleasedAt = now)
+      //    • Reset each vehicle status to Available (1)
+      if ((_newStatus == 4 || _newStatus == 5) && mission.missionId != null) {
+        try {
+          // Get all vehicles assigned to this mission
+          final assignments = await api.getVehicleAssignmentsByMissionId(
+            mission.missionId!,
+          );
+          final vehicleIds = assignments
+              .map((a) => a.vehicleId)
+              .whereType<int>()
+              .toSet();
+
+          if (vehicleIds.isNotEmpty) {
+            // Fetch vehicle details (needed for full VehicleDTO update)
+            final vehiclesFutures = vehicleIds.map(api.getVehicleById);
+            final vehicles = (await Future.wait(vehiclesFutures))
+                .whereType<VehicleModel>()
+                .toList();
+
+            // Release assignments + update vehicle status in parallel
+            await Future.wait([
+              // Release each vehicle assignment (set ReleasedAt)
+              ...vehicleIds.map(
+                (id) => api.releaseVehicleAssignment(id).catchError((_) {}),
+              ),
+              // Update each vehicle status to Available (1)
+              ...vehicles.map(
+                (v) => api
+                    .updateVehicleStatusToAvailable(v)
+                    .catchError((_) {}),
+              ),
+            ]);
+          }
+        } catch (_) {
+          // Vehicle release failure is non-critical
+        }
+
+        // Also set rescue team back to Available (statusId = 1)
+        if (mission.teamId != null) {
+          try {
+            await api.updateTeamStatus(mission.teamId!, 1);
+          } catch (_) {}
+        }
+      }
+
+
+      ref.invalidate(teamMissionsProvider);
 
       if (mounted) {
         setState(() => _isUpdating = false);
+        final statusName = _newStatus == 4 ? 'Hoàn thành' : 
+                           _newStatus == 5 ? 'Thất bại' :
+                           _newStatus == 2 ? 'Đang di chuyển' : 'Đang cứu hộ';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Đã cập nhật trạng thái nhiệm vụ #M-${mission.missionId?.toString().padLeft(3, '0')}',
+              'Đã cập nhật: #M-${mission.missionId?.toString().padLeft(3, '0')} → $statusName'
+              '${(_newStatus == 4 || _newStatus == 5) ? ' · Đội về trạng thái Sẵn sàng' : ''}',
             ),
-            backgroundColor: AppColors.emerald,
+            backgroundColor: _newStatus == 4
+                ? AppColors.emerald
+                : _newStatus == 5
+                    ? AppColors.red
+                    : AppColors.blue,
           ),
         );
         context.pop();
@@ -259,6 +318,33 @@ class _MissionDetailScreenState extends ConsumerState<MissionDetailScreen> {
         );
       }
     }
+  }
+
+
+  Widget _buildFinishedBanner({
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.w600, color: color),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _cardDivider(bool isDark) {
@@ -280,25 +366,31 @@ class _StatusBanner extends StatelessWidget {
     Color color;
     String label;
     IconData icon;
+    // DB: 1=Assigned, 2=EnRoute, 3=Rescuing, 4=Completed, 5=Failed
     switch (status) {
-      case 0:
-        color = AppColors.amber;
-        label = 'Chờ xử lý';
-        icon = Icons.pending_outlined;
-        break;
       case 1:
-        color = AppColors.blue;
-        label = 'Đang thực hiện';
-        icon = Icons.play_circle_outline;
+        color = AppColors.amber;
+        label = 'Đã phân công';
+        icon = Icons.assignment_outlined;
         break;
       case 2:
+        color = AppColors.blue;
+        label = 'Đang di chuyển';
+        icon = Icons.directions_run_rounded;
+        break;
+      case 3:
+        color = AppColors.cyan;
+        label = 'Đang cứu hộ';
+        icon = Icons.play_circle_outline;
+        break;
+      case 4:
         color = AppColors.emerald;
         label = 'Hoàn thành';
         icon = Icons.check_circle_outline;
         break;
-      case 3:
+      case 5:
         color = AppColors.red;
-        label = 'Hủy bỏ';
+        label = 'Thất bại';
         icon = Icons.cancel_outlined;
         break;
       default:

@@ -14,25 +14,28 @@ class RescueTeamHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final missionsAsync = ref.watch(missionsProvider);
+    final missionsAsync = ref.watch(teamMissionsProvider);
     final vehiclesAsync = ref.watch(vehiclesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Extract data for stats (empty lists if loading/error)
     final missions = missionsAsync.valueOrNull ?? [];
     final vehicles = vehiclesAsync.valueOrNull ?? [];
+    // Active: Assigned(1), EnRoute(2), Rescuing(3)
     final activeMissions = missions
-        .where((m) => m.status == 0 || m.status == 1)
+        .where((m) => m.statusId == 1 || m.statusId == 2 || m.statusId == 3)
         .toList();
-    final completedCount = missions.where((m) => m.status == 2).length;
-    final availableVehicles = vehicles.where((v) => v.status == 0).length;
+    // Completed(4)
+    final completedCount = missions.where((m) => m.statusId == 4).length;
+    // Vehicles: Available = statusId 1
+    final availableVehicles = vehicles.where((v) => v.statusId == 1).length;
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
             await Future.wait([
-              ref.refresh(missionsProvider.future),
+              ref.refresh(teamMissionsProvider.future),
               ref.refresh(vehiclesProvider.future),
             ]);
           },
@@ -235,11 +238,14 @@ class RescueTeamHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   data: (allMissions) {
+                    // Active: Assigned(1), EnRoute(2), Rescuing(3)
                     final active = allMissions
-                        .where((m) => m.status == 0 || m.status == 1)
+                        .where((m) => m.statusId == 1 || m.statusId == 2 || m.statusId == 3)
                         .toList();
+                    // Completed(4)
                     final completed = allMissions
-                        .where((m) => m.status == 2)
+                        .where((m) => m.statusId == 4)
+                        .take(3) // Show only the 3 most recent completed
                         .toList();
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

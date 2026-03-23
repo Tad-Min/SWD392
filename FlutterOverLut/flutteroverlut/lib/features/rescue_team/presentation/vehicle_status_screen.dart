@@ -39,7 +39,7 @@ class VehicleStatusScreen extends ConsumerWidget {
                 const Text('Không thể tải dữ liệu'),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => ref.invalidate(vehiclesProvider),
+                  onPressed: () => ref.invalidate(teamVehiclesProvider),
                   child: const Text('Thử lại'),
                 ),
               ],

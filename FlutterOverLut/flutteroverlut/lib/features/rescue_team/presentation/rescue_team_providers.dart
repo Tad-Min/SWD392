@@ -5,12 +5,22 @@ import '../domain/rescue_team_models.dart';
 
 // ── Async providers that fetch from real API ─────────────────────
 
-/// Provider for rescue missions list from API.
+/// Provider for all rescue missions (unfiltered — for admin/coordinator views).
 final missionsProvider = FutureProvider.autoDispose<List<RescueMissionModel>>((
   ref,
 ) async {
   final api = ref.watch(rescueTeamApiProvider);
   return api.getMissions();
+});
+
+/// Provider for missions belonging to the current user's team only.
+/// Uses GetByTeamId endpoint after resolving teamId from currentTeamProvider.
+final teamMissionsProvider =
+    FutureProvider.autoDispose<List<RescueMissionModel>>((ref) async {
+  final api = ref.watch(rescueTeamApiProvider);
+  final team = await ref.watch(currentTeamProvider.future);
+  if (team == null || team.teamId == null) return [];
+  return api.getMissions(teamId: team.teamId);
 });
 
 /// Provider for vehicles list from API (all vehicles).
