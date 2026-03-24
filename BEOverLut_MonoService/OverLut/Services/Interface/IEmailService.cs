@@ -2,8 +2,6 @@ namespace Services.Interface
 {
     public interface IEmailService
     {
-        Task SendEmailAsync(string to, string subject, string body);
-
         Task SendVolunteerApprovedAsync(string to, string volunteerName);
         Task SendVolunteerRejectedAsync(string to, string volunteerName, string? reason);
         Task SendTeamAssignmentAsync(

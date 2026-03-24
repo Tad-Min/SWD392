@@ -1,56 +1,35 @@
 using System.Net;
-using System.Net.Mail;
+using DTOs.Appsettings;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using MailKit.Net.Smtp;
+using MimeKit;
 using Services.Interface;
 
 namespace Services
 {
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration _config;
-        private readonly string? _smtpHost;
-        private readonly int _smtpPort;
-        private readonly string? _smtpUser;
-        private readonly string? _smtpPass;
-        private readonly string _fromAddress;
-        private readonly string _fromName;
-        private readonly bool _smtpConfigured;
+        private readonly EmailSettings _emailSettings;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IOptions<EmailSettings> emailSettings)
         {
-            _config = config;
-            _smtpHost = config["Email:Host"];
-            _smtpPort = int.TryParse(config["Email:Port"], out var port) ? port : 587;
-            _smtpUser = config["Email:User"];
-            _smtpPass = config["Email:Pass"];
-            _fromAddress = config["Email:From"] ?? "noreply@overlut.vn";
-            _fromName = config["Email:FromName"] ?? "OverLut System";
-            _smtpConfigured = !string.IsNullOrWhiteSpace(_smtpHost) && !string.IsNullOrWhiteSpace(_smtpUser);
+            _emailSettings = emailSettings.Value;
         }
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        private async Task SendEmailAsync(string toEmail, string subject, string body)
         {
-            if (!_smtpConfigured)
-            {
-                Console.WriteLine($"[EmailService][FALLBACK] To: {to} | Subject: {subject}");
-                Console.WriteLine($"[EmailService][FALLBACK] Body: {body}");
-                return;
-            }
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.User));
+            message.To.Add(new MailboxAddress("", toEmail));
+            message.Subject = subject;
+            message.Body = new TextPart("html") { Text = body };
 
-            using var client = new SmtpClient(_smtpHost, _smtpPort)
-            {
-                Credentials = new NetworkCredential(_smtpUser, _smtpPass),
-                EnableSsl = true
-            };
-            var message = new MailMessage
-            {
-                From = new MailAddress(_fromAddress, _fromName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            message.To.Add(to);
-            await client.SendMailAsync(message);
+            using var client = new SmtpClient();
+            await client.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(_emailSettings.User, _emailSettings.Pass);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
         }
 
         public async Task SendVolunteerApprovedAsync(string to, string volunteerName)

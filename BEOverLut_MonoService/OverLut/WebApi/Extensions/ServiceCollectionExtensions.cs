@@ -1,4 +1,4 @@
-﻿using DTOs.Appsettings;
+using DTOs.Appsettings;
 
 namespace WebApi.Extensions
 {
@@ -21,6 +21,10 @@ namespace WebApi.Extensions
                     .ValidateOnStart();
             services.AddOptions<RescueTeamSettings>()
                     .Bind(config.GetSection("RescueTeamSettings"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart();
+            services.AddOptions<EmailSettings>()
+                    .Bind(config.GetSection(EmailSettings.SectionName))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
             return services;
