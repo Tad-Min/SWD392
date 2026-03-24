@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import TaskBar from '../../components/TaskBar.jsx';
 import { useBatteryStatus } from 'react-haiku';
 import { useCreateRescueRequest } from '../../features/Rescue/hook/useRescueRequest.js';
-import { getRescueRequestByUserIdApi } from '../../features/Rescue/api/rescueRequestApi.js';
 import { toast } from 'react-toastify';
 import '../../css/index.css';
 
@@ -25,58 +24,7 @@ function Citizens() {
     const [sosMessage, setSosMessage] = useState('');
     const coordsRef = useRef(null); // store latest coords { latitude, longitude }
 
-    // Anti-spam: track active rescue request
-    const [activeRequest, setActiveRequest] = useState(null);
-    const [checkingActive, setCheckingActive] = useState(true);
-
-    // Statuses that mean the request is still being processed (not finished)
-    // Numeric IDs: 1=New, 2=Verified, 3=Assigned, 4=EnRoute, 5=OnSite
-    const ACTIVE_STATUSES = [1, 2, 3, 4, 5];
-    // String names that mean the request is FINISHED (no longer active)
-    const FINISHED_STATUS_NAMES = ['resolved', 'completed', 'cancelled', 'duplicatemerged', 'failed',
-        'đã giải quyết', 'hoàn thành', 'đã hủy', 'bị trùng', 'thất bại'];
-
-    const activeStatusLabels = {
-        1: 'Mới gửi',
-        2: 'Đã xác minh',
-        3: 'Đã phân công',
-        4: 'Đang di chuyển',
-        5: 'Tại hiện trường',
-    };
-
-    // Check if user has an active (unfinished) rescue request
-    const checkActiveRequest = useCallback(async () => {
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            setCheckingActive(false);
-            return;
-        }
-        try {
-            const res = await getRescueRequestByUserIdApi(userId);
-            const requests = res?.data?.data || res?.data || res || [];
-            const arr = Array.isArray(requests) ? requests : [];
-            // Find any request with an active status
-            const active = arr.find(r => {
-                const statusRaw = r.status ?? r.statusId ?? r.Status;
-                // If it's a number (or numeric string), check against active IDs
-                const statusNum = Number(statusRaw);
-                if (!isNaN(statusNum) && statusNum > 0) {
-                    return ACTIVE_STATUSES.includes(statusNum);
-                }
-                // If it's a string name, check it's NOT a finished status
-                if (typeof statusRaw === 'string' && statusRaw.trim()) {
-                    return !FINISHED_STATUS_NAMES.includes(statusRaw.trim().toLowerCase());
-                }
-                return false;
-            });
-            setActiveRequest(active || null);
-        } catch (err) {
-            console.error('Failed to check active requests:', err);
-            setActiveRequest(null);
-        } finally {
-            setCheckingActive(false);
-        }
-    }, []);
+    // Anti-spam removed
 
     // Urgency assessment questions
     const [hasVulnerable, setHasVulnerable] = useState(false);   // Q1: elderly/children/sick
@@ -97,12 +45,6 @@ function Citizens() {
     };
 
     useEffect(() => {
-        // Check for active request on mount
-        checkActiveRequest();
-
-        // Also poll every 30 seconds to detect when active request is resolved
-        const pollInterval = setInterval(checkActiveRequest, 30000);
-
         // Track mouse movement for background effect
         const handleMouseMove = (e) => {
             const xOffset = (e.clientX / window.innerWidth - 0.5) * 40;
@@ -144,9 +86,8 @@ function Citizens() {
         }
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
-            clearInterval(pollInterval);
         };
-    }, [checkActiveRequest]);
+    }, []);
 
     // Auto-hide SOS toast after 4 seconds
     useEffect(() => {
@@ -159,33 +100,8 @@ function Citizens() {
         }
     }, [sosStatus]);
 
-    // Handle SOS button click – check for active request first, then open modal
+    // Handle SOS button click – open modal
     const handleSOSClick = async () => {
-        // Re-check active request before opening modal
-        await checkActiveRequest();
-        if (activeRequest) {
-            const statusLabel = activeStatusLabels[activeRequest.status ?? activeRequest.statusId] || 'đang xử lý';
-            toast.warning(
-                <div>
-                    <strong>⚠️ Yêu cầu đã tồn tại!</strong>
-                    <p style={{ fontSize: '12px', marginTop: '4px', opacity: 0.85 }}>
-                        Bạn đã có yêu cầu cứu trợ đang được xử lý (trạng thái: <strong>{statusLabel}</strong>).
-                        Vui lòng chờ đến khi yêu cầu hoàn tất.
-                    </p>
-                </div>,
-                {
-                    position: 'top-center',
-                    autoClose: 6000,
-                    theme: 'dark',
-                    style: {
-                        background: 'rgba(15, 23, 42, 0.95)',
-                        border: '1px solid rgba(234, 179, 8, 0.4)',
-                        borderRadius: '12px',
-                    },
-                }
-            );
-            return;
-        }
         setSosDescription('');
         setSosPeopleCount(1);
         setSosRequestType(1);
@@ -218,9 +134,6 @@ function Citizens() {
 
             console.log('SOS Payload:', JSON.stringify(payload, null, 2));
             await createRescueRequest(payload);
-
-            // Update active request state immediately so button disables
-            await checkActiveRequest();
 
             setSosStatus('success');
             setSosMessage('Yêu cầu cứu hộ đã được gửi thành công!');
@@ -319,41 +232,17 @@ function Citizens() {
                             Nhấn nút bên dưới nếu cần hỗ trợ khẩn cấp
                         </p>
 
-                        {/* Active Request Warning Banner */}
-                        {activeRequest && (
-                            <div className={`w-full max-w-md mx-auto mb-4 p-4 rounded-2xl border backdrop-blur-md transition-all animate-[slideDown_0.3s_ease-out] ${isDarkMode ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200'}`}>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p className={`text-sm font-bold ${isDarkMode ? 'text-amber-300' : 'text-amber-700'}`}>
-                                            Yêu cầu cứu trợ đang được xử lý
-                                        </p>
-                                        <p className={`text-xs mt-1 ${isDarkMode ? 'text-amber-400/70' : 'text-amber-600'}`}>
-                                            Trạng thái: <span className="font-semibold">{activeStatusLabels[activeRequest.status ?? activeRequest.statusId] || 'Đang xử lý'}</span>
-                                        </p>
-                                        <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                                            Vui lòng chờ cho đến khi yêu cầu hiện tại được xử lý xong trước khi gửi yêu cầu mới.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* SOS Button Area */}
-                        <div className={`relative mt-12 mb-10 py-8 flex flex-col items-center justify-center w-full max-w-[320px] mx-auto group ${activeRequest ? 'opacity-40 pointer-events-none' : ''}`}>
-                            <div className={`absolute w-[260px] h-[260px] bg-[#ef4444]/20 rounded-full flex items-center justify-center -z-10 shadow-[0_0_80px_rgba(239,68,68,0.4)] ${activeRequest ? '' : 'animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]'} group-hover:scale-75 group-hover:animate-none transition-transform duration-500 ease-in-out`}></div>
-                            <div className={`absolute w-[220px] h-[220px] bg-[#ef4444]/30 rounded-full flex items-center justify-center -z-10 shadow-[0_0_50px_rgba(239,68,68,0.5)] ${activeRequest ? '' : 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]'} group-hover:scale-90 transition-transform duration-500 ease-in-out`}></div>
+                        <div className={`relative mt-12 mb-10 py-8 flex flex-col items-center justify-center w-full max-w-[320px] mx-auto group`}>
+                            <div className={`absolute w-[260px] h-[260px] bg-[#ef4444]/20 rounded-full flex items-center justify-center -z-10 shadow-[0_0_80px_rgba(239,68,68,0.4)] animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] group-hover:scale-75 group-hover:animate-none transition-transform duration-500 ease-in-out`}></div>
+                            <div className={`absolute w-[220px] h-[220px] bg-[#ef4444]/30 rounded-full flex items-center justify-center -z-10 shadow-[0_0_50px_rgba(239,68,68,0.5)] animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite] group-hover:scale-90 transition-transform duration-500 ease-in-out`}></div>
 
                             <button
                                 onClick={handleSOSClick}
-                                disabled={sosLoading || checkingActive || !!activeRequest}
+                                disabled={sosLoading}
                                 className="relative w-40 h-40 bg-[#ef4444] rounded-full flex flex-col items-center justify-center shadow-[0_0_50px_rgba(239,68,68,0.6)] hover:bg-red-500 active:scale-95 transition-all outline-none border-[3px] border-[#fb7185]/40 z-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                {sosLoading || checkingActive ? (
+                                {sosLoading ? (
                                     <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
                                 ) : (
                                     <svg className="w-10 h-10 text-white/90 mb-1" fill="currentColor" viewBox="0 0 24 24">
@@ -362,7 +251,7 @@ function Citizens() {
                                 )}
                                 <span className="text-[38px] font-extrabold text-white tracking-widest leading-none drop-shadow-md">SOS</span>
                                 <span className="text-[11px] font-bold text-white/90 mt-1.5 uppercase tracking-wide">
-                                    {activeRequest ? 'ĐANG XỬ LÝ' : 'YÊU CẦU CỨU HỘ'}
+                                    YÊU CẦU CỨU HỘ
                                 </span>
                             </button>
                         </div>
