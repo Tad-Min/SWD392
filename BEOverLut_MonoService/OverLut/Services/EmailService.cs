@@ -84,6 +84,27 @@ namespace Services
             await SendEmailAsync(to, subject, body);
         }
 
+        public async Task SendTeamCreatedNotificationAsync(
+            string to,
+            string managerName,
+            string teamName,
+            string assemblyLocation)
+        {
+            var subject = $"🚨 Đội cứu hộ mới đã được tạo – {teamName}";
+            var body = $@"
+<h2>Chào {managerName},</h2>
+<p>Một đội cứu hộ mới đã được khởi tạo thành công trên hệ thống <strong>OverLut</strong>.</p>
+<table style='border-collapse:collapse;'>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Tên đội:</td><td style='padding:6px 12px;'>{teamName}</td></tr>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Địa điểm tập kết:</td><td style='padding:6px 12px;'>{assemblyLocation}</td></tr>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Thời điểm thông báo:</td><td style='padding:6px 12px;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+<p>Bạn có thể bắt đầu phân công thành viên và điều phối hoạt động cho đội cứu hộ này.</p>
+<hr/>
+<p><em>OverLut – Hệ thống Phối hợp Cứu trợ Lũ lụt</em></p>";
+            await SendEmailAsync(to, subject, body);
+        }
+
         public async Task SendOfferConfirmedAsync(
             string to,
             string volunteerName,

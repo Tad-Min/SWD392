@@ -1,4 +1,4 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
 namespace DAOs.Overlut;
 
@@ -15,7 +15,7 @@ public class RescueTeamDAO
         try
         {
             
-            var query = _db.RescueTeams.AsQueryable();
+            var query = _db.RescueTeams.Include(x => x.Role).AsQueryable();
             if (teamId.HasValue) query = query.Where(x => x.TeamId == teamId.Value);
             if (!string.IsNullOrEmpty(teamName)) query = query.Where(x => x.TeamName.Contains(teamName));
             if (statusId.HasValue) query = query.Where(x => x.StatusId == statusId.Value);
@@ -33,6 +33,7 @@ public class RescueTeamDAO
         {
             
             return await _db.RescueTeams
+                .Include(e => e.Role)
                 .FirstOrDefaultAsync(e => e.TeamId == teamId);
         }
         catch (Exception ex)
@@ -47,6 +48,7 @@ public class RescueTeamDAO
         {
             
             return await _db.RescueTeams
+                .Include(e => e.Role)
                 .AsNoTracking()
                 .Where(e => e.RescueTeamMembers.Any(x => x.UserId == userId) && e.IsActive)
                 .ToListAsync();

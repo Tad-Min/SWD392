@@ -47,6 +47,14 @@ namespace Services
 
             return teams.Select(e => MappingHandle.EntityToDTO(e)).Where(dto => dto != null).Cast<RescueTeamDTO>();
         }
+
+        public async Task<IEnumerable<RescueMembersRoleDTO>?> GetAllRescueTeamRolesAsync()
+        {
+            var roles = await _rescueMembersRoleRepository.GetAllRescueMembersRoles();
+            if (roles == null) return new List<RescueMembersRoleDTO>();
+
+            return roles.Select(e => MappingHandle.EntityToDTO(e)).Where(dto => dto != null).Cast<RescueMembersRoleDTO>();
+        }
         public async Task<RescueTeam?> GetRescueTeamByTeamId(int teamId)
         {
             return await _rescueTeamRepository.GetRescueTeamByTeamId(teamId);

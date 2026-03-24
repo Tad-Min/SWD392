@@ -17,4 +17,7 @@ public class RescueTeamDTO
     public double? AssemblyLatitude { get; set; }
     public double? AssemblyLongitude { get; set; }
     public string? AssemblyNote { get; set; }
+
+    public int? RoleId { get; set; }
+    public string? RoleName { get; set; }
 }

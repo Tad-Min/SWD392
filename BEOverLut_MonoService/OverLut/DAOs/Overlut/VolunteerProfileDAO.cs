@@ -15,6 +15,8 @@ public class VolunteerProfileDAO
         {
             return await _db.VolunteerProfiles
                 .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerSkills)
+                        .ThenInclude(s => s.SkillType)
                 .FirstOrDefaultAsync(x => x.UserId == userId);
         }
         catch (Exception ex)
@@ -30,6 +32,8 @@ public class VolunteerProfileDAO
         {
             return await _db.VolunteerProfiles
                 .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerSkills)
+                        .ThenInclude(s => s.SkillType)
                 .FirstOrDefaultAsync(x => x.VolunteerProfileId == profileId);
         }
         catch (Exception ex)
@@ -43,7 +47,11 @@ public class VolunteerProfileDAO
     {
         try
         {
-            var query = _db.VolunteerProfiles.Include(x => x.User).AsQueryable();
+            var query = _db.VolunteerProfiles
+                .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerSkills)
+                        .ThenInclude(s => s.SkillType)
+                .AsQueryable();
             if (status.HasValue)
                 query = query.Where(x => x.ApplicationStatus == status.Value);
             return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();

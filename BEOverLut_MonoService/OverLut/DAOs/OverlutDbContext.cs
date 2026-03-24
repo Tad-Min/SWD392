@@ -325,6 +325,7 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
+            entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.TeamName).HasMaxLength(200);
             entity.Property(e => e.AssemblyLocationText).HasMaxLength(500);
             entity.Property(e => e.AssemblyNote).HasMaxLength(500);
@@ -333,6 +334,10 @@ public partial class OverlutDbContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RescueTeams_RescueTeamsStatus");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.RescueTeams)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK_RescueTeams_RescueMembersRoles");
         });
 
         modelBuilder.Entity<RescueTeamMember>(entity =>

@@ -24,9 +24,13 @@ public partial class RescueTeam
 
     public string? AssemblyNote { get; set; }
 
+    public int? RoleId { get; set; }
+
     public virtual ICollection<RescueTeamMember> RescueTeamMembers { get; set; } = new List<RescueTeamMember>();
 
     public virtual RescueTeamsStatus Status { get; set; } = null!;
+
+    public virtual RescueMembersRole? Role { get; set; }
 
     public virtual ICollection<VolunteerOfferAssignment> VolunteerOfferAssignments { get; set; } = new List<VolunteerOfferAssignment>();
 }

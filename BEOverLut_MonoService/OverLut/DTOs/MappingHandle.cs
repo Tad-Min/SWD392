@@ -205,7 +205,9 @@ namespace DTOs
                 AssemblyLocationText = entity.AssemblyLocationText,
                 AssemblyLatitude = entity.AssemblyLatitude,
                 AssemblyLongitude = entity.AssemblyLongitude,
-                AssemblyNote = entity.AssemblyNote
+                AssemblyNote = entity.AssemblyNote,
+                RoleId = entity.RoleId,
+                RoleName = entity.Role?.RoleName
             };
         }
         
@@ -373,7 +375,11 @@ namespace DTOs
                 IsAvailable = entity.IsAvailable,
                 Notes = entity.Notes,
                 CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt
+                UpdatedAt = entity.UpdatedAt,
+                Skills = entity.User?.VolunteerSkills?.Select(s => EntityToDTO(s))
+                    .Where(dto => dto != null)
+                    .Cast<VolunteerSkillDTO>()
+                    .ToList() ?? new List<VolunteerSkillDTO>()
             };
         }
 

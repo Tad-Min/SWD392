@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using BusinessObject.OverlutEntiy;
 using DTOs;
 using DTOs.Overlut;
@@ -13,10 +15,17 @@ namespace WebApi.Controllers
     public class RescueTeamController : ControllerBase
     {
         private readonly IRescueTeamService _rescueTeamService;
+        private readonly IWebSocketNotificationService _webSocketService;
+        private readonly IEmailService _emailService;
 
-        public RescueTeamController(IRescueTeamService rescueTeamService)
+        public RescueTeamController(
+            IRescueTeamService rescueTeamService,
+            IWebSocketNotificationService webSocketService,
+            IEmailService emailService)
         {
             _rescueTeamService = rescueTeamService;
+            _webSocketService = webSocketService;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -34,6 +43,26 @@ namespace WebApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue teams", error = ex.Message });
+            }
+        }
+
+        [HttpGet("Roles")]
+        public async Task<IActionResult> GetAllRescueTeamRoles()
+        {
+            try
+            {
+                var roles = await _rescueTeamService.GetAllRescueTeamRolesAsync();
+                var result = roles?.Where(r => r.RescueMembersRoleId > 1)
+                                   .Select(r => new
+                                   {
+                                       teamRoleId = r.RescueMembersRoleId,
+                                       roleName = r.RoleName
+                                   });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving rescue team roles", error = ex.Message });
             }
         }
         [HttpGet("{id}")]
@@ -74,10 +103,43 @@ namespace WebApi.Controllers
             {
                 var rescueTeam = await _rescueTeamService.CreateRescueTeamAsync(new RescueTeam
                 {
-                    TeamName = model.TeamName
+                    TeamName = model.TeamName,
+                    AssemblyLocationText = model.AssemblyLocationText,
+                    AssemblyLatitude = model.AssemblyLatitude,
+                    AssemblyLongitude = model.AssemblyLongitude,
+                    AssemblyNote = model.AssemblyNote,
+                    RoleId = model.RoleId
                 });
                 if (rescueTeam == null)
                     return BadRequest(new { message = "Failed to create rescue team" });
+
+                // Try to get Manager Name from Claims (assuming JWT has Name or NameIdentifier)
+                // If not found, default to "Quản lý"
+                string managerName = User.Identity?.Name ?? "Quản lý";
+                string managerEmail = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+
+                // 1. Broadcast WebSocket Realtime Notification
+                var notificationMessage = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Type = "TEAM_CREATED",
+                    TeamId = rescueTeam.TeamId,
+                    TeamName = rescueTeam.TeamName,
+                    Location = rescueTeam.AssemblyLocationText ?? "Chưa có địa điểm",
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _webSocketService.BroadcastMessageAsync(notificationMessage);
+
+                // 2. Send Email Notification to Manager
+                if (!string.IsNullOrEmpty(managerEmail))
+                {
+                    await _emailService.SendTeamCreatedNotificationAsync(
+                        to: managerEmail,
+                        managerName: managerName,
+                        teamName: rescueTeam.TeamName,
+                        assemblyLocation: rescueTeam.AssemblyLocationText ?? "Chưa có địa điểm"
+                    );
+                }
+
                 return CreatedAtAction(nameof(GetRescueTeamByTeamId), new { id = rescueTeam.TeamId }, MappingHandle.EntityToDTO(rescueTeam));
             }
             catch (Exception ex)
@@ -212,6 +274,49 @@ namespace WebApi.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { message = "Error creating rescue team member", error = ex.Message });
+            }
+        }
+
+        [HttpPost("AssignVolunteer")]
+        public async Task<IActionResult> AssignVolunteerToTeam([FromBody] AssignVolunteerModel model)
+        {
+            try
+            {
+                if (model == null)
+                    return BadRequest(new { message = "Data is required" });
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new { message = "Invalid data", errors = ModelState });
+
+                // Try get manager id from claims. Provide a fallback if testing without auth.
+                int managerId = 1; // Fallback or mock manager id
+                var nameIdentifierClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (nameIdentifierClaim != null && int.TryParse(nameIdentifierClaim.Value, out int id))
+                {
+                    managerId = id;
+                }
+
+                var assignedMember = await _rescueTeamService.AssignVolunteerToTeamAsync(
+                    targetUserId: model.UserId,
+                    teamId: model.TeamId,
+                    roleId: model.RoleId,
+                    assignedByManagerId: managerId,
+                    notifyByEmail: model.NotifyByEmail,
+                    note: model.Note
+                );
+
+                if (assignedMember == null)
+                    return BadRequest(new { message = "Failed to assign volunteer to team." });
+
+                return Ok(new { message = "Volunteer assigned to team successfully.", data = assignedMember });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while assigning volunteer to team.", error = ex.Message });
             }
         }
 

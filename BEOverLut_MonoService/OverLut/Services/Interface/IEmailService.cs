@@ -11,6 +11,11 @@ namespace Services.Interface
             string assemblyLocation,
             string roleInTeam,
             string? note);
+        Task SendTeamCreatedNotificationAsync(
+            string to,
+            string managerName,
+            string teamName,
+            string assemblyLocation);
         Task SendOfferConfirmedAsync(
             string to,
             string volunteerName,
