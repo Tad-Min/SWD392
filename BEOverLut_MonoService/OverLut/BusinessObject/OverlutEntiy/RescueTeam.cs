@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BusinessObject.OverlutEntiy;
@@ -15,7 +15,18 @@ public partial class RescueTeam
 
     public bool IsActive { get; set; }
 
+    /// <summary>Text description of the assembly/muster point.</summary>
+    public string? AssemblyLocationText { get; set; }
+
+    public double? AssemblyLatitude { get; set; }
+
+    public double? AssemblyLongitude { get; set; }
+
+    public string? AssemblyNote { get; set; }
+
     public virtual ICollection<RescueTeamMember> RescueTeamMembers { get; set; } = new List<RescueTeamMember>();
 
     public virtual RescueTeamsStatus Status { get; set; } = null!;
+
+    public virtual ICollection<VolunteerOfferAssignment> VolunteerOfferAssignments { get; set; } = new List<VolunteerOfferAssignment>();
 }

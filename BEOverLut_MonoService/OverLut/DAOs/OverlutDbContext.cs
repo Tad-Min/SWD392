@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using BusinessObject.OverlutEntiy;
 using Microsoft.EntityFrameworkCore;
@@ -68,6 +68,14 @@ public partial class OverlutDbContext : DbContext
     public virtual DbSet<Warehouse> Warehouses { get; set; }
 
     public virtual DbSet<WarehouseStock> WarehouseStocks { get; set; }
+
+    // Volunteer Management
+    public virtual DbSet<VolunteerProfile> VolunteerProfiles { get; set; }
+    public virtual DbSet<VolunteerSkillType> VolunteerSkillTypes { get; set; }
+    public virtual DbSet<VolunteerSkill> VolunteerSkills { get; set; }
+    public virtual DbSet<VolunteerOfferType> VolunteerOfferTypes { get; set; }
+    public virtual DbSet<VolunteerOffer> VolunteerOffers { get; set; }
+    public virtual DbSet<VolunteerOfferAssignment> VolunteerOfferAssignments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -318,6 +326,8 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
             entity.Property(e => e.TeamName).HasMaxLength(200);
+            entity.Property(e => e.AssemblyLocationText).HasMaxLength(500);
+            entity.Property(e => e.AssemblyNote).HasMaxLength(500);
 
             entity.HasOne(d => d.Status).WithMany(p => p.RescueTeams)
                 .HasForeignKey(d => d.StatusId)
@@ -327,13 +337,20 @@ public partial class OverlutDbContext : DbContext
 
         modelBuilder.Entity<RescueTeamMember>(entity =>
         {
-            entity.HasKey(e => e.UserId);
+            // Changed from UserId-as-PK to surrogate MemberId PK
+            // This removes the 1-user-per-team constraint and enables historical re-assignment
+            entity.HasKey(e => e.MemberId);
+            entity.Property(e => e.MemberId).HasColumnName("MemberID").ValueGeneratedOnAdd();
 
-            entity.Property(e => e.UserId)
-                .ValueGeneratedNever()
-                .HasColumnName("UserID");
+            // Unique constraint: a user can only be active in a team once at a time
+            entity.HasIndex(e => new { e.UserId, e.TeamId }, "UQ_RescueTeamMembers_User_Team");
+
+            entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.AssignedByUserId).HasColumnName("AssignedByUserID");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Role).WithMany(p => p.RescueTeamMembers)
                 .HasForeignKey(d => d.RoleId)
@@ -344,10 +361,16 @@ public partial class OverlutDbContext : DbContext
                 .HasForeignKey(d => d.TeamId)
                 .HasConstraintName("FK_TeamMembers_Team");
 
-            entity.HasOne(d => d.User).WithOne(p => p.RescueTeamMember)
-                .HasForeignKey<RescueTeamMember>(d => d.UserId)
+            entity.HasOne(d => d.User).WithMany(p => p.RescueTeamMembers)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RescueTeamMembers_Users");
+
+            entity.HasOne(d => d.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.AssignedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RescueTeamMembers_AssignedByUser");
         });
 
         modelBuilder.Entity<RescueTeamsStatus>(entity =>
@@ -491,6 +514,153 @@ public partial class OverlutDbContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
+
+        // ─── Volunteer Management Entities ──────────────────────────────────
+
+        modelBuilder.Entity<VolunteerProfile>(entity =>
+        {
+            entity.HasKey(e => e.VolunteerProfileId);
+            entity.Property(e => e.VolunteerProfileId).HasColumnName("VolunteerProfileID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.RejectedReason).HasMaxLength(500);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
+
+            entity.HasOne(d => d.User)
+                .WithOne(p => p.VolunteerProfile)
+                .HasForeignKey<VolunteerProfile>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_VolunteerProfiles_Users");
+
+            entity.HasOne(d => d.ApprovedByManager)
+                .WithMany()
+                .HasForeignKey(d => d.ApprovedByManagerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VolunteerProfiles_Managers");
+        });
+
+        modelBuilder.Entity<VolunteerSkillType>(entity =>
+        {
+            entity.HasKey(e => e.SkillTypeId);
+            entity.Property(e => e.SkillTypeId).HasColumnName("SkillTypeID");
+            entity.Property(e => e.SkillName).HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.SkillName, "UQ_VolunteerSkillTypes_SkillName").IsUnique();
+
+            // Seed data
+            entity.HasData(
+                new VolunteerSkillType { SkillTypeId = 1, SkillName = "MedicalSupport" },
+                new VolunteerSkillType { SkillTypeId = 2, SkillName = "DirectRescuer" },
+                new VolunteerSkillType { SkillTypeId = 3, SkillName = "LogisticsSupport" },
+                new VolunteerSkillType { SkillTypeId = 4, SkillName = "BoatOperator" }
+            );
+        });
+
+        modelBuilder.Entity<VolunteerSkill>(entity =>
+        {
+            entity.HasKey(e => e.VolunteerSkillId);
+            entity.Property(e => e.VolunteerSkillId).HasColumnName("VolunteerSkillID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.SkillTypeId).HasColumnName("SkillTypeID");
+
+            entity.HasIndex(e => new { e.UserId, e.SkillTypeId }, "UQ_VolunteerSkills_User_Skill").IsUnique();
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.VolunteerSkills)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_VolunteerSkills_Users");
+
+            entity.HasOne(d => d.SkillType)
+                .WithMany(p => p.VolunteerSkills)
+                .HasForeignKey(d => d.SkillTypeId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_VolunteerSkills_SkillTypes");
+        });
+
+        modelBuilder.Entity<VolunteerOfferType>(entity =>
+        {
+            entity.HasKey(e => e.OfferTypeId);
+            entity.Property(e => e.OfferTypeId).HasColumnName("OfferTypeID");
+            entity.Property(e => e.TypeName).HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.TypeName, "UQ_VolunteerOfferTypes_TypeName").IsUnique();
+
+            // Seed data
+            entity.HasData(
+                new VolunteerOfferType { OfferTypeId = 1, TypeName = "Food", IsTypicallyReturnable = false },
+                new VolunteerOfferType { OfferTypeId = 2, TypeName = "LifeJacket", IsTypicallyReturnable = true },
+                new VolunteerOfferType { OfferTypeId = 3, TypeName = "Boat", IsTypicallyReturnable = true },
+                new VolunteerOfferType { OfferTypeId = 4, TypeName = "MedicalSupplies", IsTypicallyReturnable = false },
+                new VolunteerOfferType { OfferTypeId = 5, TypeName = "RescueEquipment", IsTypicallyReturnable = true },
+                new VolunteerOfferType { OfferTypeId = 6, TypeName = "Other", IsTypicallyReturnable = false }
+            );
+        });
+
+        modelBuilder.Entity<VolunteerOffer>(entity =>
+        {
+            entity.HasKey(e => e.OfferId);
+            entity.Property(e => e.OfferId).HasColumnName("OfferID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.OfferTypeId).HasColumnName("OfferTypeID");
+            entity.Property(e => e.OfferName).HasMaxLength(300);
+            entity.Property(e => e.Unit).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.AssetCode).HasMaxLength(100);
+            entity.Property(e => e.DropoffLocationText).HasMaxLength(500);
+            entity.Property(e => e.ContactPhone).HasMaxLength(20);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.CurrentStatus).HasDefaultValue(0);
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.VolunteerOffers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_VolunteerOffers_Users");
+
+            entity.HasOne(d => d.OfferType)
+                .WithMany(p => p.VolunteerOffers)
+                .HasForeignKey(d => d.OfferTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VolunteerOffers_OfferTypes");
+        });
+
+        modelBuilder.Entity<VolunteerOfferAssignment>(entity =>
+        {
+            entity.HasKey(e => e.OfferAssignmentId);
+            entity.Property(e => e.OfferAssignmentId).HasColumnName("OfferAssignmentID");
+            entity.Property(e => e.OfferId).HasColumnName("OfferID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.AssignedByManagerId).HasColumnName("AssignedByManagerID");
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.ReturnConditionNote).HasMaxLength(500);
+
+            entity.HasOne(d => d.Offer)
+                .WithMany(p => p.Assignments)
+                .HasForeignKey(d => d.OfferId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_VolunteerOfferAssignments_Offers");
+
+            entity.HasOne(d => d.Team)
+                .WithMany(p => p.VolunteerOfferAssignments)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VolunteerOfferAssignments_Teams");
+
+            entity.HasOne(d => d.AssignedByManager)
+                .WithMany()
+                .HasForeignKey(d => d.AssignedByManagerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VolunteerOfferAssignments_Managers");
+        });
+
+        // ─── Seed: Volunteer role ────────────────────────────────────────────
+        // Assumption: 1=Citizen, 2=RescueTeam, 3=RescueCoordinator, 4=Manager, 5=Admin. Adding Volunteer=6.
+        modelBuilder.Entity<Role>().HasData(
+            new Role { RoleId = 6, RoleName = "Volunteer" }
+        );
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

@@ -1,4 +1,4 @@
-﻿
+
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -38,7 +38,7 @@ namespace Services
             var RToken = await iRefreshTokenRepository.GetRefreshTokenByUserIdAndToken(userId, token);
             return await iRefreshTokenRepository.RevokeToken(RToken!);
         }
-        public async Task<User?> RegisterAsync(string email, string phone, string? userName, string password)
+        public async Task<User?> RegisterAsync(string email, string phone, string? userName, string password, string? identifyID, string? address)
         {
             return await iUserRepository.CreateUser(new User
             {
@@ -47,6 +47,8 @@ namespace Services
                 Phone = phone,
                 Password = password,
                 RoleId = userSettings.RoleIdDefault,
+                IdentifyId = identifyID,
+                Address = address,
             });
         }
         #endregion

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebApi.Models.AuthModel
 {
@@ -27,5 +27,11 @@ namespace WebApi.Models.AuthModel
         [Required(ErrorMessage = "Please confirm password!")]
         [Compare(nameof(Password), ErrorMessage ="Confirm Password not match!")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [RegularExpression(@"^\d{12}$", ErrorMessage = "IdentifyID must be 12 digits (CCCD).")]
+        public string? IdentifyID { get; set; }
+
+        [MaxLength(256)]
+        public string? Address { get; set; }
     }
 }

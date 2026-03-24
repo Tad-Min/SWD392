@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BusinessObject.OverlutEntiy;
@@ -31,7 +31,15 @@ public partial class User
 
     public virtual ICollection<RescueRequest> RescueRequests { get; set; } = new List<RescueRequest>();
 
-    public virtual RescueTeamMember? RescueTeamMember { get; set; }
+    // Navigation to team memberships (one user can now be in multiple teams via MemberId PK)
+    public virtual ICollection<RescueTeamMember> RescueTeamMembers { get; set; } = new List<RescueTeamMember>();
 
     public virtual Role Role { get; set; } = null!;
+
+    // Volunteer navigation
+    public virtual VolunteerProfile? VolunteerProfile { get; set; }
+
+    public virtual ICollection<VolunteerSkill> VolunteerSkills { get; set; } = new List<VolunteerSkill>();
+
+    public virtual ICollection<VolunteerOffer> VolunteerOffers { get; set; } = new List<VolunteerOffer>();
 }

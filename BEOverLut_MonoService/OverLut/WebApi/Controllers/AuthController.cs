@@ -1,4 +1,4 @@
-﻿using DTOs;
+using DTOs;
 using DTOs.Appsettings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -29,7 +29,7 @@ namespace WebApi.Controllers
                 {
                     return BadRequest("Email already exists!");
                 }
-                var user = await iAuthService.RegisterAsync(registerModel.Email, registerModel.Phone, registerModel.UserName, registerModel.Password);
+                var user = await iAuthService.RegisterAsync(registerModel.Email, registerModel.Phone, registerModel.UserName, registerModel.Password, registerModel.IdentifyID, registerModel.Address);
                 if (user == null) return BadRequest("Can't Create User");
                 return Ok(MappingHandle.EntityToDTO(user));
             }

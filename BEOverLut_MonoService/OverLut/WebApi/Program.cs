@@ -77,6 +77,12 @@ builder.Services.AddScoped<IUrgencyLevelRepository, UrgencyLevelRepository>();
 builder.Services.AddScoped<IRescueMembersRoleRepository, RescueMembersRoleRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
+// Volunteer Management Repositories
+builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
+builder.Services.AddScoped<IVolunteerSkillRepository, VolunteerSkillRepository>();
+builder.Services.AddScoped<IVolunteerOfferRepository, VolunteerOfferRepository>();
+builder.Services.AddScoped<IVolunteerOfferAssignmentRepository, VolunteerOfferAssignmentRepository>();
+
 // Add service scope.
 
 builder.Services.AddScoped<IAttachmentStorageService, AttachmentStorageService>();
@@ -93,6 +99,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+// Volunteer Management Services
+builder.Services.AddScoped<IVolunteerService, VolunteerService>();
 builder.Services.AddScoped<IUrgencyLevelService, UrgencyLevelService>();
 builder.Services.AddScoped<IVehicleAssignmentRepository, VehicleAssignmentRepository>();
 builder.Services.AddScoped<IRolesService, RolesService>();
@@ -127,6 +135,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["JWTAuth:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["JWTAuth:key"] ?? "a-string-secret-at-least-256-bits-long")),
+
+            // CRITICAL: AuthService sets role as ClaimTypes.Role (full URI).
+            // Without this, JwtBearer maps it to short "role" claim and [Authorize(Roles=...)] can't find it.
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+            NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
         };
     });
 

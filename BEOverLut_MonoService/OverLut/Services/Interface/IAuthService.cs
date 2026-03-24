@@ -1,4 +1,4 @@
-﻿using BusinessObject.OverlutEntiy;
+using BusinessObject.OverlutEntiy;
 using DTOs.Overlut;
 
 namespace Services.Interface
@@ -8,7 +8,7 @@ namespace Services.Interface
 
         #region Logout & Register
         Task<bool> LogoutAsync(int userId, string token);
-        Task<User?> RegisterAsync(string email, string phone, string? userName, string password);
+        Task<User?> RegisterAsync(string email, string phone, string? userName, string password, string? identifyID, string? address);
         #endregion
         #region ResetPassword & ComfirmEmail
         Task<User> ResetPasswordAsync(string email);

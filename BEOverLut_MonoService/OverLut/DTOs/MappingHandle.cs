@@ -200,7 +200,12 @@ namespace DTOs
                 TeamId = entity.TeamId,
                 TeamName = entity.TeamName,
                 StatusId = entity.StatusId,
-                CreatedAt = entity.CreatedAt
+                CreatedAt = entity.CreatedAt,
+                IsActive = entity.IsActive,
+                AssemblyLocationText = entity.AssemblyLocationText,
+                AssemblyLatitude = entity.AssemblyLatitude,
+                AssemblyLongitude = entity.AssemblyLongitude,
+                AssemblyNote = entity.AssemblyNote
             };
         }
         
@@ -209,9 +214,13 @@ namespace DTOs
             if(entity == null) return null; 
             return new RescueTeamMemberDTO
             {
+                MemberId = entity.MemberId,
                 UserId = entity.UserId,
                 TeamId = entity.TeamId,
                 RoleId = entity.RoleId,
+                AssignedAt = entity.AssignedAt,
+                AssignedByUserId = entity.AssignedByUserId,
+                IsActive = entity.IsActive,
                 FullName = entity.User?.FullName,
                 Email = entity.User?.Email,
                 Phone = entity.User?.Phone
@@ -345,6 +354,85 @@ namespace DTOs
                 AttachmentId = entity.AttachmentId,
                 IsComplete = entity.IsComplete,
                 CreatedAt = entity.CreatedAt
+            };
+        }
+
+        public static VolunteerProfileDTO? EntityToDTO(VolunteerProfile? entity)
+        {
+            if (entity == null) return null;
+            return new VolunteerProfileDTO
+            {
+                VolunteerProfileId = entity.VolunteerProfileId,
+                UserId = entity.UserId,
+                FullName = entity.User?.FullName,
+                Email = entity.User?.Email,
+                ApplicationStatus = entity.ApplicationStatus,
+                ApprovedByManagerId = entity.ApprovedByManagerId,
+                ApprovedAt = entity.ApprovedAt,
+                RejectedReason = entity.RejectedReason,
+                IsAvailable = entity.IsAvailable,
+                Notes = entity.Notes,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
+        }
+
+        public static VolunteerSkillDTO? EntityToDTO(VolunteerSkill? entity)
+        {
+            if (entity == null) return null;
+            return new VolunteerSkillDTO
+            {
+                VolunteerSkillId = entity.VolunteerSkillId,
+                UserId = entity.UserId,
+                SkillTypeId = entity.SkillTypeId,
+                SkillName = entity.SkillType?.SkillName
+            };
+        }
+
+        public static VolunteerOfferDTO? EntityToDTO(VolunteerOffer? entity)
+        {
+            if (entity == null) return null;
+            return new VolunteerOfferDTO
+            {
+                OfferId = entity.OfferId,
+                UserId = entity.UserId,
+                OwnerName = entity.User?.FullName,
+                OfferTypeId = entity.OfferTypeId,
+                OfferTypeName = entity.OfferType?.TypeName,
+                OfferName = entity.OfferName,
+                Quantity = entity.Quantity,
+                Unit = entity.Unit,
+                Description = entity.Description,
+                IsReturnRequired = entity.IsReturnRequired,
+                AssetCode = entity.AssetCode,
+                CurrentStatus = entity.CurrentStatus,
+                DropoffLocationText = entity.DropoffLocationText,
+                DropoffLatitude = entity.DropoffLatitude,
+                DropoffLongitude = entity.DropoffLongitude,
+                ContactPhone = entity.ContactPhone,
+                AvailableFrom = entity.AvailableFrom,
+                AvailableTo = entity.AvailableTo,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
+        }
+
+        public static VolunteerOfferAssignmentDTO? EntityToDTO(VolunteerOfferAssignment? entity)
+        {
+            if (entity == null) return null;
+            return new VolunteerOfferAssignmentDTO
+            {
+                OfferAssignmentId = entity.OfferAssignmentId,
+                OfferId = entity.OfferId,
+                OfferName = entity.Offer?.OfferName,
+                TeamId = entity.TeamId,
+                TeamName = entity.Team?.TeamName,
+                MissionId = entity.MissionId,
+                AssignedByManagerId = entity.AssignedByManagerId,
+                AssignedAt = entity.AssignedAt,
+                ReceivedAt = entity.ReceivedAt,
+                ReturnedAt = entity.ReturnedAt,
+                ReturnConditionNote = entity.ReturnConditionNote
             };
         }
 
@@ -551,7 +639,12 @@ namespace DTOs
                 TeamId = dto.TeamId,
                 TeamName = dto.TeamName,
                 StatusId = dto.StatusId,
-                CreatedAt = dto.CreatedAt
+                CreatedAt = dto.CreatedAt,
+                IsActive = dto.IsActive,
+                AssemblyLocationText = dto.AssemblyLocationText,
+                AssemblyLatitude = dto.AssemblyLatitude,
+                AssemblyLongitude = dto.AssemblyLongitude,
+                AssemblyNote = dto.AssemblyNote
             };
         }
 
@@ -560,9 +653,13 @@ namespace DTOs
             if (dto == null) return null;
             return new RescueTeamMember
             {
+                MemberId = dto.MemberId,
                 UserId = dto.UserId,
                 TeamId = dto.TeamId,
-                RoleId = dto.RoleId
+                RoleId = dto.RoleId,
+                AssignedAt = dto.AssignedAt,
+                AssignedByUserId = dto.AssignedByUserId,
+                IsActive = dto.IsActive
             };
         }
 
