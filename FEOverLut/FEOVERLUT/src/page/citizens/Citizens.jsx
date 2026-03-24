@@ -117,20 +117,18 @@ function Citizens() {
             const payload = {
                 description: sosDescription || 'Yêu cầu cứu hộ khẩn cấp',
                 requestType: sosRequestType,
-                urgencyLevel: 1, // Mặc định mức độ cao
+                urgencyLevel: urgencyLevel,
                 peopleCount: sosPeopleCount,
-
-                currentLocation: coords
-                    ? {
-                        type: 'Point',
-                        coordinates: [coords.longitude, coords.latitude],
-                    }
-                    : {
-                        type: 'Point',
-                        coordinates: [106.7725, 10.9024],
-                    },
                 locationText: location,
             };
+
+            if (coords) {
+                payload.currentLocation = {
+                    type: 'Point',
+                    coordinates: [coords.longitude, coords.latitude],
+                };
+            }
+
 
             console.log('SOS Payload:', JSON.stringify(payload, null, 2));
             await createRescueRequest(payload);
