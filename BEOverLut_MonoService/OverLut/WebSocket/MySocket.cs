@@ -216,7 +216,6 @@ namespace WebSocket
                 }
             }
         }
-
         #endregion
 
         #region File Sending Methods

@@ -10,7 +10,7 @@
  * - timestamp: thời gian gửi
  */
 
-const WS_URL = "wss://localhost:7155/ws";
+const WS_URL = import.meta.env.VITE_WS_URL;
 
 let socket = null;
 let reconnectTimer = null;

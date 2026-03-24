@@ -15,7 +15,7 @@ const NotificationBell = ({ theme }) => {
 
         let reconnectTimer;
         const connectWebSocket = () => {
-            const wsUrl = 'wss://localhost:7155/ws';
+            const wsUrl = import.meta.env.VITE_WS_URL;
             console.log('Attempting to connect to WebSocket:', wsUrl);
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
