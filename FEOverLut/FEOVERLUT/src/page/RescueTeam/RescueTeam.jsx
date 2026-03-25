@@ -177,7 +177,7 @@ const RescueTeam = () => {
         }
 
         if (activeTab === 'teamInfo') {
-            return <TeamInfo teamData={teamData} teamIdLabel={teamIdLabel} members={teamMembers} loading={dataLoading} theme={theme} />;
+            return <TeamInfo teamIdLabel={teamIdLabel} members={teamMembers} loading={dataLoading} theme={theme} />;
         }
 
         if (activeTab === 'messages') {

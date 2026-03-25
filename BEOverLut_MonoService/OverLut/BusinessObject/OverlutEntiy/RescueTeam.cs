@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using NetTopologySuite.Geometries;
 
 namespace BusinessObject.OverlutEntiy;
 
@@ -19,7 +18,9 @@ public partial class RescueTeam
     /// <summary>Text description of the assembly/muster point.</summary>
     public string? AssemblyLocationText { get; set; }
 
-    public Point Location { get; set; } = null!;
+    public double? AssemblyLatitude { get; set; }
+
+    public double? AssemblyLongitude { get; set; }
 
     public string? AssemblyNote { get; set; }
 

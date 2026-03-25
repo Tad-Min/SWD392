@@ -160,7 +160,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// builder.Services.AddControllers();
+builder.Services.AddControllers();
 
 // Learn more about configuring Swagger at https://aka.ms/aspnet/swashbuckle
 builder.Services.AddSwaggerGen(c =>
