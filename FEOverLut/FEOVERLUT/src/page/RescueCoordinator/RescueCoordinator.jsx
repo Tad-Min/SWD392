@@ -12,6 +12,8 @@ import { Briefcase } from 'lucide-react';
 import { useRealtimeRescueRequests } from '../useRealtimeRescueRequests.jsx';
 import { useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
+import { useGetWareHouse } from '../../features/wareHouse/hook/useWareHouse';
+import { useTransaction } from '../../features/transactions/hook/useTransaction';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
 import { useCreateAssignVehicle } from '../../features/Vehicle/hook/useAssignVehicle';
@@ -29,9 +31,12 @@ export default function RescueCoordinator() {
     const { updateVehicle } = useUpdateVehicle();
     const { createAssignVehicle } = useCreateAssignVehicle();
     const { getRescueRequestStatus } = useRescueRequestStatus();
+    const { fetchWareHouse } = useGetWareHouse();
+    const { createTransaction } = useTransaction();
 
     const [teams, setTeams] = useState([]);
     const [vehicles, setVehicles] = useState([]);
+    const [warehouses, setWarehouses] = useState([]);
     const [dispatchTarget, setDispatchTarget] = useState(null);
     const [requestStatusMap, setRequestStatusMap] = useState({});
     const [isMissionModalOpen, setIsMissionModalOpen] = useState(false);
@@ -64,6 +69,13 @@ export default function RescueCoordinator() {
             } catch (err) {
                 console.error('Failed to fetch request statuses:', err);
             }
+            try {
+                const wData = await fetchWareHouse();
+                setWarehouses(wData ?? []);
+            } catch (err) {
+                console.error('Failed to fetch warehouses:', err);
+                setWarehouses([]);
+            }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -91,7 +103,7 @@ export default function RescueCoordinator() {
 
     const handleConfirmDispatch = async (missionData) => {
         try {
-            const { rescueRequestId, teamId, vehicleId, description } = missionData;
+            const { rescueRequestId, teamId, vehicleId, description, txData } = missionData;
             const payload = { rescueRequestId, teamId, description };
             const missionRes = await createRescueMission(payload);
             console.log("Create Mission Response:", missionRes);
@@ -154,6 +166,18 @@ export default function RescueCoordinator() {
                 }
             }
 
+            // Create Inventory Transaction if txData is provided
+            if (txData && missionId) {
+                try {
+                    await createTransaction({
+                        ...txData,
+                        missionId: missionId
+                    });
+                } catch (e) {
+                    console.error('Failed to create inventory transaction:', e?.response?.status, e?.response?.data, e);
+                }
+            }
+
             // Remove dispatched request from queue
             setRequests((prev) =>
                 prev.filter(
@@ -181,7 +205,7 @@ export default function RescueCoordinator() {
             <TaskBar />
             {/* Map — full-screen background layer */}
             <div className="absolute inset-0 z-0">
-                <MapLayer requests={requests} teams={teams} userMap={userMap} requestStatusMap={requestStatusMap} onDispatch={handleDispatch} />
+                <MapLayer requests={requests} teams={teams} warehouses={warehouses} userMap={userMap} requestStatusMap={requestStatusMap} onDispatch={handleDispatch} />
             </div>
 
             {/* Quản Lý Chung button */}
@@ -210,6 +234,7 @@ export default function RescueCoordinator() {
                 <DispatchModal
                     request={dispatchTarget}
                     teams={teams}
+                    warehouses={warehouses}
                     userMap={userMap}
                     loading={missionLoading}
                     onClose={() => setDispatchTarget(null)}

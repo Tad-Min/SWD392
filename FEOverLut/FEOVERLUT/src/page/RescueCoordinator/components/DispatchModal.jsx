@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { X, Send, MapPin, AlertTriangle, Users, Clock } from 'lucide-react';
 import { useVehicle } from '../../../features/Vehicle/hook/useVehicle';
 import { useVehiclesStatus } from '../../../features/status/hook/useVehiclesStatus';
-import { getRescueRequestTypesApi } from '../../../features/system_config/api/systemConfigApi';
 import { useSystemConfig } from '../../../features/system_config/hook/useSystemConfig';
+import { useGetWareHouseStock } from '../../../features/wareHouse/hook/useWareHouse';
+import { useInventory } from '../../../features/inventory/hook/useInventory';
 
 export default function DispatchModal({
     request,
     teams = [],
+    warehouses = [],
     userMap = {},
     onClose,
     onConfirm,
@@ -20,6 +22,11 @@ export default function DispatchModal({
     const [vehicles, setVehicles] = useState([]);
     const [vehicleStatusMap, setVehicleStatusMap] = useState({});
     const [vehicleTypeMap, setVehicleTypeMap] = useState({});
+    const [warehouseStocks, setWarehouseStocks] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
+    const [selectedProductId, setSelectedProductId] = useState('');
+    const [quantity, setQuantity] = useState('');
 
     const urgencyMeta = {
         1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
@@ -29,23 +36,29 @@ export default function DispatchModal({
 
     const { fetchVehicle } = useVehicle();
     const { getVehiclesStatus } = useVehiclesStatus();
-    const { getVehicleTypes } = useSystemConfig();
+    const { getVehicleTypes, getRescueRequestTypes } = useSystemConfig();
+    const { fetchWareHouseStock } = useGetWareHouseStock();
+    const { getProducts } = useInventory();
 
     // Fetch request types and vehicles from API
     useEffect(() => {
         (async () => {
             try {
                 // Fetch request types
-                const res = await getRescueRequestTypesApi();
-                const data = res?.data ?? res;
-                if (Array.isArray(data)) {
-                    const map = {};
-                    data.forEach((t) => {
-                        const id = t.id ?? t.rescueRequestTypeId ?? t.typeId;
-                        const name = t.typeName ?? t.name ?? t.label;
-                        if (id != null && name) map[id] = name;
-                    });
-                    setTypeLabels(map);
+                try {
+                    const res = await getRescueRequestTypes();
+                    const data = res?.data?.data ?? res?.data ?? res;
+                    if (Array.isArray(data)) {
+                        const map = {};
+                        data.forEach((t) => {
+                            const id = t.id ?? t.rescueRequestTypeId ?? t.typeId;
+                            const name = t.typeName ?? t.name ?? t.label;
+                            if (id != null && name) map[id] = name;
+                        });
+                        setTypeLabels(map);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch rescue request types:', err);
                 }
 
                 // Fetch vehicle types
@@ -87,6 +100,45 @@ export default function DispatchModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Fetch warehouse stocks and products if relief request
+    useEffect(() => {
+        if (request && (request.requestType === 2 || request.requestType === 3)) {
+            (async () => {
+                try {
+                    const wsData = await fetchWareHouseStock();
+                    setWarehouseStocks(wsData?.data ?? wsData ?? []);
+                } catch (err) { console.error('Failed to fetch stocks', err); }
+                try {
+                    const pData = await getProducts();
+                    setProducts(pData?.data ?? pData ?? []);
+                } catch (err) { console.error('Failed to fetch products', err); }
+            })();
+        }
+    }, [request?.requestType]);
+
+    // Derived state for available warehouses and products
+    const availableWarehouseIds = [...new Set(warehouseStocks.map(s => s.warehouseId))];
+    const availableWarehouses = warehouses.filter(w => availableWarehouseIds.includes(w.warehouseId ?? w.id));
+
+    const availableProductsInWarehouse = warehouseStocks
+        .filter(s => s.warehouseId === parseInt(selectedWarehouseId))
+        .map(s => {
+            const productInfo = products.find(p => p.productId === s.productId) || {};
+            return {
+                ...s,
+                productName: productInfo.productName || productInfo.name || `Sản phẩm #${s.productId}`,
+            };
+        });
+
+    const selectedStock = availableProductsInWarehouse.find(s => s.productId === parseInt(selectedProductId));
+    const maxQuantity = selectedStock ? (selectedStock.currentQuantity ?? selectedStock.quantity ?? 0) : 0;
+
+    // reset productId if warehouse changes
+    useEffect(() => {
+        setSelectedProductId('');
+        setQuantity('');
+    }, [selectedWarehouseId]);
+
     if (!request) return null;
 
     const availableTeams = teams.filter(
@@ -101,12 +153,27 @@ export default function DispatchModal({
 
     const handleSubmit = () => {
         if (!selectedTeamId) return;
-        onConfirm?.({
+
+        const payload = {
             rescueRequestId: request.rescueRequestId ?? request.id,
             teamId: parseInt(selectedTeamId),
             vehicleId: selectedVehicleId ? parseInt(selectedVehicleId) : null,
             description: note.trim() !== '' ? note.trim() : 'Điều phối cứu hộ',
-        });
+        };
+
+        if (request.requestType === 2 || request.requestType === 3) {
+            if (selectedWarehouseId && selectedProductId && quantity) {
+                payload.txData = {
+                    warehouseId: parseInt(selectedWarehouseId),
+                    productId: parseInt(selectedProductId),
+                    quantity: parseInt(quantity),
+                    txType: 0, // Outflow (Export)
+                    createdByUserId: parseInt(localStorage.getItem('userId') || 0)
+                };
+            }
+        }
+
+        onConfirm?.(payload);
     };
 
     const requestTypeLabel = typeLabels[request.requestType];
@@ -238,6 +305,64 @@ export default function DispatchModal({
                             className="w-full rounded-xl px-4 py-2.5 text-sm outline-none resize-none bg-slate-800/80 text-white placeholder-slate-500 border border-white/10 focus:border-blue-500 transition-colors"
                         />
                     </div>
+
+                    {/* Relief Items */
+                        (request.requestType === 2 || request.requestType === 3) && (
+                            <div className="bg-emerald-900/20 border border-emerald-500/20 p-3 rounded-xl mt-3 space-y-3">
+                                <h4 className="text-sm font-semibold text-emerald-400">Xuất hàng cứu trợ</h4>
+
+                                {/* Kho hàng */}
+                                <div>
+                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Kho hàng</label>
+                                    <select
+                                        value={selectedWarehouseId}
+                                        onChange={(e) => setSelectedWarehouseId(e.target.value)}
+                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500"
+                                    >
+                                        <option value="">-- Chọn kho hàng --</option>
+                                        {availableWarehouses.map(w => (
+                                            <option key={w.warehouseId ?? w.id} value={w.warehouseId ?? w.id}>{w.warehouseName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Sản phẩm */}
+                                <div>
+                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Sản phẩm</label>
+                                    <select
+                                        value={selectedProductId}
+                                        onChange={(e) => setSelectedProductId(e.target.value)}
+                                        disabled={!selectedWarehouseId}
+                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
+                                    >
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        {availableProductsInWarehouse.map(p => (
+                                            <option key={p.productId} value={p.productId}>{p.productName} (Còn: {p.currentQuantity ?? p.quantity})</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Số lượng */}
+                                <div>
+                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Số lượng xuất (Max: {maxQuantity})</label>
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        min="1"
+                                        max={maxQuantity}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (val > maxQuantity) setQuantity(maxQuantity);
+                                            else if (val < 1) setQuantity('');
+                                            else setQuantity(val);
+                                        }}
+                                        disabled={!selectedProductId}
+                                        placeholder="Nhập số lượng..."
+                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
+                                    />
+                                </div>
+                            </div>
+                        )}
                 </div>
 
                 {/* Actions */}
