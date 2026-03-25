@@ -1,15 +1,11 @@
 import React from 'react';
-import { LayoutGrid, Users, MessageSquare, LogOut } from 'lucide-react';
+import { LayoutGrid, Users, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLogout } from '../../../features/auth/hook/useAuth';
 
 const RescueSidebar = ({ activeTab, setActiveTab, teamLabel, onOpenProfile, isSidebarOpen = true, theme, isDarkMode }) => {
     const navigate = useNavigate();
-    const { logout } = useLogout();
-
-    const handleLogout = async () => {
-        await logout();
-        navigate('/');
+    const handleBackToCitizen = () => {
+        navigate('/Citizens');
     };
 
     const navItems = [
@@ -76,11 +72,11 @@ const RescueSidebar = ({ activeTab, setActiveTab, teamLabel, onOpenProfile, isSi
                 </div>
 
                 <button
-                    onClick={handleLogout}
+                    onClick={handleBackToCitizen}
                     className={`flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center'} py-3 rounded-xl transition-all duration-200 text-sm font-medium w-full text-slate-400 ${theme?.navHover || 'hover:bg-slate-800/50'} group`}
                 >
-                    <LogOut size={18} strokeWidth={2} className="group-hover:text-red-500 transition-colors" />
-                    {isSidebarOpen && <span className="whitespace-nowrap transition-colors group-hover:text-red-500">Đăng xuất</span>}
+                    <ArrowLeft size={18} strokeWidth={2} className="group-hover:text-red-500 transition-colors" />
+                    {isSidebarOpen && <span className="whitespace-nowrap transition-colors group-hover:text-red-500">Quay lại trang chủ</span>}
                 </button>
             </div>
         </aside>

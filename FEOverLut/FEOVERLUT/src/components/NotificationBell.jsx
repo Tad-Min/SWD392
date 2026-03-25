@@ -31,10 +31,15 @@ const NotificationBell = ({ theme }) => {
                     // Let's assume it's some json broadcast
                     const data = JSON.parse(event.data);
 
+                    // Ignore internal system messages
+                    if (data.type && data.type !== 'notification') {
+                        return;
+                    }
+
                     const newNotif = {
                         id: Date.now(),
                         title: data.title || 'Thông Báo Mới',
-                        message: data.message || event.data,
+                        message: data.message || data.content || event.data,
                         time: new Date().toLocaleTimeString(),
                         read: false,
                         data: data
@@ -103,7 +108,14 @@ const NotificationBell = ({ theme }) => {
         return () => {
             clearTimeout(reconnectTimer);
             if (wsRef.current) {
-                wsRef.current.close();
+                const ws = wsRef.current;
+                if (ws.readyState === 0) { // CONNECTING
+                    // Add an open listener to close it once established to avoid the browser console warning
+                    ws.onopen = () => ws.close();
+                    ws.onclose = null;
+                } else {
+                    ws.close();
+                }
             }
             document.removeEventListener('mousedown', handleClickOutside);
         };
