@@ -10,6 +10,7 @@ const ROLE_NAMES = {
   3: 'Rescue Coordinator',
   4: 'Manager',
   5: 'Admin',
+  6: 'Volunteer',
 };
 
 function TaskBar({ isDarkMode = true }) {
@@ -98,10 +99,10 @@ function TaskBar({ isDarkMode = true }) {
               onClick={() => {
                 const homeRoutes = {
                   1: '/Citizens',
-                  2: '/RescueTeam',
                   3: '/RescueCoordinator',
                   4: '/manager',
-                  5: '/admin'
+                  5: '/admin',
+                  6: '/volunteer'
                 };
                 navigate(homeRoutes[roleId] || '/Citizens');
               }}
@@ -123,7 +124,7 @@ function TaskBar({ isDarkMode = true }) {
             </div>
 
             {/* About Link */}
-            {!location.pathname.toLowerCase().includes('/rescuecoordinator') && (
+            {roleId !== 3 && !location.pathname.toLowerCase().includes('/rescuecoordinator') && (
               <div
                 className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer text-sm font-semibold ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-black'}`}
                 onClick={() => navigate('/about')}
@@ -133,7 +134,7 @@ function TaskBar({ isDarkMode = true }) {
             )}
 
             {/* Volunteer Status Nav Item */}
-            {isLoggedIn && (
+            {isLoggedIn && (roleId === 1 || roleId === 6) && (
               <div
                 className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer transition-all duration-500`}
                 onClick={() => navigate('/profile')}
@@ -158,12 +159,22 @@ function TaskBar({ isDarkMode = true }) {
             )}
 
             {/* Contract Link - Citizens only */}
-            {roleId === 1 && (
+            {(roleId === 1 || roleId === 6) && (
               <div
                 className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer text-sm font-semibold ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-black'}`}
                 onClick={() => navigate('/contract')}
               >
                 <span>Hợp đồng</span>
+              </div>
+            )}
+
+            {/* Rescue Team Link - Volunteers only */}
+            {roleId === 6 && (
+              <div
+                className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer text-sm font-semibold ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-black'}`}
+                onClick={() => navigate('/volunteer')}
+              >
+                <span>Nhiệm vụ cứu hộ</span>
               </div>
             )}
           </div>
@@ -253,8 +264,8 @@ function TaskBar({ isDarkMode = true }) {
                   </button>
                 )}
 
-                {/* Xem Lịch sử cứu hộ (Only for Citizen) */}
-                {roleId === 1 && (
+                {/* Xem Lịch sử cứu hộ (For Citizen and Volunteer) */}
+                {(roleId === 1 || roleId === 6) && (
                   <button
                     onClick={() => { setIsDropdownOpen(false); navigate('/rescue-history'); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200 group ${isDarkMode

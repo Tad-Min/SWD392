@@ -16,14 +16,14 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await login(email, password);
-            const roleId = response.roleId;
+            await login(email, password);
+            const roleId = parseInt(localStorage.getItem('roleId'));
             const roleHomeMap = {
                 1: '/Citizens',
-                2: '/RescueTeam',
                 3: '/RescueCoordinator',
                 4: '/manager',
                 5: '/admin',
+                6: '/volunteer',
             };
             navigate(roleHomeMap[roleId] || '/Citizens');
             toast.success('Đăng nhập thành công');

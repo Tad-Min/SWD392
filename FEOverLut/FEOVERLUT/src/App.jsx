@@ -53,15 +53,15 @@ function App() {
             <Route path="/Register" element={<Register />} />
 
             {/* Citizen Routes */}
-            <Route path="/Citizens" element={<ProtectedRoute><Citizens /></ProtectedRoute>} />
-            <Route path="/rescue-history" element={<ProtectedRoute><RescueHistory /></ProtectedRoute>} />
-            <Route path="/contract" element={<ProtectedRoute allowedRoles={[1]}><Contract /></ProtectedRoute>} />
+            <Route path="/Citizens" element={<ProtectedRoute allowedRoles={[1, 6]}><Citizens /></ProtectedRoute>} />
+            <Route path="/rescue-history" element={<ProtectedRoute allowedRoles={[1, 6]}><RescueHistory /></ProtectedRoute>} />
+            <Route path="/contract" element={<ProtectedRoute allowedRoles={[1, 6]}><Contract /></ProtectedRoute>} />
             {/* Profile Route */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* RescueTeam Routes */}
-            <Route path="/RescueTeam" element={<ProtectedRoute><RescueTeam /></ProtectedRoute>} />
+            <Route path="/volunteer" element={<ProtectedRoute allowedRoles={[6]}><RescueTeam /></ProtectedRoute>} />
             {/* RescueCoordinator Routes */}
-            <Route path="/RescueCoordinator" element={<ProtectedRoute><RescueCoordinator /></ProtectedRoute>} />
+            <Route path="/RescueCoordinator" element={<ProtectedRoute allowedRoles={[3]}><RescueCoordinator /></ProtectedRoute>} />
 
             {/* About Page */}
             <Route path="/about" element={<About />} />
@@ -71,26 +71,26 @@ function App() {
             <Route path="/testattachment" element={<TestAttachment />} />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={[5]}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
-              <Route path="products" element={<ProtectedRoute><AdminProductManagement /></ProtectedRoute>} />
-              <Route path="settings" element={<ProtectedRoute><SystemConfig /></ProtectedRoute>} />
+              <Route path="dashboard" element={<ProtectedRoute allowedRoles={[5]}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="users" element={<ProtectedRoute allowedRoles={[5]}><UserManagement /></ProtectedRoute>} />
+              <Route path="products" element={<ProtectedRoute allowedRoles={[5]}><AdminProductManagement /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute allowedRoles={[5]}><SystemConfig /></ProtectedRoute>} />
             </Route>
 
             {/* Manager Routes */}
-            <Route path="/manager" element={<ProtectedRoute><ManagerLayout /></ProtectedRoute>}>
+            <Route path="/manager" element={<ProtectedRoute allowedRoles={[4]}><ManagerLayout /></ProtectedRoute>}>
               <Route index element={<ManagerDashboard />} />
-              <Route path="dashboard" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
-              <Route path="inventory" element={<ProtectedRoute><InventoryManagement /></ProtectedRoute>} />
-              <Route path="warehouses" element={<ProtectedRoute><WarehouseConfig /></ProtectedRoute>} />
-              <Route path="transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
-              <Route path="distribution" element={<ProtectedRoute><DistributionTracking /></ProtectedRoute>} />
-              <Route path="products" element={<ProtectedRoute><ProductManagement /></ProtectedRoute>} />
-              <Route path="rescue-teams" element={<ProtectedRoute><RescueTeamManagement /></ProtectedRoute>} />
-              <Route path="vehicles" element={<ProtectedRoute><VehicleManagement /></ProtectedRoute>} />
-              <Route path="reports" element={<ProtectedRoute><ManagerReports /></ProtectedRoute>} />
+              <Route path="dashboard" element={<ProtectedRoute allowedRoles={[4]}><ManagerDashboard /></ProtectedRoute>} />
+              <Route path="inventory" element={<ProtectedRoute allowedRoles={[4]}><InventoryManagement /></ProtectedRoute>} />
+              <Route path="warehouses" element={<ProtectedRoute allowedRoles={[4]}><WarehouseConfig /></ProtectedRoute>} />
+              <Route path="transactions" element={<ProtectedRoute allowedRoles={[4]}><TransactionHistory /></ProtectedRoute>} />
+              <Route path="distribution" element={<ProtectedRoute allowedRoles={[4]}><DistributionTracking /></ProtectedRoute>} />
+              <Route path="products" element={<ProtectedRoute allowedRoles={[4]}><ProductManagement /></ProtectedRoute>} />
+              <Route path="rescue-teams" element={<ProtectedRoute allowedRoles={[4]}><RescueTeamManagement /></ProtectedRoute>} />
+              <Route path="vehicles" element={<ProtectedRoute allowedRoles={[4]}><VehicleManagement /></ProtectedRoute>} />
+              <Route path="reports" element={<ProtectedRoute allowedRoles={[4]}><ManagerReports /></ProtectedRoute>} />
             </Route>
           </Routes>
           <ChatBot />

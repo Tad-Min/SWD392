@@ -4,10 +4,10 @@ import { Navigate } from "react-router-dom";
 // Map roleId -> trang chủ tương ứng
 const ROLE_HOME = {
     1: '/Citizens',
-    2: '/rescue-team/tasks',
     3: '/RescueCoordinator',
     4: '/manager',
     5: '/admin',
+    6: '/volunteer',
 };
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
