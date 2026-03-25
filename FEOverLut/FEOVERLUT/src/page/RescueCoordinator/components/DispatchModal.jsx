@@ -167,6 +167,7 @@ export default function DispatchModal({
                     warehouseId: parseInt(selectedWarehouseId),
                     productId: parseInt(selectedProductId),
                     quantity: parseInt(quantity),
+                    oldQuantity: parseInt(maxQuantity),
                     txType: 0, // Outflow (Export)
                     createdByUserId: parseInt(localStorage.getItem('userId') || 0)
                 };

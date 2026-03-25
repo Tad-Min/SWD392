@@ -12,7 +12,7 @@ import { Briefcase } from 'lucide-react';
 import { useRealtimeRescueRequests } from '../useRealtimeRescueRequests.jsx';
 import { useUpdateRescueRequest } from '../../features/Rescue/hook/useRescueRequest';
 import { useRescueTeam, useUpdateRescueTeam } from '../../features/Rescue/hook/useRescueTeam';
-import { useGetWareHouse } from '../../features/wareHouse/hook/useWareHouse';
+import { useGetWareHouse, useUpdateWareHouseStock } from '../../features/wareHouse/hook/useWareHouse';
 import { useTransaction } from '../../features/transactions/hook/useTransaction';
 import { useCreateRescueMission } from '../../features/Rescue/hook/useRescueMission';
 import { useUpdateVehicle, useVehicle } from '../../features/Vehicle/hook/useVehicle';
@@ -32,6 +32,7 @@ export default function RescueCoordinator() {
     const { createAssignVehicle } = useCreateAssignVehicle();
     const { getRescueRequestStatus } = useRescueRequestStatus();
     const { fetchWareHouse } = useGetWareHouse();
+    const { updateWareHouseStock } = useUpdateWareHouseStock();
     const { createTransaction } = useTransaction();
 
     const [teams, setTeams] = useState([]);
@@ -173,8 +174,20 @@ export default function RescueCoordinator() {
                         ...txData,
                         missionId: missionId
                     });
+
+                    // Update warehouse stock dynamically after successful transaction
+                    if (txData.oldQuantity !== undefined) {
+                        const newQuantity = txData.oldQuantity - txData.quantity;
+                        await updateWareHouseStock({
+                            warehouseId: txData.warehouseId,
+                            productId: txData.productId,
+                            currentQuantity: newQuantity,
+                            lastUpdated: new Date().toISOString()
+                        });
+                        console.log(`Updated warehouse ${txData.warehouseId} product ${txData.productId} stock to ${newQuantity}`);
+                    }
                 } catch (e) {
-                    console.error('Failed to create inventory transaction:', e?.response?.status, e?.response?.data, e);
+                    console.error('Failed to create inventory transaction or update stock:', e?.response?.status, e?.response?.data, e);
                 }
             }
 
