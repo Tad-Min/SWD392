@@ -21,8 +21,8 @@ jobs:
       - name: Build and push WebAPI
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./BEOverLut_MonoService/OverLut
+          file: ./BEOverLut_MonoService/OverLut/WebApi/Dockerfile
           push: true
           tags: tadminm/overlut:webapi
 
