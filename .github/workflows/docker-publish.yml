@@ -15,19 +15,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Bổ sung: Cài đặt Docker Buildx để hỗ trợ caching và build nhanh hơn
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Tối ưu: Thêm tag latest và tag theo mã SHA, kèm theo Caching
       - name: Build and push WebAPI
         uses: docker/build-push-action@v5
         with:
           context: ./BEOverLut_MonoService/OverLut
           file: ./BEOverLut_MonoService/OverLut/WebApi/Dockerfile
           push: true
-          tags: tadminm/overlut:webapi
+          tags: |
+            tadminm/overlut:webapi-latest
+            tadminm/overlut:webapi-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
@@ -39,7 +48,11 @@ jobs:
             VITE_API_URL=https://tad-min.io.vn/api/
             VITE_WS_URL=wss://tad-min.io.vn/ws
             VITE_API_AI_URL=https://tad-min.io.vn/api/ai/chat
-          tags: tadminm/overlut:frontend
+          tags: |
+            tadminm/overlut:frontend-latest
+            tadminm/overlut:frontend-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push AI Gateway
         uses: docker/build-push-action@v5
@@ -47,4 +60,8 @@ jobs:
           context: ./llama3-3b/AIGateway
           file: ./llama3-3b/AIGateway/Dockerfile
           push: true
-          tags: tadminm/overlut:ai-gateway
+          tags: |
+            tadminm/overlut:ai-gateway-latest
+            tadminm/overlut:ai-gateway-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
