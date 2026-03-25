@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TeamInfo = ({ teamIdLabel, members = [], loading = false, theme }) => {
+const TeamInfo = ({ teamData, teamIdLabel, members = [], loading = false, theme }) => {
     return (
         <div className="flex-1 flex flex-col p-8 overflow-y-auto">
             {/* Header Section */}
@@ -18,6 +18,41 @@ const TeamInfo = ({ teamIdLabel, members = [], loading = false, theme }) => {
                     <span className="text-green-500 text-xs font-bold uppercase tracking-wide">Trực Tuyến</span>
                 </div>
             </div>
+
+            {/* Team Meta Card */}
+            {teamData && (
+                <div className={`${theme?.cardBg || 'bg-[#1C2532]'} border ${theme?.border || 'border-slate-700/50'} rounded-2xl p-6 mb-6 shadow-xl`}>
+                    <h2 className={`text-lg font-bold ${theme?.textTitle || 'text-white'} mb-4 flex items-center gap-2`}>
+                        <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Vị trí tập kết
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <p className="text-[10px] text-slate-500 font-black uppercase mb-1">Địa điểm</p>
+                            <p className={`text-sm ${theme?.text || 'text-slate-300'}`}>{teamData.assemblyLocationText || 'Chưa xác định'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-500 font-black uppercase mb-1">Tọa độ GPS</p>
+                            <p className={`text-sm font-mono ${theme?.text || 'text-slate-300'}`}>
+                                {teamData.location?.coordinates ? (
+                                    <span>
+                                        {teamData.location.coordinates[1].toFixed(6)}, {teamData.location.coordinates[0].toFixed(6)}
+                                    </span>
+                                ) : '—'}
+                            </p>
+                        </div>
+                        {teamData.assemblyNote && (
+                            <div className="md:col-span-2">
+                                <p className="text-[10px] text-slate-500 font-black uppercase mb-1">Ghi chú tập kết</p>
+                                <p className={`text-sm italic ${theme?.text || 'text-slate-400'}`}>"{teamData.assemblyNote}"</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Team Members Table Container */}
             <div className={`${theme?.cardBg || 'bg-[#1C2532]'} border ${theme?.border || 'border-slate-700/50'} rounded-2xl overflow-hidden shadow-2xl p-6 min-h-[400px]`}>

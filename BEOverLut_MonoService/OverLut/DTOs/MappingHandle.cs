@@ -197,18 +197,16 @@ namespace DTOs
             if (entity == null) return null;
             return new RescueTeamDTO
             {
-                TeamId = entity.TeamId,
-                TeamName = entity.TeamName,
-                StatusId = entity.StatusId,
-                CreatedAt = entity.CreatedAt,
-                IsActive = entity.IsActive,
-                AssemblyLocationText = entity.AssemblyLocationText,
-                AssemblyLatitude = entity.AssemblyLatitude,
-                AssemblyLongitude = entity.AssemblyLongitude,
-                AssemblyNote = entity.AssemblyNote,
-                RoleId = entity.RoleId,
-                RoleName = entity.Role?.RoleName
-            };
+               TeamId = entity.TeamId,
+              TeamName = entity.TeamName,
+               StatusId = entity.StatusId,
+               CreatedAt = entity.CreatedAt,
+               IsActive = entity.IsActive,
+               AssemblyLocationText = entity.AssemblyLocationText,
+               Location = entity.Location,
+               AssemblyNote = entity.AssemblyNote,
+               RoleId = entity.RoleId
+    };
         }
         
         public static RescueTeamMemberDTO? EntityToDTO(RescueTeamMember? entity)
@@ -676,9 +674,9 @@ namespace DTOs
                 CreatedAt = dto.CreatedAt,
                 IsActive = dto.IsActive,
                 AssemblyLocationText = dto.AssemblyLocationText,
-                AssemblyLatitude = dto.AssemblyLatitude,
-                AssemblyLongitude = dto.AssemblyLongitude,
-                AssemblyNote = dto.AssemblyNote
+                Location = dto.Location,
+                AssemblyNote = dto.AssemblyNote,
+                RoleId = dto.RoleId
             };
         }
 

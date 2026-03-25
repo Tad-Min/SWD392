@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using NetTopologySuite.Geometries;
 
 namespace DTOs.Overlut;
 
@@ -7,17 +8,20 @@ public class RescueTeamDTO
 {
     public int TeamId { get; set; }
 
-    [Required(ErrorMessage = "TeamName is required")]
-    [StringLength(200, ErrorMessage = "TeamName cannot exceed 200 characters")]
     public string TeamName { get; set; } = null!;
+
     public int StatusId { get; set; }
+
     public DateTime CreatedAt { get; set; }
+
     public bool IsActive { get; set; }
+
+    /// <summary>Text description of the assembly/muster point.</summary>
     public string? AssemblyLocationText { get; set; }
-    public double? AssemblyLatitude { get; set; }
-    public double? AssemblyLongitude { get; set; }
+
+    public Point Location { get; set; } = null!;
+
     public string? AssemblyNote { get; set; }
 
     public int? RoleId { get; set; }
-    public string? RoleName { get; set; }
 }

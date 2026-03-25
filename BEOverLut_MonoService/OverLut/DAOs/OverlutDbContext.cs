@@ -329,6 +329,7 @@ public partial class OverlutDbContext : DbContext
             entity.Property(e => e.TeamName).HasMaxLength(200);
             entity.Property(e => e.AssemblyLocationText).HasMaxLength(500);
             entity.Property(e => e.AssemblyNote).HasMaxLength(500);
+            entity.Property(e => e.Location).HasColumnType("geography");
 
             entity.HasOne(d => d.Status).WithMany(p => p.RescueTeams)
                 .HasForeignKey(d => d.StatusId)

@@ -56,6 +56,7 @@ const RescueTeamManagement = () => {
         teamName: '',
         roleId: '',
         assemblyLocationText: '',
+        gpsText: '10.762622, 106.660172',
         assemblyNote: ''
     });
 
@@ -173,15 +174,28 @@ const RescueTeamManagement = () => {
                     if (parts.length > 0) fullAddress = parts.join(', ');
                 }
 
+                // Parse gpsText (lat, lng)
+                let latitude = 10.762622;
+                let longitude = 106.660172;
+                if (teamForm.gpsText && teamForm.gpsText.includes(',')) {
+                    const parts = teamForm.gpsText.split(',').map(s => parseFloat(s.trim()));
+                    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                        latitude = parts[0];
+                        longitude = parts[1];
+                    }
+                }
+
                 await apiCreateTeam({
                     teamName: teamForm.teamName.trim(),
                     roleId: parseInt(teamForm.roleId),
                     assemblyLocationText: fullAddress || 'Chưa xác định',
+                    assemblyLatitude: latitude,
+                    assemblyLongitude: longitude,
                     assemblyNote: teamForm.assemblyNote.trim()
                 });
             }
             setIsTeamModalOpen(false);
-            setTeamForm({ id: null, teamName: '', roleId: '', assemblyLocationText: '', assemblyNote: '' });
+            setTeamForm({ id: null, teamName: '', roleId: '', assemblyLocationText: '', gpsText: '10.762622, 106.660172', assemblyNote: '' });
             setAddrState({ street: '', provinceCode: '', districtCode: '', wardCode: '' });
             fetchTeams();
         } catch (error) {
@@ -309,7 +323,7 @@ const RescueTeamManagement = () => {
                     </button>
                     <button
                         onClick={() => {
-                            setTeamForm({ id: null, teamName: '', roleId: '', assemblyLocationText: '', assemblyNote: '' });
+                            setTeamForm({ id: null, teamName: '', roleId: '', assemblyLocationText: '', gpsText: '10.762622, 106.660172', assemblyNote: '' });
                             setAddrState({ street: '', provinceCode: '', districtCode: '', wardCode: '' });
                             setIsTeamModalOpen(true);
                         }}
@@ -366,16 +380,16 @@ const RescueTeamManagement = () => {
                             <table className="w-full text-left border-collapse min-w-[600px]">
                                 <thead>
                                     <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                        {['ID', 'Tên Đội', 'Quản lý'].map((h, i) => (
-                                            <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider whitespace-nowrap ${i === 2 ? 'text-center' : ''}`}>{h}</th>
+                                        {['ID', 'Tên Đội', 'Tọa độ GPS', 'Quản lý'].map((h, i) => (
+                                            <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider whitespace-nowrap ${i === 3 ? 'text-center' : ''}`}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
                                     {isLoading ? (
-                                        <tr><td colSpan="3" className="px-6 py-14 text-center">Đang tải...</td></tr>
+                                        <tr><td colSpan="4" className="px-6 py-14 text-center">Đang tải...</td></tr>
                                     ) : filteredTeams.length === 0 ? (
-                                        <tr><td colSpan="3" className="px-6 py-14 text-center text-sm text-slate-400">Chưa có đội cứu hộ nào.</td></tr>
+                                        <tr><td colSpan="4" className="px-6 py-14 text-center text-sm text-slate-400">Chưa có đội cứu hộ nào.</td></tr>
                                     ) : filteredTeams.map(item => (
                                         <tr key={item.id || item.teamId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
                                             <td className={`px-6 py-4 text-sm font-bold ${theme.text}`}>#{item.id || item.teamId}</td>
@@ -388,6 +402,15 @@ const RescueTeamManagement = () => {
                                                         <span className={`text-[15px] font-semibold ${theme.text}`}>{item.teamName || item.name}</span>
                                                         <p className="text-[11px] text-slate-500 mt-0.5">{item.assemblyLocationText || 'Chưa định vị'}</p>
                                                     </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className={`text-sm ${theme.textMuted} font-mono text-[12px]`}>
+                                                    {item.location?.coordinates ? (
+                                                        <span>
+                                                            {item.location.coordinates[1].toFixed(6)}, {item.location.coordinates[0].toFixed(6)}
+                                                        </span>
+                                                    ) : '—'}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -547,6 +570,18 @@ const RescueTeamManagement = () => {
                                             </select>
                                         </div>
                                     </div>
+                                    <div className="sm:col-span-2">
+                                        <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Tọa độ GPS</label>
+                                        <input
+                                            type="text"
+                                            value={teamForm.gpsText}
+                                            placeholder="Ví dụ: 10.762622, 106.660172"
+                                            onChange={e => setTeamForm(p => ({ ...p, gpsText: e.target.value }))}
+                                            className={`w-full border ${theme.inputBorder} ${theme.inputBg} rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-mono`}
+                                        />
+                                        <p className={`text-[11px] mt-1 ${theme.textMuted}`}>Cấu trúc: vĩ độ, kinh độ (latitude, longitude).</p>
+                                    </div>
+
                                     <div className="sm:col-span-2">
                                         <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Ghi chú tập kết</label>
                                         <textarea

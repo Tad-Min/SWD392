@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interface;
 using WebApi.Models.RescueTeamModel;
+using NetTopologySuite.Geometries;
 
 namespace WebApi.Controllers
 {
@@ -105,8 +106,9 @@ namespace WebApi.Controllers
                 {
                     TeamName = model.TeamName,
                     AssemblyLocationText = model.AssemblyLocationText,
-                    AssemblyLatitude = model.AssemblyLatitude,
-                    AssemblyLongitude = model.AssemblyLongitude,
+                    Location = (model.AssemblyLongitude.HasValue && model.AssemblyLatitude.HasValue) 
+                        ? new Point(model.AssemblyLongitude.Value, model.AssemblyLatitude.Value) { SRID = 4326 } 
+                        : null!,
                     AssemblyNote = model.AssemblyNote,
                     RoleId = model.RoleId
                 });
