@@ -25,7 +25,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173")
+            .WithOrigins(
+                "http://localhost:3000", "http://localhost:5173", 
+                "http://127.0.0.1:3000", "http://127.0.0.1:5173",
+                "https://tad-min.io.vn", "http://tad-min.io.vn"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
@@ -39,12 +43,24 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<OverlutDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("overlutdb"), // Đã sửa chuẩn
-        sqlOptions => sqlOptions.UseNetTopologySuite()
+        sqlOptions => {
+            sqlOptions.UseNetTopologySuite();
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }
     ));
 
 builder.Services.AddDbContext<OverlutDbStorageContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("overlutstoragedb") // Đã sửa chuẩn
+        builder.Configuration.GetConnectionString("overlutstoragedb"), // Đã sửa chuẩn
+        sqlOptions => {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }
     ));
 
 builder.Services.AddControllers()

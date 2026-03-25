@@ -7,7 +7,11 @@ COPY . .
 
 # Khai báo ARG để nhận biến từ docker-compose lúc build
 ARG VITE_API_URL
+ARG VITE_WS_URL
+ARG VITE_API_AI_URL
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_API_AI_URL=$VITE_API_AI_URL
 
 RUN npm run build
 

@@ -1,0 +1,21 @@
+tad-min.io.vn {
+    # WebSocket route (bắt phải đặt trước /api/ để match chính xác)
+    handle /ws {
+        reverse_proxy webapi:8080
+    }
+
+    # AI Gateway route
+    handle /api/ai/* {
+        reverse_proxy ai-gateway:8000
+    }
+
+    # Backend API route
+    handle /api/* {
+        reverse_proxy webapi:8080
+    }
+
+    # Frontend route (bắt các request còn lại)
+    handle /* {
+        reverse_proxy frontend:80
+    }
+}

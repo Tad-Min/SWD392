@@ -16,7 +16,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173", 
         "http://127.0.0.1:5173", 
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://tad-min.io.vn:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -24,6 +25,12 @@ app.add_middleware(
 )
 
 middleware = MiddleWare("AppConfig.json")
+
+# Override config từ environment variables (cho Docker)
+if os.getenv("OVERLUT_BACKEND_URL"):
+    middleware.config["DomainSettings"]["BackEnd"] = os.getenv("OVERLUT_BACKEND_URL")
+if os.getenv("OVERLUT_OLLAMA_HOST"):
+    middleware.config["DomainSettings"]["OllamaHost"] = os.getenv("OVERLUT_OLLAMA_HOST")
 
 # =================================================================
 # [RAG] KHỞI TẠO CHROMADB & NẠP DỮ LIỆU TỪ KNOWLEDGE.TXT
@@ -291,7 +298,7 @@ async def chat_with_ai(request: ChatRequest, authorization: Optional[str] = Head
         active_tools = tools 
         
     client = ollama.Client(host=middleware.config["DomainSettings"]["OllamaHost"])
-    response = client.chat(model='llama3.2:3b', messages=messages, tools=active_tools)
+    response = client.chat(model='qwen2.5:1.5b', messages=messages, tools=active_tools)
     
     msg = response['message']
     
@@ -353,7 +360,7 @@ async def chat_with_ai(request: ChatRequest, authorization: Optional[str] = Head
                         'name': f_name
                     })
                     
-                    final_response = client.chat(model='llama3.2:3b', messages=messages)
+                    final_response = client.chat(model='qwen2.5:1.5b', messages=messages)
                     ai_summary = final_response['message'].get('content', '')
                     
                     return {
@@ -370,7 +377,7 @@ async def chat_with_ai(request: ChatRequest, authorization: Optional[str] = Head
                     'name': f_name
                 })
                 
-                final_response = client.chat(model='llama3.2:3b', messages=messages)
+                final_response = client.chat(model='qwen2.5:1.5b', messages=messages)
                 ai_message = final_response['message'].get('content', '')
                 
                 # Trả về kèm data để frontend render bảng

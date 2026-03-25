@@ -1,0 +1,47 @@
+name: Docker Image Build and Publish CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push WebAPI
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: tadminm/overlut:webapi
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./FEOverLut/FEOVERLUT
+          file: ./FEOverLut/FEOVERLUT/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=https://tad-min.io.vn/api/
+            VITE_WS_URL=wss://tad-min.io.vn/ws
+            VITE_API_AI_URL=https://tad-min.io.vn/api/ai/chat
+          tags: tadminm/overlut:frontend
+
+      - name: Build and push AI Gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: ./llama3-3b/AIGateway
+          file: ./llama3-3b/AIGateway/Dockerfile
+          push: true
+          tags: tadminm/overlut:ai-gateway

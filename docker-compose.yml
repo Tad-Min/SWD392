@@ -15,7 +15,7 @@ services:
     volumes:
       - overlut-db-volume:/var/opt/mssql/data
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "OverLut@2026", "-Q", "SELECT 1"]
+      test: [ "CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-S", "localhost", "-U", "SA", "-P", "OverLut@2026", "-Q", "SELECT 1" ]
       interval: 15s
       timeout: 10s
       retries: 20
@@ -28,18 +28,10 @@ services:
     image: mcr.microsoft.com/mssql-tools
     depends_on:
       db:
-        condition: service_started
-    entrypoint: /bin/bash -c "\
-      echo 'Waiting for SQL Server to be ready...'; sleep 60; \
-      echo 'Attempting to connect...'; \
-      until /opt/mssql-tools/bin/sqlcmd -S db -U SA -P OverLut@2026 -Q 'SELECT 1' 2>/dev/null; do \
-        echo 'Retrying connection...'; sleep 5; \
-      done; \
-      echo 'SQL Server ready! Running OverLut.sql...'; \
-      /opt/mssql-tools/bin/sqlcmd -S db -U SA -P OverLut@2026 -i /scripts/OverLut.sql; \
-      echo 'Database initialization complete!'"
+        condition: service_healthy
+    entrypoint: /bin/bash -c "\ echo 'Waiting for SQL Server to be ready...'; sleep 10; \ echo 'Attempting to connect...'; \ until /opt/mssql-tools/bin/sqlcmd -C -S db -U SA -P OverLut@2026 -Q 'SELECT 1' 2>/dev/null; do \ echo 'Retrying connection...'; sleep 5; \ done; \ echo 'SQL Server ready! Running OverlutAll.sql...'; \ /opt/mssql-tools/bin/sqlcmd -C -S db -U SA -P OverLut@2026 -i /scripts/OverlutAll.sql; \ echo 'Database initialization complete!'"
     volumes:
-      - ./BEOverLut_MonoService/OverLut/OverLut.sql:/scripts/OverLut.sql:ro
+      - ./BEOverLut_MonoService/OverLut/OverlutAll.sql:/scripts/OverlutAll.sql:ro
     environment:
       SA_PASSWORD: "OverLut@2026"
     restart: "no"
@@ -48,10 +40,7 @@ services:
 
   # Backend API (.NET)
   webapi:
-    build:
-      context: ./BEOverLut_MonoService/OverLut
-      dockerfile: WebApi/Dockerfile
-    image: overlut-webapi:latest
+    image: tadminm/overlut:webapi
     container_name: overlut-api
     depends_on:
       - db-init
@@ -69,34 +58,30 @@ services:
 
   # Frontend (React)
   frontend:
-    build:
-      context: ./FEOverLut/FEOVERLUT
-      dockerfile: Dockerfile
-      args: 
-        - VITE_API_URL=http://localhost:5000/api # Thêm dòng này để Vite nhận API
-    image: overlut-frontend:latest
+    image: tadminm/overlut:frontend
     container_name: overlut-frontend
     depends_on:
       - webapi
-    ports:
-      - "3000:80"
-    # Bạn có thể xóa phần environment: - VITE_API_URL đi vì nó không có tác dụng với Nginx
     restart: always
     networks:
       - overlut-net
 
-  # Mobile Web (Flutter)
-  mobile-web:
-    build:
-      context: ./FlutterOverLut/flutteroverlut
-      dockerfile: Dockerfile
-    image: overlut-mobile-web:latest
-    container_name: overlut-mobile-web
-    depends_on:
-      - webapi
-    ports:
-      - "3001:80"
+  # Reverse Proxy (Caddy)
+  caddy:
+    image: caddy:2-alpine
+    container_name: overlut-caddy
     restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - webapi
+      - ai-gateway
     networks:
       - overlut-net
 
@@ -106,6 +91,11 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: overlut-ollama
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 3G
     ports:
       - "11434:11434"
     volumes:
@@ -125,32 +115,48 @@ services:
     command: >
       sh -c "
         echo 'Waiting for Ollama to start...'
-        sleep 10
-        echo 'Pulling llama3.2:3b model...'
-        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"llama3.2:3b\"}'
+        until curl -sf http://ollama:11434/api/tags > /dev/null 2>&1; do
+          echo 'Ollama not ready, retrying in 5s...'
+          sleep 5
+        done
+        echo 'Ollama is ready! Pulling qwen2.5:1.5b model...'
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"qwen2.5:1.5b\"}'
         echo 'Model pulled successfully!'
       "
-
-  # 3. Cổng trung gian API AI (Thư mục AIGateway chứa file main.py, requirements.txt)
   ai-gateway:
-    build: 
-      context: ./llama3-3b/AIGateway
-      dockerfile: Dockerfile
+    image: tadminm/overlut:ai-gateway
     container_name: overlut-ai-gateway
     depends_on:
       - ollama
       - webapi
+    environment:
+      OVERLUT_BACKEND_URL: "http://webapi:8080"
+      OVERLUT_OLLAMA_HOST: "http://ollama:11434"
     ports:
       - "8000:8000"
     networks:
       - overlut-net
     restart: always
 
+  # Tự động cập nhật CD (Continuous Deployment)
+  watchtower:
+    image: containrrr/watchtower
+    container_name: overlut-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 overlut-api overlut-frontend overlut-ai-gateway
+    restart: always
+    networks:
+      - overlut-net
+
 # ---------------- GOM CHUNG VOLUMES VÀ NETWORKS XUỐNG DƯỚI CÙNG ----------------
 
 volumes:
   overlut-db-volume:
-  ollama_data: 
+  ollama_data:
+  caddy_data:
+  caddy_config:
+
 
 networks:
   overlut-net:
