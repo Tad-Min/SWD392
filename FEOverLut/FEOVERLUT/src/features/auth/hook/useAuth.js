@@ -69,11 +69,11 @@ export const useRegister = () => {
     const [isLoading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const register = async (email, phone, userName, password, confirmPassword) => {
+    const register = async (email, phone, userName, password, confirmPassword, identifyID, address) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await registerApi({ email, phone, userName, password, confirmPassword });
+            const response = await registerApi({ email, phone, userName, password, confirmPassword, identifyID, address });
             return response;
         } catch (error) {
             let errorMsg = error.response?.data?.message || error.message || "Đã xảy ra lỗi";

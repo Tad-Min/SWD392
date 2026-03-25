@@ -105,4 +105,27 @@ public class VolunteerOfferDAO
             return new List<VolunteerOfferType>();
         }
     }
+
+    public async Task<IEnumerable<VolunteerOffer>> GetAll(int? status)
+    {
+        try
+        {
+            var query = _db.VolunteerOffers
+                .Include(x => x.OfferType)
+                .Include(x => x.User)
+                .AsQueryable();
+
+            if (status.HasValue)
+                query = query.Where(x => x.CurrentStatus == status.Value);
+
+            return await query
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"VolunteerOfferDAO-GetAll: {ex.Message}");
+            return new List<VolunteerOffer>();
+        }
+    }
 }

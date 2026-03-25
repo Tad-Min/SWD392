@@ -10,13 +10,15 @@ function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [identifyID, setIdentifyID] = useState('');
+    const [address, setAddress] = useState('');
 
     const { register, isLoading, error } = useRegister();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await register(email, phone, name, password, confirmPassword);
+            await register(email, phone, name, password, confirmPassword, identifyID, address);
             navigate('/');
             toast.success('Đăng ký thành công');
         } catch (error) {
@@ -211,6 +213,74 @@ function Register() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
                                     placeholder="email@example.com"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Identify ID Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Số CCCD / CMND
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={identifyID}
+                                    onChange={(e) => setIdentifyID(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
+                                    placeholder="012345678912"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Address Field */}
+                        <div>
+                            <label className={`block text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'} mb-1.5 transition-colors duration-500`}>
+                                Địa chỉ
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg
+                                        className="w-[18px] h-[18px] text-slate-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"
+                                        />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2.5 ${theme.inputBg} border ${theme.inputBorder} rounded-lg text-sm ${theme.inputText} placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-500`}
+                                    placeholder="Số 1, Đường X, Phường Y..."
                                 />
                             </div>
                         </div>

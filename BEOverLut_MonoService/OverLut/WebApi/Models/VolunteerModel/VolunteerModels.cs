@@ -3,12 +3,16 @@ namespace WebApi.Models.VolunteerModel;
 public class RegisterVolunteerModel
 {
     public string? Notes { get; set; }
+    public string? VolunteerProvince { get; set; }
+    public string? VolunteerWard { get; set; }
 }
 
 public class UpdateVolunteerModel
 {
     public bool IsAvailable { get; set; }
     public string? Notes { get; set; }
+    public string? VolunteerProvince { get; set; }
+    public string? VolunteerWard { get; set; }
 }
 
 public class ApproveVolunteerModel { }

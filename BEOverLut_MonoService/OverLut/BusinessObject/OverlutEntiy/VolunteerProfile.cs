@@ -26,6 +26,9 @@ public partial class VolunteerProfile
 
     public DateTime UpdatedAt { get; set; }
 
+    public string? VolunteerProvince { get; set; }
+    public string? VolunteerWard { get; set; }
+
     // Navigation
     public virtual User User { get; set; } = null!;
     public virtual User? ApprovedByManager { get; set; }

@@ -24,5 +24,11 @@ namespace Services.Interface
             string warehouseAddress,
             decimal quantity,
             string unit);
+        Task SendOfferReturnedAsync(
+            string to,
+            string volunteerName,
+            string offerName,
+            decimal quantity,
+            string unit);
     }
 }

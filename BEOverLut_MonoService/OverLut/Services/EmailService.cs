@@ -130,5 +130,28 @@ namespace Services
 <p><em>OverLut – Hệ thống Phối hợp Cứu trợ Lũ lụt</em></p>";
             await SendEmailAsync(to, subject, body);
         }
+
+        public async Task SendOfferReturnedAsync(
+            string to,
+            string volunteerName,
+            string offerName,
+            decimal quantity,
+            string unit)
+        {
+            var subject = $"🔄 Xác nhận hoàn trả vật phẩm – {offerName} – OverLut";
+            var body = $@"
+<h2>Chào {volunteerName},</h2>
+<p>Hệ thống <strong>OverLut</strong> xác nhận vật phẩm đóng góp của bạn đã được <strong>hoàn trả</strong> thành công.</p>
+<table style='border-collapse:collapse;'>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Vật phẩm:</td><td style='padding:6px 12px;'>{offerName}</td></tr>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Số lượng:</td><td style='padding:6px 12px;'>{quantity} {unit}</td></tr>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Trạng thái:</td><td style='padding:6px 12px;'><strong style='color:#22c55e;'>Đã hoàn trả cho chủ sở hữu</strong></td></tr>
+  <tr><td style='padding:6px 12px;font-weight:bold;'>Thời gian thông báo:</td><td style='padding:6px 12px;'>{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+<p>Cảm ơn bạn rất nhiều vì sự đóng góp quý báu cho công tác cứu trợ lũ lụt!</p>
+<hr/>
+<p><em>OverLut – Hệ thống Phối hợp Cứu trợ Lũ lụt</em></p>";
+            await SendEmailAsync(to, subject, body);
+        }
     }
 }

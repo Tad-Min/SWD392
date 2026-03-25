@@ -6,9 +6,9 @@ namespace Services.Interface;
 public interface IVolunteerService
 {
     // Registration & profile management
-    Task<VolunteerProfileDTO?> RegisterVolunteerAsync(int userId, string? notes);
+    Task<VolunteerProfileDTO?> RegisterVolunteerAsync(int userId, string? notes, string? province, string? ward);
     Task<VolunteerProfileDTO?> GetMyProfileAsync(int userId);
-    Task<bool> UpdateMyProfileAsync(int userId, bool isAvailable, string? notes);
+    Task<bool> UpdateMyProfileAsync(int userId, bool isAvailable, string? notes, string? province, string? ward);
     Task<VolunteerProfileDTO?> GetProfileByUserIdAsync(int userId);
 
     // Manager operations
@@ -30,4 +30,6 @@ public interface IVolunteerService
     Task<bool> DeleteOfferAsync(int userId, int offerId);
     Task<IEnumerable<object>> GetOfferTypesAsync();
     Task<VolunteerOfferDTO?> ReceiveOfferAsync(int offerId, int managerId, int warehouseId, int productId);
+    Task<IEnumerable<VolunteerOfferDTO>> GetAllOffersAsync(int? status);
+    Task<VolunteerOfferDTO?> ReturnOfferAsync(int offerId, int managerId);
 }

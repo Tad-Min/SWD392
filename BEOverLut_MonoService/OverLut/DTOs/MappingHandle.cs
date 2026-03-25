@@ -368,6 +368,9 @@ namespace DTOs
                 UserId = entity.UserId,
                 FullName = entity.User?.FullName,
                 Email = entity.User?.Email,
+                IdentifyId = entity.User?.IdentifyId,
+                Address = entity.User?.Address,
+                Phone = entity.User?.Phone,
                 ApplicationStatus = entity.ApplicationStatus,
                 ApprovedByManagerId = entity.ApprovedByManagerId,
                 ApprovedAt = entity.ApprovedAt,
@@ -376,10 +379,35 @@ namespace DTOs
                 Notes = entity.Notes,
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
+                VolunteerProvince = entity.VolunteerProvince,
+                VolunteerWard = entity.VolunteerWard,
                 Skills = entity.User?.VolunteerSkills?.Select(s => EntityToDTO(s))
                     .Where(dto => dto != null)
                     .Cast<VolunteerSkillDTO>()
-                    .ToList() ?? new List<VolunteerSkillDTO>()
+                    .ToList() ?? new List<VolunteerSkillDTO>(),
+                
+                // Coordination Info
+                JoinedTeamName = entity.User?.RescueTeamMembers?.FirstOrDefault(m => m.IsActive)?.Team?.TeamName,
+                AssemblyPoint = entity.User?.RescueTeamMembers?.FirstOrDefault(m => m.IsActive)?.Team?.AssemblyLocationText,
+                TeamRoleName = entity.User?.RescueTeamMembers?.FirstOrDefault(m => m.IsActive)?.Role?.RoleName,
+
+                ActiveOffers = entity.User?.VolunteerOffers?.Select(o => new VolunteerOfferSummaryDTO
+                {
+                    OfferId = o.OfferId,
+                    TypeName = o.OfferType?.TypeName ?? "N/A",
+                    OfferName = o.OfferName,
+                    Quantity = o.Quantity,
+                    Unit = o.Unit,
+                    StatusName = o.CurrentStatus switch
+                    {
+                        0 => "Available",
+                        1 => "Assigned",
+                        2 => "Returned",
+                        3 => "Consumed",
+                        _ => "Unknown"
+                    },
+                    DropoffLocation = o.DropoffLocationText
+                }).ToList() ?? new List<VolunteerOfferSummaryDTO>()
             };
         }
 

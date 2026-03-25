@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { getRescueMissionsApi, getRescueRequestsApi, getRescueTeamsApi } from '../api/missionsApi';
+import { 
+    getRescueMissionsApi, 
+    getRescueRequestsApi, 
+    getRescueTeamsApi,
+    getRescueTeamRolesApi,
+    createRescueTeamApi,
+    assignVolunteerToTeamApi
+} from '../api/missionsApi';
+import { toast } from 'react-toastify';
 
 export const useMissions = () => {
     const [isLoading, setLoading] = useState(false);
@@ -47,11 +55,54 @@ export const useMissions = () => {
         }
     };
 
+    const getRescueTeamRoles = async () => {
+        setLoading(true);
+        try {
+            return await getRescueTeamRolesApi();
+        } catch (err) {
+            toast.error("Không thể tải vai trò đội");
+            return [];
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const createRescueTeam = async (data) => {
+        setLoading(true);
+        try {
+            const res = await createRescueTeamApi(data);
+            toast.success("Tạo đội cứu hộ thành công!");
+            return res;
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Lỗi tạo đội");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const assignVolunteerToTeam = async (data) => {
+        setLoading(true);
+        try {
+            const res = await assignVolunteerToTeamApi(data);
+            toast.success("Gán tình nguyện viên thành công!");
+            return res;
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Lỗi gán tình nguyện viên");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         isLoading,
         error,
         getRescueMissions,
         getRescueRequests,
-        getRescueTeams
+        getRescueTeams,
+        getRescueTeamRoles,
+        createRescueTeam,
+        assignVolunteerToTeam
     };
 };

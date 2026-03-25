@@ -51,7 +51,7 @@ public class VolunteerController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var dto = await _volunteerService.RegisterVolunteerAsync(userId, model.Notes);
+            var dto = await _volunteerService.RegisterVolunteerAsync(userId, model.Notes, model.VolunteerProvince, model.VolunteerWard);
             return Ok(new { message = "Đăng ký tình nguyện viên thành công. Vui lòng chờ Manager phê duyệt.", data = dto });
         }
         catch (InvalidOperationException ex)
@@ -88,7 +88,7 @@ public class VolunteerController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var result = await _volunteerService.UpdateMyProfileAsync(userId, model.IsAvailable, model.Notes);
+            var result = await _volunteerService.UpdateMyProfileAsync(userId, model.IsAvailable, model.Notes, model.VolunteerProvince, model.VolunteerWard);
             if (!result) return NotFound(new { message = "Volunteer profile not found." });
             return Ok(new { message = "Cập nhật hồ sơ tình nguyện viên thành công." });
         }
@@ -371,6 +371,36 @@ public class VolunteerController : ControllerBase
             var managerId = GetCurrentUserId();
             var dto = await _volunteerService.ReceiveOfferAsync(offerId, managerId, model.WarehouseId, model.ProductId);
             return Ok(new { message = "Xác nhận tiếp nhận vật phẩm thành công. Email đã được gửi đến tình nguyện viên.", data = dto });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Server error", error = ex.Message });
+        }
+    }
+
+    /// <summary>GET /api/Volunteer/offers – Manager retrieves all offers. Optional status filter.</summary>
+    [HttpGet("offers")]
+    public async Task<IActionResult> GetAllOffers([FromQuery] int? status)
+    {
+        if (!IsManagerOrAdmin()) return Forbid();
+        var offers = await _volunteerService.GetAllOffersAsync(status);
+        return Ok(offers);
+    }
+
+    /// <summary>PUT /api/Volunteer/offers/{offerId}/return – Manager confirms returning the item to the volunteer.</summary>
+    [HttpPut("offers/{offerId}/return")]
+    public async Task<IActionResult> ReturnOffer(int offerId)
+    {
+        if (!IsManagerOrAdmin()) return Forbid();
+        try
+        {
+            var managerId = GetCurrentUserId();
+            var dto = await _volunteerService.ReturnOfferAsync(offerId, managerId);
+            return Ok(new { message = "Xác nhận hoàn trả vật phẩm cho tình nguyện viên thành công.", data = dto });
         }
         catch (InvalidOperationException ex)
         {

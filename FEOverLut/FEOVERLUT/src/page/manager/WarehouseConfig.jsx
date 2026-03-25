@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getWareHouseApi, createWareHouseApi, updateWareHouseApi, deleteWareHouseApi, getWareHouseStockApi } from '../../features/wareHouse/api/wareHouseApi';
 import { useInventory } from '../../features/inventory/hook/useInventory';
+import { useVolunteerManager } from '../../features/volunteer/hook/useVolunteer';
+import { toast } from 'react-toastify';
 
 const toArr = (v) => {
     if (Array.isArray(v)) return v;
@@ -17,8 +19,10 @@ const toArr = (v) => {
 const WarehouseConfig = () => {
     const { isDarkMode, theme } = useOutletContext();
     const { getProducts, getCategories } = useInventory();
+    const { fetchAllOffers, receiveOffer, returnOffer } = useVolunteerManager();
 
-    // ── Data ───────────────────────────────────────────────────────
+    // ── Navigation ─────────────────────────────────────────────────
+    const [activeTab, setActiveTab] = useState('warehouses'); // 'warehouses' | 'offers'
     const [warehouses, setWarehouses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -45,6 +49,16 @@ const WarehouseConfig = () => {
         isActive: true
     });
 
+    // Offer Approval State
+    const [offers, setOffers] = useState([]);
+    const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+    const [selectedOffer, setSelectedOffer] = useState(null);
+    const [receiveForm, setReceiveForm] = useState({
+        warehouseId: '',
+        productId: ''
+    });
+    const [availableProducts, setAvailableProducts] = useState([]);
+
     // ── Form Address Open API ──────────────────────────────────────
     const [provinces, setProvinces] = useState([]);
     const [addrState, setAddrState] = useState({
@@ -64,14 +78,19 @@ const WarehouseConfig = () => {
     const fetchAll = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await getWareHouseApi();
-            setWarehouses(toArr(res.data || res));
+            if (activeTab === 'warehouses') {
+                const res = await getWareHouseApi();
+                setWarehouses(toArr(res.data || res));
+            } else {
+                const data = await fetchAllOffers();
+                setOffers(toArr(data));
+            }
         } catch (error) {
-            console.error("Failed to fetch warehouses:", error);
+            console.error("Failed to fetch data:", error);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [activeTab, fetchAllOffers]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -238,13 +257,63 @@ const WarehouseConfig = () => {
         }
     };
 
+    const handleOpenReceiveModal = async (offer) => {
+        setSelectedOffer(offer);
+        setIsReceiveModalOpen(true);
+        try {
+            const prods = await getProducts();
+            setAvailableProducts(toArr(prods));
+        } catch (err) {
+            console.error("Failed to fetch products:", err);
+        }
+    };
+
+    const handleReceiveSubmit = async () => {
+        if (!receiveForm.warehouseId || !receiveForm.productId) {
+            toast.error("Vui lòng chọn đầy đủ kho và vật tư.");
+            return;
+        }
+        setSubmitting(true);
+        try {
+            await receiveOffer(selectedOffer.offerId, parseInt(receiveForm.warehouseId), parseInt(receiveForm.productId));
+            setIsReceiveModalOpen(false);
+            setReceiveForm({ warehouseId: '', productId: '' });
+            fetchAll();
+        } catch (err) {
+            // Error managed by hook toast
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleReturn = async (offer) => {
+        if (!window.confirm(`Xác nhận hoàn trả "${offer.offerName || offer.offerType?.typeName}" cho tình nguyện viên?`)) return;
+        try {
+            await returnOffer(offer.offerId);
+            fetchAll();
+        } catch (err) { }
+    };
+
     return (
         <div className="space-y-6 animate-wh-in">
             {/* ── HEADER ─────────────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div>
-                    <h2 className={`text-2xl font-bold ${theme.text}`}>Quản Lý Hệ Thống Điểm Kho</h2>
-                    <p className={`text-sm ${theme.textMuted} mt-1`}>Định nghĩa và tuỳ chỉnh các địa điểm tập kết hàng hóa cứu trợ.</p>
+                <div className="flex flex-col gap-1">
+                    <h2 className={`text-2xl font-bold ${theme.text}`}>Kho & Vật Tư Tiếp Tế</h2>
+                    <div className="flex items-center gap-1 mt-2">
+                        <button
+                            onClick={() => setActiveTab('warehouses')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'warehouses' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : `${theme.textMuted} hover:bg-slate-500/10`}`}
+                        >
+                            Hệ thống kho
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('offers')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'offers' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : `${theme.textMuted} hover:bg-slate-500/10`}`}
+                        >
+                            Phê duyệt tiếp tế
+                        </button>
+                    </div>
                 </div>
                 <div className="flex gap-3 shrink-0">
                     <button
@@ -254,120 +323,203 @@ const WarehouseConfig = () => {
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     </button>
-                    <button
-                        onClick={openCreate}
-                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/30 active:scale-95"
-                    >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                        Thêm Kho Mới
-                    </button>
+                    {activeTab === 'warehouses' && (
+                        <button
+                            onClick={openCreate}
+                            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/30 active:scale-95"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                            Thêm Kho Mới
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* ── KPI CARDS ──────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                    { icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', label: 'Tổng số điểm kho', value: warehouses.length, color: 'bg-blue-500/10 text-blue-500' },
-                    { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Kho đang hoạt động', value: activeCount, color: 'bg-emerald-500/10 text-emerald-500' },
-                    { icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Kho tạm đã đóng', value: inactiveCount, color: 'bg-slate-500/10 text-slate-500' },
-                ].map((s, i) => (
-                    <div key={i} className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={s.icon} /></svg>
+            {activeTab === 'warehouses' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                        { icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', label: 'Tổng số điểm kho', value: warehouses.length, color: 'bg-blue-500/10 text-blue-500' },
+                        { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Kho đang hoạt động', value: activeCount, color: 'bg-emerald-500/10 text-emerald-500' },
+                        { icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Kho tạm đã đóng', value: inactiveCount, color: 'bg-slate-500/10 text-slate-500' },
+                    ].map((s, i) => (
+                        <div key={i} className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={s.icon} /></svg>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${theme.textMuted}`}>{s.label}</p>
+                                <p className={`text-2xl font-extrabold ${theme.text}`}>{s.value}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className={`text-sm font-medium ${theme.textMuted}`}>{s.label}</p>
-                            <p className={`text-2xl font-extrabold ${theme.text}`}>{s.value}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* ── ACTION BAR ─────────────────────────────────────── */}
-            <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                <div className="relative w-full lg:w-80 shrink-0">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            {activeTab === 'warehouses' && (
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    <div className="relative w-full lg:w-80 shrink-0">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                        <input type="text" placeholder="Tìm kiếm theo Tên kho hoặc Địa chỉ..." value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className={`pl-10 pr-4 py-2.5 rounded-xl text-sm w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
+                        />
                     </div>
-                    <input type="text" placeholder="Tìm kiếm theo Tên kho hoặc Địa chỉ..." value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className={`pl-10 pr-4 py-2.5 rounded-xl text-sm w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50`}
-                    />
+                    <p className={`lg:ml-auto text-sm ${theme.textMuted} shrink-0`}>
+                        {isLoading ? 'Đang tải...' : `${filtered.length} kết quả`}
+                    </p>
                 </div>
-                <p className={`lg:ml-auto text-sm ${theme.textMuted} shrink-0`}>
-                    {isLoading ? 'Đang tải...' : `${filtered.length} kết quả`}
-                </p>
-            </div>
+            )}
 
-            {/* ── TABLE ──────────────────────────────────────────── */}
+            {/* ── TABLE / LIST ───────────────────────────────────── */}
             <div className={`${theme.cardBg} ${theme.glassEffect} border ${theme.border} rounded-2xl overflow-hidden shadow-xl shadow-black/5`}>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                            <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
-                                {['ID', 'Tên Kho', 'Địa chỉ', 'Tọa độ GPS', 'Trạng thái', 'Thao tác'].map(h => (
-                                    <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider ${h === 'Thao tác' ? 'text-center' : ''}`}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
-                            {isLoading ? (
-                                <tr><td colSpan="6" className="px-6 py-14 text-center">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                                        <span className={`text-sm ${theme.textMuted}`}>Đang tải dữ liệu điểm kho...</span>
-                                    </div>
-                                </td></tr>
-                            ) : filtered.length === 0 ? (
-                                <tr><td colSpan="6" className="px-6 py-14 text-center">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <svg className={`w-12 h-12 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                        <span className={`text-sm ${theme.textMuted}`}>Không tìm thấy dữ liệu điểm kho.</span>
-                                        <button onClick={openCreate} className="mt-1 text-sm font-semibold text-emerald-500 hover:text-emerald-400">+ Thêm điểm kho đầu tiên</button>
-                                    </div>
-                                </td></tr>
-                            ) : filtered.map((item) => {
-                                const whId = item.warehouseId ?? item.id;
-                                return (
-                                    <tr key={whId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
-                                        <td className={`px-6 py-4 text-sm font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                            #WH-{String(whId).padStart(3, '0')}
-                                        </td>
-                                        <td className={`px-6 py-4 text-[15px] font-semibold ${theme.text}`}>
-                                            {item.warehouseName || '—'}
-                                        </td>
-                                        <td className={`px-6 py-4 text-sm ${theme.text} max-w-[200px] truncate`} title={item.address}>
-                                            {item.address || '—'}
-                                        </td>
-                                        <td className={`px-6 py-4 text-sm ${theme.textMuted} font-mono text-[12px]`}>
-                                            {item.location?.coordinates ? (
-                                                <span>
-                                                    {item.location.coordinates[1].toFixed(6)}, {item.location.coordinates[0].toFixed(6)}
-                                                </span>
-                                            ) : (item.address || '—')}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {item.isActive ? (
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10`}>Hoạt động</span>
-                                            ) : (
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-500/10`}>Đã đóng</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => handleViewStock(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-amber-500`} title="Xem tồn kho">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
-                                                </button>
-                                                <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chỉnh sửa kho">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                    {activeTab === 'warehouses' ? (
+                        <table className="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
+                                    {['ID', 'Tên Kho', 'Địa chỉ', 'Tọa độ GPS', 'Trạng thái', 'Thao tác'].map(h => (
+                                        <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider ${h === 'Thao tác' ? 'text-center' : ''}`}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
+                                {isLoading ? (
+                                    <tr><td colSpan="6" className="px-6 py-14 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                            <span className={`text-sm ${theme.textMuted}`}>Đang tải dữ liệu điểm kho...</span>
+                                        </div>
+                                    </td></tr>
+                                ) : filtered.length === 0 ? (
+                                    <tr><td colSpan="6" className="px-6 py-14 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <svg className={`w-12 h-12 ${theme.textMuted}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                            <span className={`text-sm ${theme.textMuted}`}>Không tìm thấy dữ liệu điểm kho.</span>
+                                            <button onClick={openCreate} className="mt-1 text-sm font-semibold text-emerald-500 hover:text-emerald-400">+ Thêm điểm kho đầu tiên</button>
+                                        </div>
+                                    </td></tr>
+                                ) : filtered.map((item) => {
+                                    const whId = item.warehouseId ?? item.id;
+                                    return (
+                                        <tr key={whId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
+                                            <td className={`px-6 py-4 text-sm font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                #WH-{String(whId).padStart(3, '0')}
+                                            </td>
+                                            <td className={`px-6 py-4 text-[15px] font-semibold ${theme.text}`}>
+                                                {item.warehouseName || '—'}
+                                            </td>
+                                            <td className={`px-6 py-4 text-sm ${theme.text} max-w-[200px] truncate`} title={item.address}>
+                                                {item.address || '—'}
+                                            </td>
+                                            <td className={`px-6 py-4 text-sm ${theme.textMuted} font-mono text-[12px]`}>
+                                                {item.location?.coordinates ? (
+                                                    <span>
+                                                        {item.location.coordinates[1].toFixed(6)}, {item.location.coordinates[0].toFixed(6)}
+                                                    </span>
+                                                ) : (item.address || '—')}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {item.isActive ? (
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10`}>Hoạt động</span>
+                                                ) : (
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-500/10`}>Đã đóng</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleViewStock(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-amber-500`} title="Xem tồn kho">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
+                                                    </button>
+                                                    <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} text-blue-500`} title="Chỉnh sửa kho">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <table className="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-50/50'}`}>
+                                    {['Vật phẩm / Volunteer', 'Số lượng', 'Trạng thái', 'Địa điểm', 'Thao tác'].map(h => (
+                                        <th key={h} className={`px-6 py-4 text-xs font-semibold ${theme.textMuted} uppercase tracking-wider`}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
+                                {isLoading ? (
+                                    <tr><td colSpan="5" className="px-6 py-14 text-center text-slate-500">Đang tải danh sách tiếp tế...</td></tr>
+                                ) : offers.length === 0 ? (
+                                    <tr><td colSpan="5" className="px-6 py-14 text-center text-slate-500">Không có yêu cầu tiếp tế nào cần xử lý.</td></tr>
+                                ) : (
+                                    offers.map((offer) => (
+                                        <tr key={offer.offerId} className={`hover:${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/80'} transition-colors group`}>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col">
+                                                    <span className={`font-semibold ${theme.text}`}>{offer.offerName || offer.offerType?.typeName}</span>
+                                                    <span className={`text-xs ${theme.textMuted}`}>{offer.user?.fullName} - {offer.contactPhone}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className={`text-sm font-medium ${theme.text}`}>{offer.quantity} {offer.unit}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1">
+                                                    {offer.currentStatus === 0 ? (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 w-fit">CHỜ TIẾP NHẬN</span>
+                                                    ) : offer.currentStatus === 1 ? (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 w-fit">ĐÃ VÀO KHO</span>
+                                                    ) : offer.currentStatus === 2 ? (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 w-fit">ĐÃ HOÀN TRẢ</span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/10 text-slate-500 border border-slate-500/20 w-fit">ĐÃ TIÊU THỤ</span>
+                                                    )}
+                                                    {offer.isReturnRequired && (
+                                                        <div className="text-[9px] text-amber-500 uppercase font-bold flex items-center gap-1">
+                                                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                                            Cần hoàn trả
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className={`text-xs ${theme.text} line-clamp-1 truncate max-w-[150px]`} title={offer.dropoffLocationText}>
+                                                    {offer.dropoffLocationText}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {offer.currentStatus === 0 && (
+                                                        <button 
+                                                            onClick={() => handleOpenReceiveModal(offer)}
+                                                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md shadow-emerald-500/20 active:scale-95"
+                                                        >
+                                                            TIẾP NHẬN
+                                                        </button>
+                                                    )}
+                                                    {offer.currentStatus === 1 && offer.isReturnRequired && (
+                                                        <button 
+                                                            onClick={() => handleReturn(offer)}
+                                                            className="bg-amber-600/10 hover:bg-amber-600 text-amber-500 hover:text-white border border-amber-600/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95"
+                                                        >
+                                                            HOÀN TRẢ
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
@@ -527,6 +679,65 @@ const WarehouseConfig = () => {
                     document.body
                 )
             }
+
+            {/* ── MODAL RECEIVE OFFER ───────────────────────────── */}
+            {isReceiveModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+                    <div className={`w-full max-w-[500px] ${theme.cardBg} backdrop-blur-xl border ${theme.border} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+                        <div className={`px-6 py-4 border-b ${theme.border} flex items-center justify-between`}>
+                            <h3 className={`text-lg font-bold ${theme.text}`}>Tiếp nhận: {selectedOffer?.offerName || selectedOffer?.offerType?.typeName}</h3>
+                            <button onClick={() => setIsReceiveModalOpen(false)} className={`p-1.5 rounded-lg border ${theme.border} ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}>
+                                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Chọn kho tiếp nhận</label>
+                                <select 
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500`}
+                                    value={receiveForm.warehouseId}
+                                    onChange={e => setReceiveForm(p => ({ ...p, warehouseId: e.target.value }))}
+                                >
+                                    <option value="">-- Chọn điểm hàng tập kết --</option>
+                                    {warehouses.filter(w=>w.isActive).map(wh => (
+                                        <option key={wh.warehouseId} value={wh.warehouseId}>{wh.warehouseName}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={`block text-[13px] font-semibold ${theme.text} mb-1.5`}>Gộp vào vật tư (Product)</label>
+                                <select 
+                                    className={`w-full border ${theme.inputBorder} ${theme.inputBg} ${theme.text} rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500`}
+                                    value={receiveForm.productId}
+                                    onChange={e => setReceiveForm(p => ({ ...p, productId: e.target.value }))}
+                                >
+                                    <option value="">-- Chọn loại vật tư tương ứng --</option>
+                                    {availableProducts.map(p => (
+                                        <option key={p.productId} value={p.productId}>{p.productName} ({p.unitName})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={`p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 text-xs ${theme.textMuted}`}>
+                                <strong>Lưu ý:</strong> Khi xác nhận tiếp nhận, số lượng <b>{selectedOffer?.quantity} {selectedOffer?.unit}</b> sẽ được cộng vào kho đã chọn. Volunteer sẽ nhận được email thông báo để mang hàng tới.
+                            </div>
+                        </div>
+                        <div className={`px-6 py-4 border-t ${theme.border} bg-black/5 dark:bg-white/5 flex items-center justify-end gap-3`}>
+                            <button onClick={() => setIsReceiveModalOpen(false)} className={`px-4 py-2 rounded-xl text-sm font-semibold border ${theme.border} ${theme.textMuted} hover:bg-black/5 transition-colors`}>
+                                Hủy bỏ
+                            </button>
+                            <button
+                                onClick={handleReceiveSubmit}
+                                disabled={submitting || !receiveForm.warehouseId || !receiveForm.productId}
+                                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 ${submitting || !receiveForm.warehouseId || !receiveForm.productId ? 'bg-emerald-600/50 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/30'}`}
+                            >
+                                {submitting && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                                Xác nhận tiếp nhận
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             <style dangerouslySetInnerHTML={{
                 __html: `

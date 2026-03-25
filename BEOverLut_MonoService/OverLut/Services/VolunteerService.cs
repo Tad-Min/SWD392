@@ -49,7 +49,7 @@ public class VolunteerService : IVolunteerService
 
     #region Registration & Profile Management
 
-    public async Task<VolunteerProfileDTO?> RegisterVolunteerAsync(int userId, string? notes)
+    public async Task<VolunteerProfileDTO?> RegisterVolunteerAsync(int userId, string? notes, string? province, string? ward)
     {
         // Validate: user must exist
         var user = await _userRepo.GetUserById(userId);
@@ -67,7 +67,9 @@ public class VolunteerService : IVolunteerService
             UserId = userId,
             ApplicationStatus = StatusPending,
             IsAvailable = true,
-            Notes = notes
+            Notes = notes,
+            VolunteerProvince = province,
+            VolunteerWard = ward
         };
 
         var created = await _profileRepo.Create(profile);
@@ -80,13 +82,16 @@ public class VolunteerService : IVolunteerService
         return MappingHandle.EntityToDTO(profile);
     }
 
-    public async Task<bool> UpdateMyProfileAsync(int userId, bool isAvailable, string? notes)
+    public async Task<bool> UpdateMyProfileAsync(int userId, bool isAvailable, string? notes, string? province, string? ward)
     {
         var profile = await _profileRepo.GetByUserId(userId);
         if (profile == null) return false;
 
         profile.IsAvailable = isAvailable;
         if (notes != null) profile.Notes = notes;
+        if (province != null) profile.VolunteerProvince = province;
+        if (ward != null) profile.VolunteerWard = ward;
+        
         return await _profileRepo.Update(profile);
     }
 
@@ -339,6 +344,45 @@ public class VolunteerService : IVolunteerService
         catch (Exception ex)
         {
             Console.WriteLine($"[VolunteerService][ReceiveOfferEmail] Warning: {ex.Message}");
+        }
+
+        return MappingHandle.EntityToDTO(await _offerRepo.GetById(offerId));
+    }
+
+    public async Task<IEnumerable<VolunteerOfferDTO>> GetAllOffersAsync(int? status)
+    {
+        var offers = await _offerRepo.GetAll(status);
+        return offers.Select(o => MappingHandle.EntityToDTO(o)!).Where(x => x != null);
+    }
+
+    public async Task<VolunteerOfferDTO?> ReturnOfferAsync(int offerId, int managerId)
+    {
+        var offer = await _offerRepo.GetById(offerId);
+        if (offer == null)
+            throw new InvalidOperationException("Offer không tồn tại.");
+
+        if (offer.CurrentStatus != 1)
+            throw new InvalidOperationException("Chỉ có thể hoàn trả những vật phẩm đang ở trạng thái đã tiếp nhận.");
+
+        offer.CurrentStatus = 2; // Returned
+        offer.UpdatedAt = DateTime.UtcNow;
+        await _offerRepo.Update(offer);
+
+        // Send email to volunteer
+        try
+        {
+            var user = offer.User ?? await _userRepo.GetUserById(offer.UserId);
+            var offerLabel = offer.OfferName ?? offer.OfferType?.TypeName ?? "Vật phẩm đóng góp";
+            await _emailService.SendOfferReturnedAsync(
+                user?.Email ?? "",
+                user?.FullName ?? "Tình nguyện viên",
+                offerLabel,
+                offer.Quantity,
+                offer.Unit ?? "đơn vị");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VolunteerService][ReturnOfferEmail] Warning: {ex.Message}");
         }
 
         return MappingHandle.EntityToDTO(await _offerRepo.GetById(offerId));

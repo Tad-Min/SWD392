@@ -200,7 +200,10 @@ export const useRealtimeRescueMissions = (teamId) => {
 
     // Initial fetch + polling
     useEffect(() => {
-        if (!teamId) return;
+        if (!teamId) {
+            setLoading(false);
+            return;
+        }
 
         isInitialLoadRef.current = true;
         knownIdsRef.current = new Set();

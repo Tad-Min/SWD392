@@ -195,7 +195,7 @@ namespace WebApi.Controllers
             {
                 var members = await _rescueTeamService.GetAllTeamMemberByTeamIdAsync(id);
                 if (members == null || !members.Any())
-                    return NotFound(new { message = $"No members found for rescue team with ID {id}" });
+                    return Ok(new List<object>()); // Trả về list rỗng thay vì 404 để tránh lỗi console
                 return Ok(members.Select(m => MappingHandle.EntityToDTO(m)));
             }
             catch (Exception ex)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useVolunteerProfile } from '../features/volunteer/hook/useVolunteer';
 
 // Role display names
 const ROLE_NAMES = {
@@ -18,10 +19,24 @@ function TaskBar({ isDarkMode = true }) {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { profile, fetchProfile } = useVolunteerProfile();
 
   const roleId = parseInt(localStorage.getItem('roleId')) || null;
   const userName = localStorage.getItem('name') || 'Người dùng';
   const isLoggedIn = !!localStorage.getItem('token');
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchProfile();
+    }
+
+    const handleUpdate = () => {
+      if (isLoggedIn) fetchProfile();
+    };
+
+    window.addEventListener('volunteer-updated', handleUpdate);
+    return () => window.removeEventListener('volunteer-updated', handleUpdate);
+  }, [isLoggedIn, fetchProfile]);
 
   // Hide navbar on scroll down, show on scroll up
   useEffect(() => {
@@ -117,6 +132,31 @@ function TaskBar({ isDarkMode = true }) {
               </div>
             )}
 
+            {/* Volunteer Status Nav Item */}
+            {isLoggedIn && (
+              <div
+                className={`${btnBase} ${btnHover} hidden md:flex cursor-pointer transition-all duration-500`}
+                onClick={() => navigate('/profile')}
+              >
+                {!profile ? (
+                  <div className="flex items-center gap-2 px-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-black'}`}>Đăng ký TNV</span>
+                  </div>
+                ) : profile.applicationStatus === 0 ? (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+                    <span className="text-xs font-bold text-yellow-500">Chờ duyệt</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-xs font-bold text-green-500 uppercase tracking-tight">Chế độ TNV</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Contract Link - Citizens only */}
             {roleId === 1 && (
               <div
@@ -194,6 +234,24 @@ function TaskBar({ isDarkMode = true }) {
                   </div>
                   <span className="text-sm font-semibold">Xem Profile</span>
                 </button>
+
+                {/* Bảng điều khiển TNV (Only for Volunteers) */}
+                {profile && profile.applicationStatus === 1 && (
+                  <button
+                    onClick={() => { setIsDropdownOpen(false); navigate('/profile'); }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200 group ${isDarkMode
+                      ? 'text-gray-300 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow duration-200">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-semibold">Bảng điều khiển TNV</span>
+                  </button>
+                )}
 
                 {/* Xem Lịch sử cứu hộ (Only for Citizen) */}
                 {roleId === 1 && (

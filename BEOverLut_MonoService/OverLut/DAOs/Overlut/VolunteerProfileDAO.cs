@@ -17,6 +17,15 @@ public class VolunteerProfileDAO
                 .Include(x => x.User)
                     .ThenInclude(u => u.VolunteerSkills)
                         .ThenInclude(s => s.SkillType)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Team)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Role)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerOffers)
+                        .ThenInclude(o => o.OfferType)
                 .FirstOrDefaultAsync(x => x.UserId == userId);
         }
         catch (Exception ex)
@@ -34,6 +43,15 @@ public class VolunteerProfileDAO
                 .Include(x => x.User)
                     .ThenInclude(u => u.VolunteerSkills)
                         .ThenInclude(s => s.SkillType)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Team)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Role)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerOffers)
+                        .ThenInclude(o => o.OfferType)
                 .FirstOrDefaultAsync(x => x.VolunteerProfileId == profileId);
         }
         catch (Exception ex)
@@ -51,6 +69,15 @@ public class VolunteerProfileDAO
                 .Include(x => x.User)
                     .ThenInclude(u => u.VolunteerSkills)
                         .ThenInclude(s => s.SkillType)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Team)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RescueTeamMembers)
+                        .ThenInclude(m => m.Role)
+                .Include(x => x.User)
+                    .ThenInclude(u => u.VolunteerOffers)
+                        .ThenInclude(o => o.OfferType)
                 .AsQueryable();
             if (status.HasValue)
                 query = query.Where(x => x.ApplicationStatus == status.Value);

@@ -20,4 +20,5 @@ public class VolunteerOfferRepository : IVolunteerOfferRepository
     public async Task<bool> Update(VolunteerOffer offer) => await _dao.Update(offer);
     public async Task<bool> Delete(int offerId) => await _dao.Delete(offerId);
     public async Task<IEnumerable<VolunteerOfferType>> GetAllOfferTypes() => await _dao.GetAllOfferTypes();
+    public async Task<IEnumerable<VolunteerOffer>> GetAll(int? status) => await _dao.GetAll(status);
 }

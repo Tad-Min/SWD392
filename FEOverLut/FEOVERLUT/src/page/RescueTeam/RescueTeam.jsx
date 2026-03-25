@@ -67,9 +67,14 @@ const RescueTeam = () => {
 
                 // team could be a single object or array – normalise
                 const teamObj = Array.isArray(team) ? team[0] : team;
+                if (!teamObj) {
+                    console.warn('No team found for this user');
+                    return;
+                }
                 setTeamData(teamObj);
 
                 const teamId = teamObj.teamId || teamObj.id;
+                if (!teamId) return;
 
                 // Step 2: Get all members of this team
                 const members = await getRescueTeamMemberByTeamId(teamId);
@@ -108,7 +113,7 @@ const RescueTeam = () => {
                 setTeamMembers(enriched);
 
                 // Step 4: Set the resolved team ID so the realtime hook kicks in
-                const actualTeamId = team.teamId || team.id || team[0]?.teamId || team[0]?.id;
+                const actualTeamId = teamObj?.teamId || teamObj?.id;
                 if (actualTeamId) {
                     setResolvedTeamId(actualTeamId);
                 }
@@ -245,9 +250,30 @@ const RescueTeam = () => {
                     </div>
                 </header>
 
-                {dataLoading && activeTab === 'teamInfo' ? (
+                {dataLoading ? (
                     <div className="flex-1 flex items-center justify-center">
-                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full shadow-lg shadow-blue-500/20"></div>
+                            <p className={`text-sm font-medium ${theme.textMuted} animate-pulse`}>Đang tải dữ liệu đội cứu trợ...</p>
+                        </div>
+                    </div>
+                ) : !teamData ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                        <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6 border border-red-500/20">
+                            <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className={`text-2xl font-black mb-3 ${theme.textTitle}`}>Không tìm thấy dữ liệu Đội</h2>
+                        <p className={`max-w-md ${theme.textMuted} mb-8 leading-relaxed`}>
+                            Tài khoản của bạn hiện chưa được phân công vào bất kỳ Đội cứu hộ nào hoặc dữ liệu đội đã bị xóa khỏi hệ thống. Vui lòng liên hệ Điều phối viên để được hỗ trợ.
+                        </p>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all border border-white/5 active:scale-95"
+                        >
+                            Thử tải lại trang
+                        </button>
                     </div>
                 ) : (
                     renderContent()

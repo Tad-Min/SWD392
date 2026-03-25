@@ -10,4 +10,5 @@ public interface IVolunteerOfferRepository
     Task<bool> Update(VolunteerOffer offer);
     Task<bool> Delete(int offerId);
     Task<IEnumerable<VolunteerOfferType>> GetAllOfferTypes();
+    Task<IEnumerable<VolunteerOffer>> GetAll(int? status);
 }
