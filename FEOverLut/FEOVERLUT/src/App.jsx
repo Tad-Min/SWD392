@@ -27,7 +27,6 @@ import ManagerDashboard from './page/manager/ManagerDashboard.jsx';
 import InventoryManagement from './page/manager/InventoryManagement.jsx';
 import WarehouseConfig from './page/manager/WarehouseConfig.jsx';
 import TransactionHistory from './page/manager/TransactionHistory.jsx';
-import DistributionTracking from './page/manager/DistributionTracking.jsx';
 import ManagerReports from './page/manager/ManagerReports.jsx';
 import ProductManagement from './page/manager/ProductManagement.jsx';
 import RescueTeamManagement from './page/manager/RescueTeamManagement.jsx';
@@ -86,7 +85,6 @@ function App() {
               <Route path="inventory" element={<ProtectedRoute allowedRoles={[4]}><InventoryManagement /></ProtectedRoute>} />
               <Route path="warehouses" element={<ProtectedRoute allowedRoles={[4]}><WarehouseConfig /></ProtectedRoute>} />
               <Route path="transactions" element={<ProtectedRoute allowedRoles={[4]}><TransactionHistory /></ProtectedRoute>} />
-              <Route path="distribution" element={<ProtectedRoute allowedRoles={[4]}><DistributionTracking /></ProtectedRoute>} />
               <Route path="products" element={<ProtectedRoute allowedRoles={[4]}><ProductManagement /></ProtectedRoute>} />
               <Route path="rescue-teams" element={<ProtectedRoute allowedRoles={[4]}><RescueTeamManagement /></ProtectedRoute>} />
               <Route path="vehicles" element={<ProtectedRoute allowedRoles={[4]}><VehicleManagement /></ProtectedRoute>} />

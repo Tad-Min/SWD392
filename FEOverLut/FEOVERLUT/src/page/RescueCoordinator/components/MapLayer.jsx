@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, Users, Map, Layers, Filter } from 'lucide-react';
+import { AlertTriangle, Users, Map, Layers, Filter, Package } from 'lucide-react';
 
 // ── Vietnam map bounds ─────────────────────────────────────────────────
 const VIETNAM_BOUNDS = [
@@ -69,6 +69,11 @@ const REQUEST_LAYERS = {
         statuses: [6, 7, 8], // Resolved, Cancelled, DuplicateMerged
         icon: <span className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
     },
+    warehouse: {
+        label: 'Kho hàng',
+        statuses: [], // Empty statuses array so requests don't match this
+        icon: <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+    }
 };
 
 // ── Custom marker icons ────────────────────────────────────────────────
@@ -91,6 +96,18 @@ const createTeamIcon = () =>
         html: `
       <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
         <span style="width:14px;height:14px;border-radius:9999px;background:#22c55e;border:2px solid #fff;position:relative;box-shadow:0 0 6px rgba(34,197,94,0.7);"></span>
+      </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -16],
+    });
+
+const createWarehouseIcon = () =>
+    L.divIcon({
+        className: '',
+        html: `
+      <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+        <span style="width:16px;height:16px;border-radius:4px;background:#10b981;border:2px solid #fff;position:relative;box-shadow:0 0 6px rgba(16,185,129,0.7);"></span>
       </div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
@@ -206,12 +223,13 @@ function MapControls({ activeLayer, onLayerChange, activeFilters, onFilterChange
 }
 
 // ── Main MapLayer Component ────────────────────────────────────────────
-export default function MapLayer({ requests = [], teams = [], userMap = {}, requestStatusMap = {}, onDispatch }) {
+export default function MapLayer({ requests = [], teams = [], warehouses = [], userMap = {}, requestStatusMap = {}, onDispatch }) {
     const [activeLayer, setActiveLayer] = useState('dark');
-    const [activeFilters, setActiveFilters] = useState(['new', 'inProgress', 'resolved']); // All visible by default
+    const [activeFilters, setActiveFilters] = useState(['new', 'inProgress', 'resolved', 'warehouse']); // All visible by default
     const isDark = activeLayer === 'dark';
 
     const teamIcon = createTeamIcon();
+    const warehouseIcon = createWarehouseIcon();
     const tileUrl = TILE_LAYERS[activeLayer].url;
 
     const filteredRequests = requests.filter(req => {
@@ -314,6 +332,36 @@ export default function MapLayer({ requests = [], teams = [], userMap = {}, requ
                                     </div>
                                     <p className="text-xs text-slate-500">
                                         Trạng thái: <span className="font-semibold text-slate-700">{team.status || 'Sẵn sàng'}</span>
+                                    </p>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    );
+                })}
+
+                {/* Warehouse Markers */}
+                {activeFilters.includes('warehouse') && warehouses.map((wh) => {
+                    const coords = wh.location?.coordinates;
+                    if (!coords || coords.length < 2) return null;
+                    const pos = [coords[1], coords[0]];
+                    return (
+                        <Marker key={wh.warehouseId} position={pos} icon={warehouseIcon}>
+                            <Popup maxWidth={260} minWidth={220}>
+                                <div className="p-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Package className="w-4 h-4 text-emerald-500" />
+                                        <span className="font-bold text-sm text-slate-800">
+                                            {wh.warehouseName || 'Kho hàng'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        ID: <span className="font-semibold text-slate-700">#{wh.warehouseId}</span>
+                                    </p>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        Địa chỉ: <span className="font-semibold text-slate-700">{wh.address || 'Không có địa chỉ'}</span>
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        Trạng thái: <span className="font-semibold text-emerald-600">{wh.isActive ? 'Hoạt động' : 'Tạm dừng'}</span>
                                     </p>
                                 </div>
                             </Popup>
