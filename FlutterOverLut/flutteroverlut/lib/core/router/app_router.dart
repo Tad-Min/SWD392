@@ -10,6 +10,9 @@ import '../../features/citizen/presentation/citizen_home_screen.dart';
 import '../../features/citizen/presentation/rescue_request_screen.dart';
 import '../../features/citizen/presentation/request_history_screen.dart';
 import '../../features/citizen/presentation/profile_screen.dart';
+import '../../features/citizen/presentation/volunteer_hub_screen.dart';
+import '../../features/citizen/presentation/volunteer_skills_screen.dart';
+import '../../features/citizen/presentation/volunteer_offer_screen.dart';
 import '../../features/rescue_team/presentation/rescue_team_home_screen.dart';
 import '../../features/rescue_team/presentation/mission_detail_screen.dart';
 import '../../features/rescue_team/presentation/vehicle_status_screen.dart';
@@ -86,6 +89,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ProfileScreen(),
       ),
 
+      // ── Volunteer Routes (inside citizen) ──
+      GoRoute(
+        path: '/citizen/volunteer',
+        builder: (context, state) => const VolunteerHubScreen(),
+      ),
+      GoRoute(
+        path: '/citizen/volunteer/skills',
+        builder: (context, state) => const VolunteerSkillsScreen(),
+      ),
+      GoRoute(
+        path: '/citizen/volunteer/offer',
+        builder: (context, state) => const VolunteerOfferScreen(),
+      ),
+      GoRoute(
+        path: '/citizen/volunteer/history',
+        builder: (context, state) => const VolunteerOfferHistoryScreen(),
+      ),
+
       // ── Rescue Team Routes ──
       GoRoute(
         path: '/rescue-team',
@@ -119,6 +140,8 @@ String _roleHomePath(int? roleId) {
       return '/citizen';
     case 5:
       return '/citizen';
+    case 6: // Volunteer — goes to rescue team home
+      return '/rescue-team';
     default:
       return '/citizen';
   }

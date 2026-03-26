@@ -126,15 +126,15 @@ class VehicleModel {
     }
   }
 
-  /// Vehicle type display name.
+  /// Vehicle type display name (DB VehiclesTypes: 1=Boat, 2=Truck, 3=Ambulance).
   String get vehicleTypeName {
     switch (vehicleType) {
       case 1:
-        return 'Canô';
+        return 'Thuyền';
       case 2:
         return 'Xe tải';
       case 3:
-        return 'Xuồng';
+        return 'Xe cứu thương';
       default:
         return 'Phương tiện #$vehicleType';
     }
@@ -212,14 +212,19 @@ class TeamMemberModel {
     );
   }
 
+  /// Member role in team (DB RescueMembersRoles: 0=Leader, 1=Member, 2=Y tế, 3=Hậu cần, 4=Cứu trợ trực tiếp).
   String get memberRoleName {
     switch (roleId) {
-      case 1:
+      case 0:
         return 'Đội trưởng';
-      case 2:
+      case 1:
         return 'Đội viên';
+      case 2:
+        return 'Y tế';
       case 3:
-        return 'Hỗ trợ';
+        return 'Hậu cần';
+      case 4:
+        return 'Cứu trợ trực tiếp';
       default:
         return 'Thành viên';
     }
@@ -234,6 +239,12 @@ class RescueTeamModel {
   final bool? isActive;
   final String? createdAt;
   final List<TeamMemberModel> members;
+  // New fields from DB migration
+  final String? assemblyLocationText;
+  final double? assemblyLatitude;
+  final double? assemblyLongitude;
+  final String? assemblyNote;
+  final int? roleId;
 
   const RescueTeamModel({
     this.teamId,
@@ -242,6 +253,11 @@ class RescueTeamModel {
     this.isActive,
     this.createdAt,
     this.members = const [],
+    this.assemblyLocationText,
+    this.assemblyLatitude,
+    this.assemblyLongitude,
+    this.assemblyNote,
+    this.roleId,
   });
 
   factory RescueTeamModel.fromJson(Map<String, dynamic> json) {
@@ -256,6 +272,11 @@ class RescueTeamModel {
       members: rawMembers
           .map((e) => TeamMemberModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      assemblyLocationText: json['assemblyLocationText'] as String?,
+      assemblyLatitude: (json['assemblyLatitude'] as num?)?.toDouble(),
+      assemblyLongitude: (json['assemblyLongitude'] as num?)?.toDouble(),
+      assemblyNote: json['assemblyNote'] as String?,
+      roleId: json['roleId'] as int?,
     );
   }
 }

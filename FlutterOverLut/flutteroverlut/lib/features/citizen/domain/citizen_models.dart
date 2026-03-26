@@ -59,44 +59,54 @@ class RescueRequestModel {
     };
   }
 
-  /// Human-readable urgency label.
+  /// Human-readable urgency label (DB: 1=Normal, 2=High, 3=Critical).
   String get urgencyLabel {
     switch (urgencyLevel) {
       case 1:
-        return 'Cần hỗ trợ';
+        return 'Bình thường';
       case 2:
-        return 'Nguy hiểm';
+        return 'Cao';
       case 3:
-        return 'Khẩn cấp';
-      case 4:
-        return 'SOS';
+        return 'Nghiêm trọng';
       default:
         return 'Chưa đánh giá';
     }
   }
 
-  /// Human-readable status label.
+  /// Human-readable status label
+  /// (DB: 1=New, 2=Verified, 3=Assigned, 4=EnRoute, 5=OnSite, 6=Resolved, 7=Cancelled, 8=DuplicateMerged).
   String get statusLabel {
     switch (status) {
-      case 0:
-        return 'Chờ duyệt';
       case 1:
-        return 'Đang xử lý';
+        return 'Mới';
       case 2:
-        return 'Hoàn thành';
+        return 'Đã xác minh';
       case 3:
+        return 'Đã phân công';
+      case 4:
+        return 'Đang di chuyển';
+      case 5:
+        return 'Tại hiện trường';
+      case 6:
+        return 'Đã giải quyết';
+      case 7:
         return 'Đã hủy';
+      case 8:
+        return 'Trùng lặp';
       default:
         return 'Không rõ';
     }
   }
 
-  /// Time ago string.
+  /// Time ago string — backend stores UTC without 'Z' suffix.
   String get timeAgo {
     if (createdAt == null) return '';
-    final dt = DateTime.tryParse(createdAt!);
+    final raw = createdAt!.contains('Z') || createdAt!.contains('+')
+        ? createdAt!
+        : '${createdAt!}Z';
+    final dt = DateTime.tryParse(raw);
     if (dt == null) return '';
-    final diff = DateTime.now().difference(dt);
+    final diff = DateTime.now().difference(dt.toLocal());
     if (diff.inDays > 0) return '${diff.inDays} ngày trước';
     if (diff.inHours > 0) return '${diff.inHours} giờ trước';
     if (diff.inMinutes > 0) return '${diff.inMinutes} phút trước';

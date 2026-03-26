@@ -4,9 +4,10 @@
 enum AppRole {
   citizen(1, 'Citizen', 'Người dân'),
   rescueTeam(2, 'Rescue Team', 'Đội cứu hộ'),
-  coordinator(3, 'Coordinator', 'Điều phối viên'),
+  coordinator(3, 'RescueCoordinator', 'Điều phối viên'),
   manager(4, 'Manager', 'Quản lý'),
-  admin(5, 'Admin', 'Quản trị');
+  admin(5, 'Admin', 'Quản trị'),
+  volunteer(6, 'Volunteer', 'Tình nguyện viên');
 
   const AppRole(this.id, this.nameEn, this.nameVi);
   final int id;
@@ -21,12 +22,14 @@ enum AppRole {
   }
 }
 
-/// Mission status values.
+/// Mission status values matching RescueMissionsStatus table.
+/// DB: 1=Assigned, 2=EnRoute, 3=Rescuing, 4=Completed, 5=Failed
 enum MissionStatus {
-  pending(0, 'Chờ xử lý'),
-  inProgress(1, 'Đang thực hiện'),
-  completed(2, 'Hoàn thành'),
-  cancelled(3, 'Hủy bỏ');
+  assigned(1, 'Đã phân công'),
+  enRoute(2, 'Đang di chuyển'),
+  rescuing(3, 'Đang cứu hộ'),
+  completed(4, 'Hoàn thành'),
+  failed(5, 'Thất bại');
 
   const MissionStatus(this.id, this.label);
   final int id;
@@ -35,17 +38,17 @@ enum MissionStatus {
   static MissionStatus fromId(int id) {
     return MissionStatus.values.firstWhere(
       (s) => s.id == id,
-      orElse: () => MissionStatus.pending,
+      orElse: () => MissionStatus.assigned,
     );
   }
 }
 
-/// Request urgency levels.
+/// Request urgency levels matching UrgencyLevels table.
+/// DB: 1=Normal, 2=High, 3=Critical
 enum RequestUrgency {
-  needSupport(1, 'Cần hỗ trợ'),
-  dangerous(2, 'Nguy hiểm'),
-  critical(3, 'Khẩn cấp'),
-  sos(4, 'SOS');
+  normal(1, 'Bình thường'),
+  high(2, 'Cao'),
+  critical(3, 'Nghiêm trọng');
 
   const RequestUrgency(this.id, this.label);
   final int id;
@@ -54,7 +57,50 @@ enum RequestUrgency {
   static RequestUrgency fromId(int id) {
     return RequestUrgency.values.firstWhere(
       (u) => u.id == id,
-      orElse: () => RequestUrgency.needSupport,
+      orElse: () => RequestUrgency.normal,
+    );
+  }
+}
+
+/// Rescue request status matching RescueRequestsStatus table.
+/// DB: 1=New, 2=Verified, 3=Assigned, 4=EnRoute, 5=OnSite, 6=Resolved, 7=Cancelled, 8=DuplicateMerged
+enum RescueRequestStatus {
+  newRequest(1, 'Mới'),
+  verified(2, 'Đã xác minh'),
+  assigned(3, 'Đã phân công'),
+  enRoute(4, 'Đang di chuyển'),
+  onSite(5, 'Tại hiện trường'),
+  resolved(6, 'Đã giải quyết'),
+  cancelled(7, 'Đã hủy'),
+  duplicateMerged(8, 'Trùng lặp');
+
+  const RescueRequestStatus(this.id, this.label);
+  final int id;
+  final String label;
+
+  static RescueRequestStatus fromId(int id) {
+    return RescueRequestStatus.values.firstWhere(
+      (s) => s.id == id,
+      orElse: () => RescueRequestStatus.newRequest,
+    );
+  }
+}
+
+/// Rescue team status matching RescueTeamsStatus table.
+/// DB: 1=Available, 2=Busy, 3=Offline
+enum RescueTeamStatus {
+  available(1, 'Sẵn sàng'),
+  busy(2, 'Đang bận'),
+  offline(3, 'Ngoại tuyến');
+
+  const RescueTeamStatus(this.id, this.label);
+  final int id;
+  final String label;
+
+  static RescueTeamStatus fromId(int id) {
+    return RescueTeamStatus.values.firstWhere(
+      (s) => s.id == id,
+      orElse: () => RescueTeamStatus.available,
     );
   }
 }

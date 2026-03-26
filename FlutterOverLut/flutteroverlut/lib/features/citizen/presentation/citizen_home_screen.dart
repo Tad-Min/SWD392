@@ -81,6 +81,15 @@ class CitizenHomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    if (authState.user?.roleId == 6)
+                      IconButton(
+                        onPressed: () => context.go('/rescue-team'),
+                        icon: const Icon(
+                          Icons.security_rounded,
+                          color: AppColors.emerald,
+                        ),
+                        tooltip: 'Chế độ Cứu hộ',
+                      ),
                     IconButton(
                       onPressed: () => context.push('/citizen/profile'),
                       icon: Icon(
@@ -91,6 +100,7 @@ class CitizenHomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+
                 ),
                 const SizedBox(height: 28),
 
@@ -156,6 +166,72 @@ class CitizenHomeScreen extends ConsumerWidget {
                           Icons.arrow_forward_ios_rounded,
                           color: Colors.white70,
                           size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // ── Volunteer Banner ──
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: () => context.push('/citizen/volunteer'),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.emerald.withValues(alpha: 0.15),
+                          AppColors.cyan.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.emerald.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppColors.emerald, AppColors.cyan],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.volunteer_activism_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tình nguyện viên',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.emerald,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Đăng ký hỗ trợ cứu hộ & đóng góp vật tư',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: AppColors.emerald.withValues(alpha: 0.6),
+                          size: 16,
                         ),
                       ],
                     ),

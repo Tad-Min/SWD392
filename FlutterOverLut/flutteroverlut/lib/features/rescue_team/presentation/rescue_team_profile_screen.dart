@@ -396,17 +396,19 @@ class _RescueTeamProfileScreenState
     if (roleId == null) return 'Người dùng';
     switch (roleId) {
       case 1:
-        return 'Quản trị viên';
+        return 'Người dân';
       case 2:
         return 'Đội cứu hộ';
       case 3:
         return 'Điều phối viên';
       case 4:
-        return 'Lực lượng vũ trang';
+        return 'Quản lý';
       case 5:
-        return 'Trung tâm y tế';
+        return 'Quản trị viên';
+      case 6:
+        return 'Tình nguyện viên';
       default:
-        return 'Người dân';
+        return 'Người dùng';
     }
   }
 

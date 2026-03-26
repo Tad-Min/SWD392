@@ -78,20 +78,20 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     return score;
   }
 
-  /// Map score to urgency info: (level, label, color, icon)
+  /// Map score to urgency info: maps to DB UrgencyLevels (1=Normal, 2=High, 3=Critical).
   _UrgencyInfo get _urgencyInfo {
     final score = _urgencyScore;
     if (score >= 3) {
       return _UrgencyInfo(
-        level: 4,
-        label: 'SOS Khẩn cấp',
+        level: 3, // Critical
+        label: 'Nghiêm trọng',
         color: AppColors.fuchsia,
         icon: Icons.warning_amber_rounded,
         description: 'Tình huống cực kỳ nguy hiểm, cần cứu hộ ngay!',
       );
     } else if (score == 2) {
       return _UrgencyInfo(
-        level: 3,
+        level: 2, // High
         label: 'Nguy hiểm',
         color: AppColors.red,
         icon: Icons.dangerous_outlined,
@@ -99,7 +99,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       );
     } else {
       return _UrgencyInfo(
-        level: 2,
+        level: 1, // Normal
         label: 'Cần hỗ trợ',
         color: AppColors.amber,
         icon: Icons.help_outline_rounded,

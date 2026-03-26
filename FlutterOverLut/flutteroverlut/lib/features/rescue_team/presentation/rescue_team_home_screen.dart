@@ -120,6 +120,16 @@ class RescueTeamHomeScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    if (authState.user?.roleId == 6)
+                      IconButton(
+                        onPressed: () => context.go('/citizen'),
+                        icon: const Icon(
+                          Icons.people_alt_outlined,
+                          size: 22,
+                          color: AppColors.cyan,
+                        ),
+                        tooltip: 'Chế độ người dân',
+                      ),
                     IconButton(
                       onPressed: () => context.push('/rescue-team/profile'),
                       icon: const Icon(
