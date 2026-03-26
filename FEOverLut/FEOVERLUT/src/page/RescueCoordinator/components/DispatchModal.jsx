@@ -1,10 +1,23 @@
 import { useState, useEffect } from 'react';
-import { X, Send, MapPin, AlertTriangle, Users, Clock } from 'lucide-react';
+import { X, Send, MapPin, AlertTriangle, Users, Clock, Plus, Trash2 } from 'lucide-react';
 import { useVehicle } from '../../../features/Vehicle/hook/useVehicle';
 import { useVehiclesStatus } from '../../../features/status/hook/useVehiclesStatus';
 import { useSystemConfig } from '../../../features/system_config/hook/useSystemConfig';
-import { useGetWareHouseStock } from '../../../features/wareHouse/hook/useWareHouse';
+import { useGetWareHouseStock, useGetWareHouse } from '../../../features/wareHouse/hook/useWareHouse';
 import { useInventory } from '../../../features/inventory/hook/useInventory';
+
+// Haversine distance (km)
+const getDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
 
 export default function DispatchModal({
     request,
@@ -27,6 +40,7 @@ export default function DispatchModal({
     const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
     const [selectedProductId, setSelectedProductId] = useState('');
     const [quantity, setQuantity] = useState('');
+    const [dispatchedItems, setDispatchedItems] = useState([]);
 
     const urgencyMeta = {
         1: { label: 'Cần hỗ trợ', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
@@ -118,7 +132,32 @@ export default function DispatchModal({
 
     // Derived state for available warehouses and products
     const availableWarehouseIds = [...new Set(warehouseStocks.map(s => s.warehouseId))];
-    const availableWarehouses = warehouses.filter(w => availableWarehouseIds.includes(w.warehouseId ?? w.id));
+
+    // Compute distance and sort warehouses
+    const sortedWarehouses = [...warehouses]
+        .filter(w => availableWarehouseIds.includes(w.warehouseId ?? w.id))
+        .map(w => {
+            const reqLat = request?.latitude ?? request?.location?.coordinates?.[1];
+            const reqLng = request?.longitude ?? request?.location?.coordinates?.[0];
+            const wLat = w.location?.coordinates?.[1];
+            const wLng = w.location?.coordinates?.[0];
+            const distance = getDistance(reqLat, reqLng, wLat, wLng);
+            return { ...w, distance };
+        })
+        .sort((a, b) => {
+            if (a.distance === null) return 1;
+            if (b.distance === null) return -1;
+            return a.distance - b.distance;
+        });
+
+    const availableWarehouses = sortedWarehouses;
+
+    // Auto-select the nearest warehouse if none selected
+    useEffect(() => {
+        if (availableWarehouses.length > 0 && !selectedWarehouseId) {
+            setSelectedWarehouseId(availableWarehouses[0].warehouseId ?? availableWarehouses[0].id);
+        }
+    }, [availableWarehouses, selectedWarehouseId]);
 
     const availableProductsInWarehouse = warehouseStocks
         .filter(s => s.warehouseId === parseInt(selectedWarehouseId))
@@ -138,6 +177,37 @@ export default function DispatchModal({
         setSelectedProductId('');
         setQuantity('');
     }, [selectedWarehouseId]);
+
+    const handleAddReliefItem = () => {
+        if (!selectedWarehouseId || !selectedProductId || !quantity) return;
+        const wInfo = availableWarehouses.find(w => (w.warehouseId ?? w.id) == selectedWarehouseId);
+        const pInfo = availableProductsInWarehouse.find(p => p.productId == selectedProductId);
+
+        if (!wInfo || !pInfo) return;
+
+        const exists = dispatchedItems.find(i => i.warehouseId == selectedWarehouseId && i.productId == selectedProductId);
+        if (exists) {
+            alert('Sản phẩm này từ kho này đã được thêm vào danh sách. Vui lòng xoá và thêm lại nếu muốn đổi số lượng.');
+            return;
+        }
+
+        const newItem = {
+            warehouseId: selectedWarehouseId,
+            warehouseName: wInfo.warehouseName,
+            productId: selectedProductId,
+            productName: pInfo.productName || pInfo.name,
+            quantity: parseInt(quantity),
+            maxQuantity: maxQuantity
+        };
+
+        setDispatchedItems(prev => [...prev, newItem]);
+        setSelectedProductId('');
+        setQuantity('');
+    };
+
+    const handleRemoveReliefItem = (index) => {
+        setDispatchedItems(prev => prev.filter((_, i) => i !== index));
+    };
 
     if (!request) return null;
 
@@ -162,15 +232,15 @@ export default function DispatchModal({
         };
 
         if (request.requestType === 2 || request.requestType === 3) {
-            if (selectedWarehouseId && selectedProductId && quantity) {
-                payload.txData = {
-                    warehouseId: parseInt(selectedWarehouseId),
-                    productId: parseInt(selectedProductId),
-                    quantity: parseInt(quantity),
-                    oldQuantity: parseInt(maxQuantity),
+            if (dispatchedItems.length > 0) {
+                payload.txDataList = dispatchedItems.map(item => ({
+                    warehouseId: parseInt(item.warehouseId),
+                    productId: parseInt(item.productId),
+                    quantity: parseInt(item.quantity),
+                    oldQuantity: parseInt(item.maxQuantity),
                     txType: 0, // Outflow (Export)
                     createdByUserId: parseInt(localStorage.getItem('userId') || 0)
-                };
+                }));
             }
         }
 
@@ -312,55 +382,98 @@ export default function DispatchModal({
                             <div className="bg-emerald-900/20 border border-emerald-500/20 p-3 rounded-xl mt-3 space-y-3">
                                 <h4 className="text-sm font-semibold text-emerald-400">Xuất hàng cứu trợ</h4>
 
-                                {/* Kho hàng */}
-                                <div>
-                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Kho hàng</label>
-                                    <select
-                                        value={selectedWarehouseId}
-                                        onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500"
-                                    >
-                                        <option value="">-- Chọn kho hàng --</option>
-                                        {availableWarehouses.map(w => (
-                                            <option key={w.warehouseId ?? w.id} value={w.warehouseId ?? w.id}>{w.warehouseName}</option>
+                                {/* Selected Items List */}
+                                {dispatchedItems.length > 0 && (
+                                    <div className="space-y-2 mb-3">
+                                        {dispatchedItems.map((item, idx) => (
+                                            <div key={idx} className="flex items-center justify-between bg-emerald-900/40 border border-emerald-500/30 rounded-lg p-2.5">
+                                                <div>
+                                                    <div className="text-xs font-semibold text-emerald-300">{item.productName}</div>
+                                                    <div className="text-[10px] text-emerald-400 opacity-80">{item.warehouseName} - Số lượng: {item.quantity}</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveReliefItem(idx)}
+                                                    className="p-1.5 hover:bg-red-500/20 rounded-md transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
+                                            </div>
                                         ))}
-                                    </select>
-                                </div>
+                                    </div>
+                                )}
 
-                                {/* Sản phẩm */}
-                                <div>
-                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Sản phẩm</label>
-                                    <select
-                                        value={selectedProductId}
-                                        onChange={(e) => setSelectedProductId(e.target.value)}
-                                        disabled={!selectedWarehouseId}
-                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
+                                {/* Form Add Item */}
+                                <div className="space-y-2 p-3 bg-slate-800/40 rounded-lg border border-white/5">
+                                    {/* Kho hàng */}
+                                    <div>
+                                        <label className="text-xs font-medium text-slate-300 mb-1 block">Kho hàng</label>
+                                        <select
+                                            value={selectedWarehouseId}
+                                            onChange={(e) => setSelectedWarehouseId(e.target.value)}
+                                            className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500"
+                                        >
+                                            <option value="">-- Chọn kho hàng --</option>
+                                            {availableWarehouses.map((w, idx) => {
+                                                const distText = w.distance != null
+                                                    ? ` (Cách ${w.distance >= 1 ? w.distance.toFixed(1) + ' km' : (w.distance * 1000).toFixed(0) + ' m'})`
+                                                    : '';
+                                                const isNearest = idx === 0 && w.distance != null;
+                                                return (
+                                                    <option key={w.warehouseId ?? w.id} value={w.warehouseId ?? w.id}>
+                                                        {isNearest ? '⭐ ' : ''}{w.warehouseName}{distText}{isNearest ? ' - Gần nhất' : ''}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+
+                                    {/* Sản phẩm */}
+                                    <div>
+                                        <label className="text-xs font-medium text-slate-300 mb-1 block">Sản phẩm</label>
+                                        <select
+                                            value={selectedProductId}
+                                            onChange={(e) => setSelectedProductId(e.target.value)}
+                                            disabled={!selectedWarehouseId}
+                                            className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
+                                        >
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            {availableProductsInWarehouse.map(p => (
+                                                <option key={p.productId} value={p.productId}>{p.productName} (Còn: {p.currentQuantity ?? p.quantity})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Số lượng */}
+                                    <div>
+                                        <label className="text-xs font-medium text-slate-300 mb-1 block">Số lượng xuất (Max: {maxQuantity})</label>
+                                        <input
+                                            type="number"
+                                            value={quantity}
+                                            min="1"
+                                            max={maxQuantity}
+                                            onChange={(e) => {
+                                                const val = parseInt(e.target.value);
+                                                if (val > maxQuantity) setQuantity(maxQuantity);
+                                                else if (val < 1) setQuantity('');
+                                                else setQuantity(val);
+                                            }}
+                                            disabled={!selectedProductId}
+                                            placeholder="Nhập số lượng..."
+                                            className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
+                                        />
+                                    </div>
+
+                                    {/* Add Button */}
+                                    <button
+                                        type="button"
+                                        onClick={handleAddReliefItem}
+                                        disabled={!selectedWarehouseId || !selectedProductId || !quantity}
+                                        className="w-full mt-2 py-2.5 rounded-lg font-semibold text-sm bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <option value="">-- Chọn sản phẩm --</option>
-                                        {availableProductsInWarehouse.map(p => (
-                                            <option key={p.productId} value={p.productId}>{p.productName} (Còn: {p.currentQuantity ?? p.quantity})</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Số lượng */}
-                                <div>
-                                    <label className="text-xs font-medium text-slate-300 mb-1 block">Số lượng xuất (Max: {maxQuantity})</label>
-                                    <input
-                                        type="number"
-                                        value={quantity}
-                                        min="1"
-                                        max={maxQuantity}
-                                        onChange={(e) => {
-                                            const val = parseInt(e.target.value);
-                                            if (val > maxQuantity) setQuantity(maxQuantity);
-                                            else if (val < 1) setQuantity('');
-                                            else setQuantity(val);
-                                        }}
-                                        disabled={!selectedProductId}
-                                        placeholder="Nhập số lượng..."
-                                        className="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 text-white border border-white/10 focus:border-emerald-500 disabled:opacity-50"
-                                    />
+                                        <Plus className="w-4 h-4" />
+                                        Thêm vào danh sách xuất
+                                    </button>
                                 </div>
                             </div>
                         )}
