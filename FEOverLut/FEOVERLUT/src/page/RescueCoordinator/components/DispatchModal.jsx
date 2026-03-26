@@ -489,7 +489,11 @@ export default function DispatchModal({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!selectedTeamId || loading}
+                        disabled={
+                            !selectedTeamId ||
+                            loading ||
+                            ((request?.requestType === 2 || request?.requestType === 3) && dispatchedItems.length === 0)
+                        }
                         className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {loading ? (
