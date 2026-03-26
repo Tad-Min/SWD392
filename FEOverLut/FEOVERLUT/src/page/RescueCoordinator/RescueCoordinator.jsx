@@ -104,7 +104,7 @@ export default function RescueCoordinator() {
 
     const handleConfirmDispatch = async (missionData) => {
         try {
-            const { rescueRequestId, teamId, vehicleId, description, txData } = missionData;
+            const { rescueRequestId, teamId, vehicleId, description, txDataList } = missionData;
             const payload = { rescueRequestId, teamId, description };
             const missionRes = await createRescueMission(payload);
             console.log("Create Mission Response:", missionRes);
@@ -167,27 +167,29 @@ export default function RescueCoordinator() {
                 }
             }
 
-            // Create Inventory Transaction if txData is provided
-            if (txData && missionId) {
-                try {
-                    await createTransaction({
-                        ...txData,
-                        missionId: missionId
-                    });
-
-                    // Update warehouse stock dynamically after successful transaction
-                    if (txData.oldQuantity !== undefined) {
-                        const newQuantity = txData.oldQuantity - txData.quantity;
-                        await updateWareHouseStock({
-                            warehouseId: txData.warehouseId,
-                            productId: txData.productId,
-                            currentQuantity: newQuantity,
-                            lastUpdated: new Date().toISOString()
+            // Create Inventory Transactions if txDataList is provided
+            if (txDataList && txDataList.length > 0 && missionId) {
+                for (const txItem of txDataList) {
+                    try {
+                        await createTransaction({
+                            ...txItem,
+                            missionId: missionId
                         });
-                        console.log(`Updated warehouse ${txData.warehouseId} product ${txData.productId} stock to ${newQuantity}`);
+
+                        // Update warehouse stock dynamically after successful transaction
+                        if (txItem.oldQuantity !== undefined) {
+                            const newQuantity = txItem.oldQuantity - txItem.quantity;
+                            await updateWareHouseStock({
+                                warehouseId: txItem.warehouseId,
+                                productId: txItem.productId,
+                                currentQuantity: newQuantity,
+                                lastUpdated: new Date().toISOString()
+                            });
+                            console.log(`Updated warehouse ${txItem.warehouseId} product ${txItem.productId} stock to ${newQuantity}`);
+                        }
+                    } catch (e) {
+                        console.error('Failed to create inventory transaction or update stock:', e?.response?.status, e?.response?.data, e);
                     }
-                } catch (e) {
-                    console.error('Failed to create inventory transaction or update stock:', e?.response?.status, e?.response?.data, e);
                 }
             }
 

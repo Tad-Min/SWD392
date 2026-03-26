@@ -50,7 +50,7 @@ public class RescueTeamDAO
             return await _db.RescueTeams
                 .Include(e => e.Role)
                 .AsNoTracking()
-                .Where(e => e.RescueTeamMembers.Any(x => x.UserId == userId) && e.IsActive)
+                .Where(e => e.RescueTeamMembers.Any(x => x.UserId == userId && x.IsActive))
                 .ToListAsync();
         }
         catch (Exception ex)

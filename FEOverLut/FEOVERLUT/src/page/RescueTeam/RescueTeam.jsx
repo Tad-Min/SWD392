@@ -5,7 +5,7 @@ import MissionDetail from './components/MissionDetail';
 import TeamInfo from './components/TeamInfo';
 import MyProfileModal from '../../components/MyProfileModal';
 import NotificationBell from '../../components/NotificationBell';
-import { useRescueTeamById, useGetRescueTeamMemberByTeamId, useGetRescueTeamMemberRoleById } from '../../features/Rescue/hook/useRescueTeam';
+import { useGetRescueTeamByUserId, useGetRescueTeamMemberByTeamId, useGetRescueTeamMemberRoleById } from '../../features/Rescue/hook/useRescueTeam';
 import { useUserById } from '../../features/users/hook/useUsers';
 import { useRealtimeRescueMissions } from './WebSocket/useRealtimeRescueMissions.jsx';
 
@@ -49,7 +49,7 @@ const RescueTeam = () => {
     const dataLoading = teamLoading || missionsLoading;
 
     // Hooks
-    const { getRescueTeamById } = useRescueTeamById();
+    const { getRescueTeamByUserId } = useGetRescueTeamByUserId();
     const { getRescueTeamMemberByTeamId } = useGetRescueTeamMemberByTeamId();
     const { getRescueTeamMemberRoleById } = useGetRescueTeamMemberRoleById();
     const { getUserById } = useUserById();
@@ -62,7 +62,7 @@ const RescueTeam = () => {
                 if (!userId) return;
 
                 // Step 1: Get team info for the logged-in user
-                const team = await getRescueTeamById(userId);
+                const team = await getRescueTeamByUserId(userId);
                 if (!team) return;
 
                 // team could be a single object or array – normalise
@@ -268,7 +268,7 @@ const RescueTeam = () => {
                         <p className={`max-w-md ${theme.textMuted} mb-8 leading-relaxed`}>
                             Tài khoản của bạn hiện chưa được phân công vào bất kỳ Đội cứu hộ nào hoặc dữ liệu đội đã bị xóa khỏi hệ thống. Vui lòng liên hệ Điều phối viên để được hỗ trợ.
                         </p>
-                        <button 
+                        <button
                             onClick={() => window.location.reload()}
                             className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all border border-white/5 active:scale-95"
                         >
